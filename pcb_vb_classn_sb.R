@@ -238,7 +238,7 @@ gplot2 <- ggplot(data=plot_df1 %>% filter(Method != 'Bayes', Method!='VB'), aes(
   #theme(panel.spacing = unit(1, "lines"), plot.margin=margin(1, 10, 0, 10, "pt"), legend.position='none' ) 
   theme( legend.position='none',plot.margin=margin(0, 10, 0, 0, "pt") ) 
 
-ggsave('/Users/SLyddon/Dropbox (Lyddon-Holmes)/Lyddon-Holmes Team Folder/np_learning/np_learning_nips_oct18/code/vb_logit_scatter_sb.pdf',plot=gplot2,width=14,height=5,units='cm')
+#ggsave('/Users/SLyddon/Dropbox (Lyddon-Holmes)/Lyddon-Holmes Team Folder/np_learning/np_learning_nips_oct18/code/vb_logit_scatter_sb.pdf',plot=gplot2,width=14,height=5,units='cm')
 
-save.image('/Users/SLyddon/Dropbox (Lyddon-Holmes)/Lyddon-Holmes Team Folder/np_learning/np_learning_nips_oct18/code/workspace_pcb_vb_classn_sb.RData')
+#save.image('/Users/SLyddon/Dropbox (Lyddon-Holmes)/Lyddon-Holmes Team Folder/np_learning/np_learning_nips_oct18/code/workspace_pcb_vb_classn_sb.RData')
 
