@@ -3,12 +3,18 @@
 library(utils)
 library(tidyverse)
 library(MASS)
+# TODO: not available on CRAN, requires a specific version, which requires gfortran
+require(devtools)
+install_version("BayesLogit", version = "0.6", repos = "http://cran.ma.imperial.ac.uk")
+
 library(BayesLogit)
+
 library(GGally)
 library(rstan)
 
-dataset_path <- '/Users/SLyddon/Dropbox (Personal)/OxWaSP/Research/jmlr-delgado/data/'
-bayes_logit_model <- stan_model(file = '/Users/SLyddon/Dropbox (Lyddon-Holmes)/Lyddon-Holmes Team Folder/np_learning/np_learning_nips_oct18/code/bayes_logit.stan')
+# TODO: get the data, the model, and update the paths
+#dataset_path <- '/Users/SLyddon/Dropbox (Personal)/OxWaSP/Research/jmlr-delgado/data/'
+#bayes_logit_model <- stan_model(file = '/Users/SLyddon/Dropbox (Lyddon-Holmes)/Lyddon-Holmes Team Folder/np_learning/np_learning_nips_oct18/code/bayes_logit.stan')
 
 
 # Function to load dataset. Won't be necessary in the package
@@ -49,6 +55,12 @@ load_dataset <- function( dataset_input_list=list(name='toy',n=200, pct_train=0.
   return(dataset)
 }
 
+# TODO: robustify -1 and 1, or change the Bayes Logit call
+
+# This code implements algorithm 2, and the stick-breaking function
+# calculates the parameter T for algorithm 1. That is the only difference between the two algorithms.
+# "Stick-breaking" comes from a stick of length 1 to break into the number of items in the probability
+# distribution.
 
 # Function that takes stick-breaking NPL approach (Section 2 of supplementary material)
 stick_breaking <- function( par_c=1, n_start=100, eps=10^-8){
@@ -65,6 +77,8 @@ stick_breaking <- function( par_c=1, n_start=100, eps=10^-8){
   return(wgts)
 }
 
+
+# TODO: change name `prior_sample_size`, which corresponds to c in the paper
 
 # Function that implements the NP-learning algorithm
 # Either 'posterior_sample' is passed or the posterior is assumed normal with 'mix_mean' and 'mix_cov' defining it.
@@ -83,7 +97,9 @@ mdp_logit_mvn_stickbreaking <- function(n_samp=100, mix_mean, mix_cov, posterior
   for(i in 1:n_samp){ # This for loop can be be parallelised
     if(prior_sample_size !=0){
       # Get stick-breaking split between data and model
-      v1 <- rbeta(n=1, shape1=prior_sample_size, shape2=dataset$n)
+      v1 <- rbeta(n=1, shape1=prior_sample_size, shape2=dataset$n) # v1 is random around c / (c + n)
+      # TODO: maybe make v1 deterministic, which only works for algorithm 1, otherwise in algorithm 2
+      # the epsilon is just 1/prior_sample_size.
       w_raw_data <- rexp(n=dataset$n)
       w_data <- w_raw_data / sum(w_raw_data) * (1-v1)
       
@@ -95,6 +111,7 @@ mdp_logit_mvn_stickbreaking <- function(n_samp=100, mix_mean, mix_cov, posterior
       }
             
       # Create prior samples
+      # Prior means "model"
       x_prior <- matrix(rep(t(dataset$x_train),n_prior/dataset$n_train), ncol=ncol(dataset$x_train), byrow=TRUE)
       probs <- e1071::sigmoid( cbind(1,x_prior) %*% mix_theta[i,])
       y_prior <- rbinom(n=n_prior,size=1,prob=probs)
