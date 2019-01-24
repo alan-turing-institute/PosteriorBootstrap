@@ -3,7 +3,8 @@
 library(utils)
 library(tidyverse)
 library(MASS)
-# TODO: not available on CRAN, requires a specific version, which requires gfortran
+
+# TODO: not available on CRAN for the general version, requires a specific version, which requires gfortran
 require(devtools)
 install_version("BayesLogit", version = "0.6", repos = "http://cran.ma.imperial.ac.uk")
 
