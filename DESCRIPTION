@@ -26,5 +26,8 @@ Imports:
     tidyverse,
     utils
 Suggests: 
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 RoxygenNote: 6.1.1
+VignetteBuilder: knitr
