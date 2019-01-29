@@ -17,7 +17,7 @@ library(rstan)
 
 # TODO: get the data, the model, and update the paths
 dataset_path <- 'data/'
-#JRnomodel: bayes_logit_model <- stan_model(file = '/Users/SLyddon/Dropbox (Lyddon-Holmes)/Lyddon-Holmes Team Folder/np_learning/np_learning_nips_oct18/code/bayes_logit.stan')
+bayes_logit_model <- stan_model(file = file.path(dataset_path, 'bayes_logit.stan'))
 
 
 # Function to load dataset. Won't be necessary in the package
@@ -210,22 +210,22 @@ set.seed(1)
 # Load the dataset
 dataset1 <- load_dataset(list(name='statlog-german-credit', pct_train=pct_train))
 # Get Bayes (Polson samples)
-#JRnomodel: out_bayes1 <- BayesLogit::logit(y=0.5*(dataset1$y_train+1), X=cbind(1,dataset1$x_train), P0=diag(rep(1/prior_variance,dataset1$n_cov+1) ), samp=n_samp, burn=n_samp )
+out_bayes1 <- BayesLogit::logit(y=0.5*(dataset1$y_train+1), X=cbind(1,dataset1$x_train), P0=diag(rep(1/prior_variance,dataset1$n_cov+1) ), samp=n_samp, burn=n_samp )
 #out_VB1 <- logit_VB(dataset1,prior_mean=0,prior_cov=prior_variance, n_samp=n_samp)
 # Add in Stan VB
 train_dat <- list(n = dataset1$n_train, p = dataset1$n_cov+1, x = cbind(1,dataset1$x_train), y = 0.5*(dataset1$y_train + 1), beta_sd=sqrt(prior_variance) )
 # Run VB approx from STAN
-#JRnomodel: out_VB_stan <- vb(bayes_logit_model, data=train_dat, output_samples=n_samp, seed=123)
-#JRnomodel: stan_vb_sample <- extract(out_VB_stan)$beta
+out_VB_stan <- vb(bayes_logit_model, data=train_dat, output_samples=n_samp, seed=123)
+stan_vb_sample <- extract(out_VB_stan)$beta
 plot_df1 <- data_frame()
 # Get MDP samples for various sample sizes
 for(i in prior_sample_sizes ) {
-  #JRnomodel: tmp_mdp_out <- mdp_logit_mvn_stickbreaking(n_samp=n_samp_mdp, mix_mean=NULL, mix_cov=NULL, posterior_sample=stan_vb_sample[1:n_samp_mdp,], prior_sample_size=i, dataset=dataset1, tol=1e-8)
-  #JRnomodel: plot_df1 <- rbind(plot_df1, data_frame(id=1:n_samp_mdp, beta3=tmp_mdp_out[,3], beta5=tmp_mdp_out[,5], beta21=tmp_mdp_out[,21], beta22=tmp_mdp_out[,22],Method='MDP-VB', prior_sample_size=i ) )
+  tmp_mdp_out <- mdp_logit_mvn_stickbreaking(n_samp=n_samp_mdp, mix_mean=NULL, mix_cov=NULL, posterior_sample=stan_vb_sample[1:n_samp_mdp,], prior_sample_size=i, dataset=dataset1, tol=1e-8)
+  plot_df1 <- rbind(plot_df1, data_frame(id=1:n_samp_mdp, beta3=tmp_mdp_out[,3], beta5=tmp_mdp_out[,5], beta21=tmp_mdp_out[,21], beta22=tmp_mdp_out[,22],Method='MDP-VB', prior_sample_size=i ) )
   #plot_df1 <- rbind(plot_df1, data_frame(id=1:n_samp, beta3=out_VB1$beta[,3], beta5=out_VB1$beta[,5],beta21=out_VB1$beta[,21], beta22=out_VB1$beta[,22], Method='VB', prior_sample_size=i) )
-  #JRnomodel: plot_df1 <- rbind(plot_df1, data_frame(id=1:n_samp, beta3=out_bayes1$beta[,3], beta5=out_bayes1$beta[,5], beta21=out_bayes1$beta[,21], beta22=out_bayes1$beta[,22], Method='Bayes',prior_sample_size=i) )
-  #JRnomodel: plot_df1 <- rbind(plot_df1, data_frame(id=1:n_samp, beta3=stan_vb_sample[,3], beta5=stan_vb_sample[,5], beta21=stan_vb_sample[,21], beta22=stan_vb_sample[,22], Method='VB_Stan', prior_sample_size=i) )
-  #JRnomodel: print(summary(tmp_mdp_out[,c(21,22)]))
+  plot_df1 <- rbind(plot_df1, data_frame(id=1:n_samp, beta3=out_bayes1$beta[,3], beta5=out_bayes1$beta[,5], beta21=out_bayes1$beta[,21], beta22=out_bayes1$beta[,22], Method='Bayes',prior_sample_size=i) )
+  plot_df1 <- rbind(plot_df1, data_frame(id=1:n_samp, beta3=stan_vb_sample[,3], beta5=stan_vb_sample[,5], beta21=stan_vb_sample[,21], beta22=stan_vb_sample[,22], Method='VB_Stan', prior_sample_size=i) )
+  print(summary(tmp_mdp_out[,c(21,22)]))
 }
 
 gplot2 <- ggplot(data=plot_df1 %>% filter(Method != 'Bayes', Method!='VB'), aes(x=beta21, y=beta22, colour=Method) ) + 
