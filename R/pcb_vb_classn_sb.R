@@ -1,10 +1,11 @@
 ## Code generating figure 2 in Lyddon, Walker & Holmes, 2018.
-options(warn=2)
+options(warn=1)
 
 
 library(utils)
 library(tidyverse)
 library(MASS)
+library(e1071)
 
 # TODO: not available on CRAN for the general version, requires a specific version, which requires gfortran
 # require(devtools)
@@ -36,6 +37,11 @@ load_dataset <- function( dataset_input_list=list(name='toy',n=200, pct_train=0.
   } else {
     # Load the dataset
     raw_dataset <- as.matrix( read.table(paste(dataset_path,dataset$name,'/',dataset$name,'_R.dat', sep='')) )
+    # German statlog dataset outcomes are (1, 2), so subtract 1 here to make them
+    # 0,1, as in the toy dataset
+    if ("statlog-german-credit" == dataset_input_list$name) {
+      raw_dataset[, ncol(raw_dataset)] <- raw_dataset[, ncol(raw_dataset)] - 1
+    }
     colnames(raw_dataset) <- NULL
   }
   # Add the dataset to the dataset output list.
@@ -43,7 +49,7 @@ load_dataset <- function( dataset_input_list=list(name='toy',n=200, pct_train=0.
   dataset$n_cov <- dim(raw_dataset)[2]-1 # Doesn't include an intercept
   dataset$obs <- 1:dataset$n
   dataset$x <- raw_dataset[ , 1:dataset$n_cov, drop=FALSE ]
-  dataset$y <- 2 * raw_dataset[ , dataset$n_cov + 1 ] - 3 # y is now in +/- 1 format.
+  dataset$y <- 2 * raw_dataset[ , dataset$n_cov + 1 ] - 1 # y is now in +/- 1 format.
   # Generate the training dataset and add to the list.
   dataset$n_train <- floor(dataset$n * dataset$pct_train) 
   dataset$obs_train <- sample.int(n=dataset$n, size=dataset$n_train, replace=FALSE)
@@ -131,6 +137,7 @@ mdp_logit_mvn_stickbreaking <- function(n_samp=100, mix_mean, mix_cov, posterior
       y_all <- 0.5 + 0.5*dataset$y_train
     }
     # Parameter is computed via weighted glm fit.
+    stopifnot(all(y_all %in% c(0,1)))
     glm_fit <- glm.fit(x=cbind(1,x_all), y=y_all, weights=wgts, family=binomial(link=logit) )
     theta_out[i,] <- glm_fit$coefficients
   }
@@ -240,7 +247,7 @@ gplot2 <- ggplot(data=plot_df1 %>% filter(Method != 'Bayes', Method!='VB'), aes(
   #theme(panel.spacing = unit(1, "lines"), plot.margin=margin(1, 10, 0, 10, "pt"), legend.position='none' ) 
   theme( legend.position='none',plot.margin=margin(0, 10, 0, 0, "pt") ) 
 
-#ggsave('/Users/SLyddon/Dropbox (Lyddon-Holmes)/Lyddon-Holmes Team Folder/np_learning/np_learning_nips_oct18/code/vb_logit_scatter_sb.pdf',plot=gplot2,width=14,height=5,units='cm')
+ggsave('../vb_logit_scatter_sb.pdf',plot=gplot2,width=14,height=5,units='cm')
 
-#save.image('/Users/SLyddon/Dropbox (Lyddon-Holmes)/Lyddon-Holmes Team Folder/np_learning/np_learning_nips_oct18/code/workspace_pcb_vb_classn_sb.RData')
+save.image('../workspace_pcb_vb_classn_sb.RData')
 
