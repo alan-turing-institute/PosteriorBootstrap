@@ -19,7 +19,6 @@ library(rstan)
 dataset_path <- 'data/'
 bayes_logit_model <- stan_model(file = file.path(dataset_path, 'bayes_logit.stan'))
 
-
 # Function to load dataset. Won't be necessary in the package
 load_dataset <- function( dataset_input_list=list(name='toy',n=200, pct_train=0.5) ){
   # Check dataset_input_list has required elements
@@ -43,7 +42,7 @@ load_dataset <- function( dataset_input_list=list(name='toy',n=200, pct_train=0.
   dataset$n_cov <- dim(raw_dataset)[2]-1 # Doesn't include an intercept
   dataset$obs <- 1:dataset$n
   dataset$x <- raw_dataset[ , 1:dataset$n_cov, drop=FALSE ]
-  dataset$y <- 2 * raw_dataset[ , dataset$n_cov + 1 ] - 1 # y is now in +/- 1 format.
+  dataset$y <- 2 * raw_dataset[ , dataset$n_cov + 1 ] - 3 # y is now in +/- 1 format.
   # Generate the training dataset and add to the list.
   dataset$n_train <- floor(dataset$n * dataset$pct_train) 
   dataset$obs_train <- sample.int(n=dataset$n, size=dataset$n_train, replace=FALSE)
