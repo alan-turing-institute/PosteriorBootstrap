@@ -19,6 +19,7 @@ library(rstan)
 dataset_path <- 'data/'
 bayes_logit_model <- stan_model(file = file.path(dataset_path, 'bayes_logit.stan'))
 
+
 # Function to load dataset. Won't be necessary in the package
 load_dataset <- function( dataset_input_list=list(name='toy',n=200, pct_train=0.5) ){
   # Check dataset_input_list has required elements
