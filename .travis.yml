@@ -3,9 +3,9 @@ dist: xenial
 language: r
 
 before_install:
-  # Compile BayesLogit
+  # Install BayesLogit which needs the gfortran compiler
   - sudo apt install gfortran
-  - Rscript -e 'install.packages('devtools'); require(devtools); install_version("BayesLogit", version = "0.6")'
+  - Rscript -e 'install.packages("devtools"); require(devtools); install_version("BayesLogit", version = "0.6")'
 
 r:
   - oldrel
