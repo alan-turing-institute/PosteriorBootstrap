@@ -16,8 +16,6 @@ Authors@R:
            email = "james.em.robinson@gmail.com")
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
 Imports:
     BayesLogit,
     e1071,
