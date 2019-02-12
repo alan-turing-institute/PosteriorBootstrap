@@ -6,12 +6,14 @@ language: r
 apt_packages:
   - gfortran
 
+# Install BayesLogit 0.6 using devtools
 before_install:
-  # Install BayesLogit 0.6 using devtools
-  # - sudo apt install gfortran
   - Rscript -e 'install.packages("devtools"); require(devtools); install_version("BayesLogit", version = "0.6")'
 
 r:
   - oldrel
   - release
   - devel
+
+after_success:
+  - Rscript -e 'covr::codecov()'
