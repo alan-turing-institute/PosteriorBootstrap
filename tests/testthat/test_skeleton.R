@@ -1,4 +1,4 @@
-context("String length")
+context("Dummy test")
 library(PosteriorBootstrap)
 
 test_that("dummy test", {

@@ -1,7 +1,6 @@
 ## Code generating figure 2 in Lyddon, Walker & Holmes, 2018.
 options(warn=1)
 
-
 library(utils)
 library(tidyverse)
 library(MASS)
@@ -18,7 +17,6 @@ library(rstan)
 
 # TODO: get the data, the model, and update the paths
 dataset_path <- 'data/'
-bayes_logit_model <- stan_model(file = file.path(dataset_path, 'bayes_logit.stan'))
 
 
 # Function to load dataset. Won't be necessary in the package
@@ -203,14 +201,15 @@ StatDensity2d1 <- ggproto("StatDensity2d1", Stat,
   }
 )
 
-
+script <- function() {
+  
 # Stickbreaking plot
 timestamp()
 base_font_size=8
 pct_train=1
-n_samp=1000
-n_samp_mdp <- 1000
-prior_sample_sizes <- c(1,1000,20000)
+n_samp=10
+n_samp_mdp <- 10
+prior_sample_sizes <- c(1,10,200)
 prior_variance <- 100
 set.seed(1)
 
@@ -222,6 +221,7 @@ out_bayes1 <- BayesLogit::logit(y=0.5*(dataset1$y_train+1), X=cbind(1,dataset1$x
 # Add in Stan VB
 train_dat <- list(n = dataset1$n_train, p = dataset1$n_cov+1, x = cbind(1,dataset1$x_train), y = 0.5*(dataset1$y_train + 1), beta_sd=sqrt(prior_variance) )
 # Run VB approx from STAN
+bayes_logit_model <- stan_model(file = file.path(dataset_path, 'bayes_logit.stan'))
 out_VB_stan <- vb(bayes_logit_model, data=train_dat, output_samples=n_samp, seed=123)
 stan_vb_sample <- extract(out_VB_stan)$beta
 plot_df1 <- data_frame()
@@ -251,3 +251,6 @@ ggsave('../vb_logit_scatter_sb.pdf',plot=gplot2,width=14,height=5,units='cm')
 
 save.image('../workspace_pcb_vb_classn_sb.RData')
 
+}
+
+#script()
