@@ -1,19 +1,13 @@
 ## Code generating figure 2 in Lyddon, Walker & Holmes, 2018.
 options(warn=1)
 
-library(utils)
-library(tidyverse)
-library(MASS)
-library(e1071)
-
-# TODO: not available on CRAN for the general version, requires a specific version, which requires gfortran
-# require(devtools)
-# install_version("BayesLogit", version = "0.6")
-
-library(BayesLogit)
-
-library(GGally)
-library(rstan)
+requireNamespace("BayesLogit", quietly = TRUE)
+requireNamespace("e1071", quietly = TRUE)
+requireNamespace("GGally", quietly = TRUE)
+requireNamespace("MASS", quietly = TRUE)
+requireNamespace("rstan", quietly = TRUE)
+requireNamespace("tidyverse", quietly = TRUE)
+requireNamespace("utils", quietly = TRUE)
 
 # TODO: get the data, the model, and update the paths
 dataset_path <- 'data/'
@@ -49,7 +43,7 @@ load_dataset <- function( dataset_input_list=list(name='toy',n=200, pct_train=0.
   dataset$x <- raw_dataset[ , 1:dataset$n_cov, drop=FALSE ]
   dataset$y <- 2 * raw_dataset[ , dataset$n_cov + 1 ] - 1 # y is now in +/- 1 format.
   # Generate the training dataset and add to the list.
-  dataset$n_train <- floor(dataset$n * dataset$pct_train) 
+  dataset$n_train <- floor(dataset$n * dataset$pct_train)
   dataset$obs_train <- sample.int(n=dataset$n, size=dataset$n_train, replace=FALSE)
   dataset$x_train <- dataset$x[dataset$obs_train,,drop=FALSE]
   dataset$y_train <- dataset$y[dataset$obs_train]
@@ -109,14 +103,14 @@ mdp_logit_mvn_stickbreaking <- function(n_samp=100, mix_mean, mix_cov, posterior
       # the epsilon is just 1/prior_sample_size.
       w_raw_data <- rexp(n=dataset$n)
       w_data <- w_raw_data / sum(w_raw_data) * (1-v1)
-      
+
       w_raw_model <- stick_breaking(par_c=prior_sample_size, n_start=dataset$n_train, eps=tol)
       w_model <- w_raw_model * v1
       n_prior <- length(w_model)
       if(i==1){
         print(paste('n_prior =',n_prior))
       }
-            
+
       # Create prior samples
       # Prior means "model"
       x_prior <- matrix(rep(t(dataset$x_train),n_prior/dataset$n_train), ncol=ncol(dataset$x_train), byrow=TRUE)
@@ -172,24 +166,24 @@ stat_density_2d1 <- function(mapping = NULL, data = NULL,
 }
 
 # Plotting detail. We can ignore.
-StatDensity2d1 <- ggproto("StatDensity2d1", Stat,
-  default_aes = aes(colour = "#3366FF", size = 0.5),
+StatDensity2d1 <- ggplot2::ggproto("StatDensity2d1", ggplot2::Stat,
+  default_aes = ggplot2::aes(colour = "#3366FF", size = 0.5),
   required_aes = c("x", "y"),
-  
+
   compute_group = function(data, scales, na.rm = FALSE, h = NULL,
                            contour = TRUE, n = 100, bins = NULL,
                            binwidth = NULL) {
     if (is.null(h)) {
       h <- c(MASS::bandwidth.nrd(data$x)*1.5, MASS::bandwidth.nrd(data$y)*1.5 )
     }
-                            
+
     dens <- MASS::kde2d(
       data$x, data$y, h = h, n = n,
       lims = c(scales$x$dimension(), scales$y$dimension())
     )
     df <- data.frame(expand.grid(x = dens$x, y = dens$y), z = as.vector(dens$z))
     df$group <- data$group[1]
-    
+
     if (contour) {
       StatContour$compute_panel(df, scales, bins, binwidth)
     } else {
@@ -202,7 +196,7 @@ StatDensity2d1 <- ggproto("StatDensity2d1", Stat,
 )
 
 script <- function() {
-  
+
 # Stickbreaking plot
 timestamp()
 base_font_size=8
@@ -235,7 +229,7 @@ for(i in prior_sample_sizes ) {
   print(summary(tmp_mdp_out[,c(21,22)]))
 }
 
-gplot2 <- ggplot(data=plot_df1 %>% filter(Method != 'Bayes', Method!='VB'), aes(x=beta21, y=beta22, colour=Method) ) + 
+gplot2 <- ggplot(data=plot_df1 %>% filter(Method != 'Bayes', Method!='VB'), aes(x=beta21, y=beta22, colour=Method) ) +
   stat_density_2d1(bins=5 ) +
   geom_point(data=plot_df1%>% filter(Method=='Bayes', id<1001), alpha=0.1, size=1) +
   facet_wrap(~prior_sample_size, nrow=1, scales="fixed", labeller=label_bquote( c ~"="~ .(prior_sample_size) ) ) +
@@ -244,8 +238,8 @@ gplot2 <- ggplot(data=plot_df1 %>% filter(Method != 'Bayes', Method!='VB'), aes(
   ylab(expression(beta[22])) +
   #ylim(-0.75,1.6) +
   #xlim(0,1.2) +
-  #theme(panel.spacing = unit(1, "lines"), plot.margin=margin(1, 10, 0, 10, "pt"), legend.position='none' ) 
-  theme( legend.position='none',plot.margin=margin(0, 10, 0, 0, "pt") ) 
+  #theme(panel.spacing = unit(1, "lines"), plot.margin=margin(1, 10, 0, 10, "pt"), legend.position='none' )
+  theme( legend.position='none',plot.margin=margin(0, 10, 0, 0, "pt") )
 
 ggsave('../vb_logit_scatter_sb.pdf',plot=gplot2,width=14,height=5,units='cm')
 
