@@ -1,16 +1,17 @@
 ## Code generating figure 2 in Lyddon, Walker & Holmes, 2018.
 options(warn=1)
 
-library(utils)
-library(stats)
-library(dplyr)
-library(tibble)
-library(MASS)
-library(e1071)
-library(BayesLogit)
-library(PolyaGamma)
-library(ggplot2)
+requireNamespace("BayesLogit", quietly = TRUE)
+requireNamespace("dplyr", quietly = TRUE)
+requireNamespace("e1071", quietly = TRUE)
+requireNamespace("ggplot2", quietly = TRUE)
+requireNamespace("MASS", quietly = TRUE)
+requireNamespace("PolyaGamma", quietly = TRUE)
+requireNamespace("stats", quietly = TRUE)
+requireNamespace("tibble", quietly = TRUE)
+requireNamespace("utils", quietly = TRUE)
 library(rstan)
+
 
 # TODO: get the data, the model, and update the paths
 dataset_path <- file.path('inst', 'extdata')
