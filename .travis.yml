@@ -15,7 +15,6 @@ r_github_packages:
   - kasparmartens/PolyaGamma
 
 r:
-  - oldrel
   - release
   - devel
 
