@@ -133,7 +133,7 @@ mdp_logit_mvn_stickbreaking <- function(n_samp=100, mix_mean, mix_cov, posterior
     }
     # Parameter is computed via weighted glm fit.
     stopifnot(all(y_all %in% c(0,1)))
-    glm_fit <- stats::glm.fit(x=cbind(1,x_all), y=y_all, weights=wgts, family=stats::binomial(link="logit") )
+    glm_fit <- stats::glm.fit(x=cbind(1,x_all), y=y_all, weights=wgts, family=stats::quasibinomial(link="logit") )
     theta_out[i,] <- glm_fit$coefficients
   }
   return(theta_out)
