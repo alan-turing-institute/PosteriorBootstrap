@@ -228,14 +228,14 @@ train_dat <- list(n = dataset1$n_train, p = dataset1$n_cov+1, x = cbind(1,datase
 bayes_logit_model <- rstan::stan_model(file = file.path(dataset_path, 'bayes_logit.stan'))
 out_VB_stan <- rstan::vb(bayes_logit_model, data=train_dat, output_samples=n_samp, seed=123)
 stan_vb_sample <- rstan::extract(out_VB_stan)$beta
-plot_df1 <- tibble::data_frame()
+plot_df1 <- tibble::tibble()
 # Get MDP samples for various sample sizes
 for(i in prior_sample_sizes ) {
   tmp_mdp_out <- mdp_logit_mvn_stickbreaking(n_samp=n_samp_mdp, mix_mean=NULL, mix_cov=NULL, posterior_sample=stan_vb_sample[1:n_samp_mdp,], prior_sample_size=i, dataset=dataset1, tol=1e-8)
-  plot_df1 <- rbind(plot_df1, tibble::data_frame(id=1:n_samp_mdp, beta3=tmp_mdp_out[,3], beta5=tmp_mdp_out[,5], beta21=tmp_mdp_out[,21], beta22=tmp_mdp_out[,22],Method='MDP-VB', prior_sample_size=i ) )
-  #plot_df1 <- rbind(plot_df1, tibble::data_frame(id=1:n_samp, beta3=out_VB1$beta[,3], beta5=out_VB1$beta[,5],beta21=out_VB1$beta[,21], beta22=out_VB1$beta[,22], Method='VB', prior_sample_size=i) )
-  plot_df1 <- rbind(plot_df1, tibble::data_frame(id=1:n_samp, beta3=out_bayes1$beta[,3], beta5=out_bayes1$beta[,5], beta21=out_bayes1$beta[,21], beta22=out_bayes1$beta[,22], Method='Bayes',prior_sample_size=i) )
-  plot_df1 <- rbind(plot_df1, tibble::data_frame(id=1:n_samp, beta3=stan_vb_sample[,3], beta5=stan_vb_sample[,5], beta21=stan_vb_sample[,21], beta22=stan_vb_sample[,22], Method='VB_Stan', prior_sample_size=i) )
+  plot_df1 <- rbind(plot_df1, tibble::tibble(id=1:n_samp_mdp, beta3=tmp_mdp_out[,3], beta5=tmp_mdp_out[,5], beta21=tmp_mdp_out[,21], beta22=tmp_mdp_out[,22],Method='MDP-VB', prior_sample_size=i ) )
+  #plot_df1 <- rbind(plot_df1, tibble::tibble(id=1:n_samp, beta3=out_VB1$beta[,3], beta5=out_VB1$beta[,5],beta21=out_VB1$beta[,21], beta22=out_VB1$beta[,22], Method='VB', prior_sample_size=i) )
+  plot_df1 <- rbind(plot_df1, tibble::tibble(id=1:n_samp, beta3=out_bayes1$beta[,3], beta5=out_bayes1$beta[,5], beta21=out_bayes1$beta[,21], beta22=out_bayes1$beta[,22], Method='Bayes',prior_sample_size=i) )
+  plot_df1 <- rbind(plot_df1, tibble::tibble(id=1:n_samp, beta3=stan_vb_sample[,3], beta5=stan_vb_sample[,5], beta21=stan_vb_sample[,21], beta22=stan_vb_sample[,22], Method='VB_Stan', prior_sample_size=i) )
   print(summary(tmp_mdp_out[,c(21,22)]))
 }
 
