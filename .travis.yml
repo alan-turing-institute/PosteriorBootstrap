@@ -1,0 +1,23 @@
+sudo: enabled
+dist: xenial
+language: r
+
+# BayesLogit needs the gfortran compiler
+apt_packages:
+  - gfortran
+
+# Install BayesLogit 0.6 using devtools
+before_install:
+  - Rscript -e 'install.packages("devtools"); require(devtools); install_version("BayesLogit", version = "0.6")'
+
+# Install PolyaGamma using devtools::install_github
+r_github_packages:
+  - kasparmartens/PolyaGamma
+
+r:
+  - oldrel
+  - release
+  - devel
+
+after_success:
+  - Rscript -e 'covr::codecov()'
