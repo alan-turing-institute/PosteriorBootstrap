@@ -15,6 +15,7 @@ requireNamespace("tibble", quietly = TRUE)
 requireNamespace("MASS", quietly = TRUE)
 requireNamespace("e1071", quietly = TRUE)
 requireNamespace("BayesLogit", quietly = TRUE)
+requireNamespace("PolyaGamma", quietly = TRUE)
 requireNamespace("ggplot2", quietly = TRUE)
 requireNamespace("stats", quietly = TRUE)
 library(rstan)
@@ -219,7 +220,12 @@ script <- function() {
   # Load the dataset
   dataset1 <- load_dataset(list(name = 'statlog-german-credit.dat', pct_train = pct_train))
   # Get Bayes (Polson samples)
-  out_bayes1 <- BayesLogit::logit(y = 0.5 * (dataset1$y_train + 1), X = cbind(1, dataset1$x_train), P0 = diag(rep(1 / prior_variance, dataset1$n_cov + 1)), samp = n_samp, burn = n_samp)
+  if (use_bayes_logit) {
+    out_bayes1 <- BayesLogit::logit(y=0.5*(dataset1$y_train+1), X=cbind(1,dataset1$x_train), P0=diag(rep(1/prior_variance,dataset1$n_cov+1) ), samp=n_samp, burn=n_samp )
+  } else {
+    out_bayes1 <- PolyaGamma::gibbs_sampler(y=0.5*(dataset1$y_train+1), X=cbind(1,dataset1$x_train),
+                              lambda=1/prior_variance, n_iter_total=2 * n_samp, burn_in=n_samp)
+  }
   # Add in Stan VB
   train_dat <- list(n = dataset1$n_train, p = dataset1$n_cov + 1, x = cbind(1, dataset1$x_train), y = 0.5 * (dataset1$y_train + 1), beta_sd = sqrt(prior_variance))
   # Run VB approx from STAN
