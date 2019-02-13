@@ -18,7 +18,6 @@ requireNamespace("BayesLogit", quietly = TRUE)
 requireNamespace("ggplot2", quietly = TRUE)
 requireNamespace("stats", quietly = TRUE)
 library(rstan)
-# setCompilerOptions(suppressUndefined=".data")
 
 # TODO: get the data, the model, and update the paths
 dataset_path <- file.path('inst', 'extdata')
