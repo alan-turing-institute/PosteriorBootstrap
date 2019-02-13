@@ -12,6 +12,11 @@ library(e1071)
 
 library(BayesLogit)
 
+# install.packages("devtools")  # optional, in case you don't have it
+# require(devtools)
+# devtools::install_github("kasparmartens/PolyaGamma")
+library(PolyaGamma)
+
 library(GGally)
 library(rstan)
 
@@ -201,22 +206,28 @@ StatDensity2d1 <- ggproto("StatDensity2d1", Stat,
   }
 )
 
-script <- function() {
-  
+
+script <- function(use_bayes_logit) {
 # Stickbreaking plot
 timestamp()
 base_font_size=8
 pct_train=1
-n_samp=10
-n_samp_mdp <- 10
-prior_sample_sizes <- c(1,10,200)
+n_samp=1000
+n_samp_mdp <- 1000
+prior_sample_sizes <- c(1,1000,20000)
 prior_variance <- 100
 set.seed(1)
 
 # Load the dataset
 dataset1 <- load_dataset(list(name='statlog-german-credit', pct_train=pct_train))
 # Get Bayes (Polson samples)
-out_bayes1 <- BayesLogit::logit(y=0.5*(dataset1$y_train+1), X=cbind(1,dataset1$x_train), P0=diag(rep(1/prior_variance,dataset1$n_cov+1) ), samp=n_samp, burn=n_samp )
+if (use_bayes_logit) {
+  out_bayes1 <- BayesLogit::logit(y=0.5*(dataset1$y_train+1), X=cbind(1,dataset1$x_train), P0=diag(rep(1/prior_variance,dataset1$n_cov+1) ), samp=n_samp, burn=n_samp )
+} else {
+  out_bayes1 <- PolyaGamma::gibbs_sampler(y=0.5*(dataset1$y_train+1), X=cbind(1,dataset1$x_train),
+                            lambda=1/prior_variance, n_iter_total=2 * n_samp, burn_in=n_samp)
+}
+
 #out_VB1 <- logit_VB(dataset1,prior_mean=0,prior_cov=prior_variance, n_samp=n_samp)
 # Add in Stan VB
 train_dat <- list(n = dataset1$n_train, p = dataset1$n_cov+1, x = cbind(1,dataset1$x_train), y = 0.5*(dataset1$y_train + 1), beta_sd=sqrt(prior_variance) )
@@ -247,10 +258,10 @@ gplot2 <- ggplot(data=plot_df1 %>% filter(Method != 'Bayes', Method!='VB'), aes(
   #theme(panel.spacing = unit(1, "lines"), plot.margin=margin(1, 10, 0, 10, "pt"), legend.position='none' ) 
   theme( legend.position='none',plot.margin=margin(0, 10, 0, 0, "pt") ) 
 
-ggsave('../vb_logit_scatter_sb.pdf',plot=gplot2,width=14,height=5,units='cm')
+ggsave(paste0('vb_logit_scatter_sb (bayesLogit=', use_bayes_logit, ').pdf'),plot=gplot2,width=14,height=5,units='cm')
 
-save.image('../workspace_pcb_vb_classn_sb.RData')
-
+#save.image('../workspace_pcb_vb_classn_sb.RData')
 }
 
-#script()
+script(use_bayes_logit=T)
+script(use_bayes_logit=F)
