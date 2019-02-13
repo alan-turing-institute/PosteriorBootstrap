@@ -5,20 +5,20 @@
 #' @docType package
 #' @name PosteriorBootstrap
 #' @aliases PosteriorBootstrap
-#' @importFrom rstan stan_model vb extract
+options(warn=1)
 
 ## Code generating figure 2 in Lyddon, Walker & Holmes, 2018.
-options(warn = 1)
-
 requireNamespace("utils", quietly = TRUE)
 requireNamespace("stats", quietly = TRUE)
-requireNamespace("tidyverse", quietly = TRUE)
+requireNamespace("dplyr", quietly = TRUE)
+requireNamespace("tibble", quietly = TRUE)
 requireNamespace("MASS", quietly = TRUE)
 requireNamespace("e1071", quietly = TRUE)
 requireNamespace("BayesLogit", quietly = TRUE)
 requireNamespace("ggplot2", quietly = TRUE)
-# requireNamespace("rstan", quietly = TRUE)
+requireNamespace("stats", quietly = TRUE)
 library(rstan)
+# setCompilerOptions(suppressUndefined=".data")
 
 # TODO: get the data, the model, and update the paths
 dataset_path <- file.path('inst', 'extdata')
@@ -35,13 +35,12 @@ load_dataset <- function(dataset_input_list = list(name = 'toy', n = 200, pct_tr
   if (dataset$name == 'toy') {
     if (!('n' %in% names(dataset_input_list))) stop('dataset_input_list does not contain n')
     # Generate the dataset
-    raw_dataset <- rbinom(n = dataset_input_list$n, size = 1, prob = 0.5) # Gives values 0 or 1
-    raw_dataset <- cbind(rnorm(n = dataset_input_list$n, mean = raw_dataset * 2 - 1, sd = 1), raw_dataset)
+    raw_dataset <- stats::rbinom(n = dataset_input_list$n, size = 1, prob = 0.5) # Gives values 0 or 1
+    raw_dataset <- cbind(stats::rnorm(n = dataset_input_list$n, mean = raw_dataset * 2 - 1, sd = 1), raw_dataset)
   } else {
     # Load the dataset
     raw_dataset <- as.matrix(utils::read.table(file.path(dataset_path, dataset$name)))
-    # German statlog dataset outcomes are (1, 2), so subtract 1 here to make them
-    # 0,1, as in the toy dataset
+    # German statlog dataset outcomes are (1, 2), so subtract 1 here to make them 0,1, as in the toy dataset
     if ("statlog-german-credit.dat" == dataset_input_list$name) {
       raw_dataset[, ncol(raw_dataset)] <- raw_dataset[, ncol(raw_dataset)] - 1
     }
@@ -80,7 +79,7 @@ stick_breaking <- function(par_c = 1, n_start = 100, eps = 10 ^ -8) {
   stick_rem <- 1
   while (stick_rem > eps) {
     num_wgts = num_wgts * 10
-    u_s <- rbeta(n = num_wgts, shape1 = 1, shape2 = par_c)
+    u_s <- stats::rbeta(n = num_wgts, shape1 = 1, shape2 = par_c)
     c_rem <- c(1, cumprod(1 - u_s))
     stick_rem <- c_rem[num_wgts + 1]
   }
@@ -110,10 +109,9 @@ mdp_logit_mvn_stickbreaking <- function(n_samp = 100, mix_mean, mix_cov, posteri
     # This for loop can be be parallelised
     if (prior_sample_size != 0) {
       # Get stick-breaking split between data and model
-      v1 <- rbeta(n = 1, shape1 = prior_sample_size, shape2 = dataset$n) # v1 is random around c / (c + n)
-      # TODO: maybe make v1 deterministic, which only works for algorithm 1, otherwise in algorithm 2
-      # the epsilon is just 1/prior_sample_size.
-      w_raw_data <- rexp(n = dataset$n)
+      v1 <- stats::rbeta(n = 1, shape1 = prior_sample_size, shape2 = dataset$n) # v1 is random around c / (c + n)
+      # TODO: maybe make v1 deterministic, which only works for algorithm 1, otherwise in algorithm 2 the epsilon is just 1/prior_sample_size.
+      w_raw_data <- stats::rexp(n = dataset$n)
       w_data <- w_raw_data / sum(w_raw_data) * (1 - v1)
 
       w_raw_model <- stick_breaking(par_c = prior_sample_size, n_start = dataset$n_train, eps = tol)
@@ -142,14 +140,14 @@ mdp_logit_mvn_stickbreaking <- function(n_samp = 100, mix_mean, mix_cov, posteri
     }
     # Parameter is computed via weighted glm fit.
     stopifnot(all(y_all %in% c(0, 1)))
-    glm_fit <- glm.fit(x = cbind(1, x_all), y = y_all, weights = wgts, family = binomial(link = logit))
+    glm_fit <- stats::glm.fit(x = cbind(1, x_all), y = y_all, weights = wgts, family = stats::binomial(link = "logit"))
     theta_out[i,] <- glm_fit$coefficients
   }
   return(theta_out)
 }
 
 
-# Plotting detail. We can ignore.
+# For plotting
 stat_density_2d1 <- function(mapping = NULL, data = NULL,
   geom = "density_2d", position = "identity",
   ...,
@@ -159,7 +157,7 @@ stat_density_2d1 <- function(mapping = NULL, data = NULL,
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = TRUE) {
-  layer(
+  ggplot2::layer(
       data = data,
       mapping = mapping,
       stat = StatDensity2d1,
@@ -177,7 +175,7 @@ stat_density_2d1 <- function(mapping = NULL, data = NULL,
     )
 }
 
-# Plotting detail. We can ignore.
+# For plotting
 StatDensity2d1 <- ggplot2::ggproto("StatDensity2d1", ggplot2::Stat,
   default_aes = ggplot2::aes(colour = "#3366FF", size = 0.5),
   required_aes = c("x", "y"),
@@ -207,8 +205,8 @@ StatDensity2d1 <- ggplot2::ggproto("StatDensity2d1", ggplot2::Stat,
   }
 )
 
+# TODO: move to vignette
 script <- function() {
-
   # Stickbreaking plot
   utils::timestamp()
   base_font_size = 8
@@ -223,7 +221,6 @@ script <- function() {
   dataset1 <- load_dataset(list(name = 'statlog-german-credit.dat', pct_train = pct_train))
   # Get Bayes (Polson samples)
   out_bayes1 <- BayesLogit::logit(y = 0.5 * (dataset1$y_train + 1), X = cbind(1, dataset1$x_train), P0 = diag(rep(1 / prior_variance, dataset1$n_cov + 1)), samp = n_samp, burn = n_samp)
-  #out_VB1 <- logit_VB(dataset1, prior_mean=0, prior_cov = prior_variance, n_samp = n_samp)
   # Add in Stan VB
   train_dat <- list(n = dataset1$n_train, p = dataset1$n_cov + 1, x = cbind(1, dataset1$x_train), y = 0.5 * (dataset1$y_train + 1), beta_sd = sqrt(prior_variance))
   # Run VB approx from STAN
@@ -235,23 +232,23 @@ script <- function() {
   for (i in prior_sample_sizes) {
     tmp_mdp_out <- mdp_logit_mvn_stickbreaking(n_samp = n_samp_mdp, mix_mean = NULL, mix_cov = NULL, posterior_sample = stan_vb_sample[1:n_samp_mdp,], prior_sample_size = i, dataset = dataset1, tol = 1e-8)
     plot_df1 <- rbind(plot_df1, tibble::tibble(id = 1:n_samp_mdp, beta3 = tmp_mdp_out[, 3], beta5 = tmp_mdp_out[, 5], beta21 = tmp_mdp_out[, 21], beta22 = tmp_mdp_out[, 22], Method = 'MDP-VB', prior_sample_size = i))
-    #plot_df1 <- rbind(plot_df1, tibble::tibble(id=1:n_samp, beta3=out_VB1$beta[,3], beta5=out_VB1$beta[,5],beta21=out_VB1$beta[,21], beta22=out_VB1$beta[,22], Method='VB', prior_sample_size=i) )
     plot_df1 <- rbind(plot_df1, tibble::tibble(id = 1:n_samp, beta3 = out_bayes1$beta[, 3], beta5 = out_bayes1$beta[, 5], beta21 = out_bayes1$beta[, 21], beta22 = out_bayes1$beta[, 22], Method = 'Bayes', prior_sample_size = i))
     plot_df1 <- rbind(plot_df1, tibble::tibble(id = 1:n_samp, beta3 = stan_vb_sample[, 3], beta5 = stan_vb_sample[, 5], beta21 = stan_vb_sample[, 21], beta22 = stan_vb_sample[, 22], Method = 'VB_Stan', prior_sample_size = i))
     print(summary(tmp_mdp_out[, c(21, 22)]))
   }
 
-  gplot2 <- ggplot(data = dplyr::filter(plot_df1, Method != 'Bayes', Method != 'VB'),
-                   ggplot2::aes(x = beta21, y = beta22, colour = Method)) +
-              stat_density_2d1(bins = 5) +
-              geom_point(data = dplyr::filter(plot_df1, Method == 'Bayes', id < 1001), alpha = 0.1, size = 1) +
-              facet_wrap(~prior_sample_size, nrow = 1, scales = "fixed", labeller = label_bquote(c ~ "=" ~ .(prior_sample_size))) +
-              theme_grey(base_size = base_font_size) +
-              xlab(expression(beta[21])) +
-              ylab(expression(beta[22])) +
-              theme(legend.position = 'none', plot.margin = margin(0, 10, 0, 0, "pt"))
+  plot <- ggplot2::ggplot(data = dplyr::filter(plot_df1, plot_df1$Method != 'Bayes', plot_df1$Method != 'VB'),
+                          ggplot2::aes_string(x = 'beta21', y = 'beta22', colour = 'Method')) +
+            stat_density_2d1(bins = 5) +
+            ggplot2::geom_point(data = dplyr::filter(plot_df1, plot_df1$Method == 'Bayes', plot_df1$id < 1001), alpha = 0.1, size = 1) +
+            ggplot2::facet_wrap(~prior_sample_size, nrow = 1, scales = "fixed", labeller = ggplot2::label_bquote(c ~ "=" ~ .(prior_sample_size))) +
+            ggplot2::theme_grey(base_size = base_font_size) +
+            ggplot2::xlab(expression(beta[21])) +
+            ggplot2::ylab(expression(beta[22])) +
+            ggplot2::theme(legend.position = 'none', plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
 
-  ggsave('../vb_logit_scatter_sb.pdf', plot = gplot2, width = 14, height = 5, units = 'cm')
-
+  ggplot2::ggsave('../vb_logit_scatter_sb.pdf', plot = plot, width = 14, height = 5, units = 'cm')
   save.image('../workspace_pcb_vb_classn_sb.RData')
 }
+
+script()

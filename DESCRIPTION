@@ -19,11 +19,13 @@ License: MIT + file LICENSE
 Imports:
     BayesLogit,
     e1071,
-    GGally,
     MASS,
     rstan,
-    tidyverse,
-    utils
+    utils,
+    ggplot2,
+    dplyr,
+    stats,
+    tibble
 Suggests:
     covr,
     knitr,
