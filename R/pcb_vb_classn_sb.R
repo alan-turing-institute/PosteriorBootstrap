@@ -13,7 +13,7 @@ library(ggplot2)
 library(rstan)
 
 # TODO: get the data, the model, and update the paths
-dataset_path <- 'data/'
+dataset_path <- file.path('inst', 'extdata')
 
 
 # Function to load dataset. Won't be necessary in the package
@@ -31,10 +31,10 @@ load_dataset <- function( dataset_input_list=list(name='toy',n=200, pct_train=0.
     raw_dataset <- cbind( stats::rnorm(n=dataset_input_list$n, mean=raw_dataset*2-1, sd=1), raw_dataset)
   } else {
     # Load the dataset
-    raw_dataset <- as.matrix( utils::read.table(paste(dataset_path,dataset$name,'/',dataset$name,'_R.dat', sep='')) )
+    raw_dataset <- as.matrix(utils::read.table(file.path(dataset_path, dataset$name)))
     # German statlog dataset outcomes are (1, 2), so subtract 1 here to make them
     # 0,1, as in the toy dataset
-    if ("statlog-german-credit" == dataset_input_list$name) {
+    if ("statlog-german-credit.dat" == dataset_input_list$name) {
       raw_dataset[, ncol(raw_dataset)] <- raw_dataset[, ncol(raw_dataset)] - 1
     }
     colnames(raw_dataset) <- NULL
@@ -211,7 +211,7 @@ prior_variance <- 100
 set.seed(1)
 
 # Load the dataset
-dataset1 <- load_dataset(list(name='statlog-german-credit', pct_train=pct_train))
+dataset1 <- load_dataset(list(name='statlog-german-credit.dat', pct_train=pct_train))
 # Get Bayes (Polson samples)
 if (use_bayes_logit) {
   out_bayes1 <- BayesLogit::logit(y=0.5*(dataset1$y_train+1), X=cbind(1,dataset1$x_train), P0=diag(rep(1/prior_variance,dataset1$n_cov+1) ), samp=n_samp, burn=n_samp )
