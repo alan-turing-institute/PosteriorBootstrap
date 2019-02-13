@@ -20,15 +20,18 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     BayesLogit,
-    GGally,
+    dplyr,
+    e1071,
+    ggplot2,
     MASS,
+    PolyaGamma,
     rstan,
-    tidyverse,
-    utils
+    utils,
+    tibble
 Suggests:
     covr,
-    testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr
