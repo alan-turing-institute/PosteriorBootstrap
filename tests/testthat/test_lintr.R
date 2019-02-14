@@ -1,6 +1,6 @@
-# context("Require lintr to pass")
-# library(lintr)
+context("Require lintr to pass")
+library(lintr)
 
-# test_that("Package Style", {
-#     lintr::expect_lint_free()
-# })
+test_that("No lintr errors in package", {
+    lintr::expect_lint_free()
+})
