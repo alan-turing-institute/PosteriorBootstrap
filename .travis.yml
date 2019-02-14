@@ -1,6 +1,7 @@
 sudo: enabled
 dist: xenial
 language: r
+warnings_are_errors: true
 
 # Only allow the lintr-bot to comment on the release build (this avoids duplicate comments)
 matrix:
