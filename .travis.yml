@@ -21,5 +21,3 @@ r:
 
 after_success:
   - Rscript -e 'covr::codecov()'
-  - R CMD INSTALL $PKG_TARBALL
-  - Rscript -e 'lintr::lint_package()'
