@@ -143,9 +143,6 @@ mdp_logit_mvn_stickbreaking <- function(n_samp = 100,
       # which only works for algorithm 1, otherwise in algorithm 2
       # the epsilon is just 1/prior_sample_size.
 
-      w_raw_data <- stats::rexp(n = dataset$n)
-      w_data <- w_raw_data / sum(w_raw_data) * (1 - v1)
-
       w_raw_model <- stick_breaking(par_c = prior_sample_size,
                                     n_start = dataset$n_train,
                                     eps = tol)
