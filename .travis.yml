@@ -12,6 +12,7 @@ before_install:
 
 # Install PolyaGamma using devtools::install_github
 r_github_packages:
+  - jimhester/lintr
   - kasparmartens/PolyaGamma
 
 r:
@@ -20,3 +21,5 @@ r:
 
 after_success:
   - Rscript -e 'covr::codecov()'
+  - R CMD INSTALL $PKG_TARBALL
+  - Rscript -e 'lintr::lint_package()'
