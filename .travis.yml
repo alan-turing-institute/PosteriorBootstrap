@@ -2,6 +2,10 @@ sudo: enabled
 dist: xenial
 language: r
 
+r:
+  - release
+  - devel
+
 # BayesLogit needs the gfortran compiler
 apt_packages:
   - gfortran
@@ -15,9 +19,14 @@ r_github_packages:
   - jimhester/lintr
   - kasparmartens/PolyaGamma
 
-r:
-  - release
-  - devel
+r_packages:
+  - covr
+  - lintr
+
+after_script:
+  - Rscript -e 'devtools::install(); devtools::test()'
+  - R CMD INSTALL $PKG_TARBALL
+  - Rscript -e 'lintr::lint_package()'
 
 after_success:
   - Rscript -e 'covr::codecov()'
