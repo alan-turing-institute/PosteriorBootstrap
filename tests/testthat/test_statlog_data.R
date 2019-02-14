@@ -1,5 +1,5 @@
 context("Sample data")
-requireNamespace("PosteriorBootstrap", quietly=TRUE)
+library(PosteriorBootstrap)
 
 test_that("sample raw data outcomes are {1,2}", {
   raw_dataset <- as.matrix(utils::read.table(system.file("extdata", "statlog-german-credit.dat", package="PosteriorBootstrap")))
