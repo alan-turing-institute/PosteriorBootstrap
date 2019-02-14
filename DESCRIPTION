@@ -31,6 +31,7 @@ Imports:
 Suggests:
     covr,
     knitr,
+    lintr,
     rmarkdown,
     testthat
 RoxygenNote: 6.1.1
