@@ -16,7 +16,7 @@ library(rstan)
 dataset_path <- file.path("inst", "extdata")
 
 
-# Function to load dataset. Won"t be necessary in the package
+# Function to load dataset. Won't be necessary in the package
 load_dataset <- function(dataset_input_list = list(name = "toy",
                                                    n = 200,
                                                    pct_train = 0.5)) {
@@ -57,7 +57,7 @@ load_dataset <- function(dataset_input_list = list(name = "toy",
   }
   # Add the dataset to the dataset output list.
   dataset$n <- dim(raw_dataset)[1]
-  dataset$n_cov <- dim(raw_dataset)[2] - 1  # Doesn"t include an intercept
+  dataset$n_cov <- dim(raw_dataset)[2] - 1  # Doesn't include an intercept
   dataset$obs <- 1:dataset$n
   dataset$x <- raw_dataset[, 1:dataset$n_cov, drop = FALSE]
 
