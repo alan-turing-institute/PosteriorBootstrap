@@ -1,4 +1,4 @@
-context("Input checking on the German statlog dataset and the generated toy dataset")
+context("Input checking on the German statlog and the generated toy datasets")
 library(PosteriorBootstrap)
 
 test_that("German statlog data outcomes are in {1, 2}", {
