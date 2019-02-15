@@ -204,7 +204,7 @@ stat_density_2d1 <- function(mapping = NULL, data = NULL,
     ggplot2::layer(
       data = data,
       mapping = mapping,
-      stat = stat_density_2d1,
+      stat = stat_density_2d1_proto,
       geom = geom,
       position = position,
       show.legend = show_legend,
@@ -220,7 +220,7 @@ stat_density_2d1 <- function(mapping = NULL, data = NULL,
 }
 
 # Plotting detail. We can ignore.
-stat_density_2d1 <- ggproto("stat_density_2d1", Stat,
+stat_density_2d1_proto <- ggproto("stat_density_2d1_proto", Stat,
   default_aes = aes(colour = "#3366FF", size = 0.5),
   required_aes = c("x", "y"),
 
