@@ -29,7 +29,6 @@ Imports:
     utils,
     tibble
 Suggests:
-    covr,
     knitr,
     lintr,
     rmarkdown,

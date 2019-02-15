@@ -25,12 +25,6 @@ r_github_packages:
 
 r_packages:
   - covr
-  - lintr
-
-# after_script:
-#   - Rscript -e 'devtools::install(); devtools::test()'
-#   - R CMD INSTALL $PKG_TARBALL
-#   - Rscript -e 'lintr::lint_package()'
 
 after_success:
   - Rscript -e 'covr::codecov()'
