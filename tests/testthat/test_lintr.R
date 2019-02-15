@@ -1,6 +1,6 @@
-context("Require lintr to pass")
+context("Require no code style errors")
 library(lintr)
 
-test_that("No lintr errors in package", {
+test_that("Package has no lintr errors", {
     lintr::expect_lint_free()
 })

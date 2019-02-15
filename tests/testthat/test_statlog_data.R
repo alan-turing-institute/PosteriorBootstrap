@@ -1,7 +1,7 @@
-context("Sample data")
+context("Input checking on the German statlog dataset and the generated toy dataset")
 library(PosteriorBootstrap)
 
-test_that("sample raw data outcomes are in {1, 2}", {
+test_that("German statlog data outcomes are in {1, 2}", {
   data_file <- system.file("extdata",
                            "statlog-german-credit.dat",
                            package = "PosteriorBootstrap")
@@ -9,7 +9,7 @@ test_that("sample raw data outcomes are in {1, 2}", {
   expect_true(all(raw_dataset[, ncol(raw_dataset)] %in% c(1, 2)))
 })
 
-test_that("toy dataset outcomes are in {-1, 1}", {
+test_that("Toy dataset outcomes are in {-1, 1}", {
   toy <- load_dataset()
   expect_true(all(toy$y_train %in% c(-1, 1)))
   expect_true(all(toy$y_test %in% c(-1, 1)))
