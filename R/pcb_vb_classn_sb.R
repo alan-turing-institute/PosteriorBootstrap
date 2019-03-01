@@ -56,7 +56,7 @@ load_dataset <- function(dataset_input_list = list(name = "toy",
 
     # Standardise raw dataset to have mean 0 and variance 1, except for the last
     # column (the response)
-    col_range = 1:(ncol(raw_dataset)-1)
+    col_range <- 1:(ncol(raw_dataset) - 1)
     raw_dataset[, col_range] <- scale(raw_dataset[, col_range])
     stopifnot(all(raw_dataset[, ncol(raw_dataset)] %in% c(0, 1)))
 
