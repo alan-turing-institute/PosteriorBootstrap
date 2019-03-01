@@ -53,8 +53,16 @@ load_dataset <- function(dataset_input_list = list(name = "toy",
     if ("statlog-german-credit.dat" == dataset_input_list$name) {
       raw_dataset[, ncol(raw_dataset)] <- raw_dataset[, ncol(raw_dataset)] - 1
     }
+
+    # Standardise raw dataset to have mean 0 and variance 1, except for the last
+    # column (the response)
+    col_range = 1:(ncol(raw_dataset)-1)
+    raw_dataset[, col_range] <- scale(raw_dataset[, col_range])
+    stopifnot(all(raw_dataset[, ncol(raw_dataset)] %in% c(0, 1)))
+
     colnames(raw_dataset) <- NULL
   }
+
   # Add the dataset to the dataset output list.
   dataset$n <- dim(raw_dataset)[1]
   dataset$n_cov <- dim(raw_dataset)[2] - 1  # Doesn't include an intercept
