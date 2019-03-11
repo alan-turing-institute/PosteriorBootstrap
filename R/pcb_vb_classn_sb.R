@@ -107,12 +107,15 @@ load_dataset <- function(dataset_input_list = list(name = "toy",
 # Function that takes stick-breaking NPL approach
 # (Section 2 of supplementary material)
 stick_breaking <- function(par_c = 1, n_start = 100, eps = 10 ^ (-8)) {
+  # TODO(mmorin): fix this to work around cases where n is not a multiple of 10
   num_wgts <- n_start / 10
   stick_rem <- 1
   while (stick_rem > eps) {
     num_wgts <- num_wgts * 10
     u_s <- stats::rbeta(n = num_wgts, shape1 = 1, shape2 = par_c)
     c_rem <- c(1, cumprod(1 - u_s))
+    # TODO(mmorin): How is the loop guaranteed to finish if this
+    # stick_rem is a brand new value at each iteration?
     stick_rem <- c_rem[num_wgts + 1]
   }
   wgts <- c_rem[1:num_wgts] * u_s
@@ -151,6 +154,7 @@ mdp_logit_mvn_stickbreaking <- function(n_samp = 100,
     if (prior_sample_size != 0) {
       # Get stick-breaking split between data and model
       # v1 is random around c / (c + n)
+      # MMorin: v1 seems to be s^{(i)} in the paper
       v1 <- stats::rbeta(n = 1,
                          shape1 = prior_sample_size,
                          shape2 = dataset$n)
@@ -158,6 +162,8 @@ mdp_logit_mvn_stickbreaking <- function(n_samp = 100,
       # which only works for algorithm 1, otherwise in algorithm 2
       # the epsilon is just 1/prior_sample_size.
 
+      # TODO(mmorin): understand why n_prior is 1,000
+      # even though prior_sample_size is 1
       w_raw_model <- stick_breaking(par_c = prior_sample_size,
                                     n_start = dataset$n_train,
                                     eps = tol)
@@ -181,6 +187,7 @@ mdp_logit_mvn_stickbreaking <- function(n_samp = 100,
                             shape = wgt_mean,
                             rate = rep(1, dataset$n_train + n_prior))
       x_all <- rbind(dataset$x_train, x_prior)
+      # TODO(mmorin): stop this juggling of y-values between {-1, 1} and {0, 1}
       y_all <- c(0.5 + 0.5 * dataset$y_train, y_prior)
     } else {
       # No prior samples. Compute Dirichlet weights
@@ -204,15 +211,17 @@ mdp_logit_mvn_stickbreaking <- function(n_samp = 100,
 
 
 # Plotting detail. We can ignore.
-stat_density_2d1 <- function(mapping = NULL, data = NULL,
-  geom = "density_2d", position = "identity",
-  ...,
-  contour = TRUE,
-  n = 100,
-  h = NULL,
-  na_rm = FALSE,
-  show_legend = NA,
-  inherit_aes = TRUE) {
+stat_density_2d1 <- function(mapping = NULL,
+                             data = NULL,
+                             geom = "density_2d",
+                             position = "identity",
+                             ...,
+                             contour = TRUE,
+                             n = 100,
+                             h = NULL,
+                             na_rm = FALSE,
+                             show_legend = NA,
+                             inherit_aes = TRUE) {
     ggplot2::layer(
       data = data,
       mapping = mapping,
