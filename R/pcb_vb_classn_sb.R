@@ -12,9 +12,16 @@ requireNamespace("tibble", quietly = TRUE)
 requireNamespace("utils", quietly = TRUE)
 library(rstan)
 
+k_extdata <- "extdata"
+k_package <- "PosteriorBootstrap"
+k_german_credit <- "statlog-german-credit.dat"
 
-dataset_path <- file.path("inst", "extdata")
+data_file <- function(name) {
+  return(system.file(k_extdata, name, package = k_package))
+}
 
+k_rstan_file <- data_file("bayes_logit.stan")
+k_german_credit_file <- data_file(k_german_credit)
 
 # Function to load dataset. Won't be necessary in the package
 load_dataset <- function(dataset_input_list = list(name = "toy",
@@ -46,11 +53,11 @@ load_dataset <- function(dataset_input_list = list(name = "toy",
                          raw_dataset)
   } else {
     # Load the dataset
-    filepath <- file.path(dataset_path, dataset$name)
+    filepath <- data_file(dataset$name)
     raw_dataset <- as.matrix(utils::read.table(filepath))
     # German statlog dataset outcomes are (1, 2), so
     # subtract 1 here to make them 0, 1, as in the toy dataset
-    if ("statlog-german-credit.dat" == dataset_input_list$name) {
+    if (k_german_credit == dataset_input_list$name) {
       raw_dataset[, ncol(raw_dataset)] <- raw_dataset[, ncol(raw_dataset)] - 1
     }
 
@@ -268,7 +275,7 @@ prior_variance <- 100
 set.seed(1)
 
 # Load the dataset
-dataset1 <- load_dataset(list(name = "statlog-german-credit.dat",
+dataset1 <- load_dataset(list(name = k_german_credit,
                               pct_train = pct_train))
 # Get Bayes (Polson samples)
 if (use_bayes_logit) {
@@ -293,7 +300,7 @@ train_dat <- list(n = dataset1$n_train,
                   y = 0.5 * (dataset1$y_train + 1),
                   beta_sd = sqrt(prior_variance))
 # Run VB approx from STAN
-stan_file <- file.path(dataset_path, "bayes_logit.stan")
+stan_file <- data_file("bayes_logit.stan")
 bayes_logit_model <- rstan::stan_model(file = stan_file)
 out_vb_stan <- rstan::vb(bayes_logit_model,
                          data = train_dat,
