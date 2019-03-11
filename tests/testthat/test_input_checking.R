@@ -13,7 +13,7 @@ test_that("Toy dataset outcomes are in {-1, 1}", {
   expect_true(all(toy$y_test %in% c(-1, 1)))
 })
 
-test_that("German statlog data has all expected fields", {
+test_that("German statlog and toy data have all expected fields", {
   toy <- load_dataset()
   german <- load_dataset(list(name = k_german_credit,
                               pct_train = 1))
@@ -27,3 +27,5 @@ test_that("German statlog data has all expected fields", {
   expect_equal(length(setdiff(names(german), expected_names)), 0)
   expect_equal(length(setdiff(expected_names, names(german))), 0)
 })
+
+
