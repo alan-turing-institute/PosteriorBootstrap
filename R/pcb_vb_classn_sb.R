@@ -272,6 +272,7 @@ stat_density_2d1_proto <- ggproto("stat_density_2d1_proto", Stat,
 )
 
 
+#' @importFrom Rcpp cpp_object_initializer
 script <- function(use_bayes_logit) {
 # Stickbreaking plot
 utils::timestamp()
