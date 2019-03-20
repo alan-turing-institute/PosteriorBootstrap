@@ -23,7 +23,7 @@ before_install:
 # Install PolyaGamma using devtools::install_github
 r_github_packages:
   - jimhester/lintr
-  - miguelmorin/PolyaGamma
+  - kasparmartens/PolyaGamma
 
 r_packages:
   - covr
