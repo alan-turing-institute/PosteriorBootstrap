@@ -3,7 +3,7 @@ library(PosteriorBootstrap)
 
 
 test_that("German statlog data outcomes are in {1, 2}", {
-  raw_dataset <- as.matrix(utils::read.table(k_german_credit_file))
+  raw_dataset <- as.matrix(utils::read.table(get_german_credit_file()))
   expect_true(all(raw_dataset[, ncol(raw_dataset)] %in% c(1, 2)))
 })
 
