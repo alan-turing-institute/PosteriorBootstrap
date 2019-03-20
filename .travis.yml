@@ -19,11 +19,11 @@ apt_packages:
 # Install BayesLogit 0.6 using devtools
 before_install:
   - Rscript -e 'install.packages("devtools"); require(devtools); install_version("BayesLogit", version = "0.6")'
+  - git clone git@github.com:kasparmartens/PolyaGamma && cd PolyaGamma && sed -i 's/M.rtens/Martens/g' DESCRIPTION && Rscript -e "devtools::install(.)"
 
 # Install PolyaGamma using devtools::install_github
 r_github_packages:
   - jimhester/lintr
-  - kasparmartens/PolyaGamma
 
 r_packages:
   - covr
