@@ -15,13 +15,19 @@ library(rstan)
 k_extdata <- "extdata"
 k_package <- "PosteriorBootstrap"
 k_german_credit <- "statlog-german-credit.dat"
+k_rstan_model <- "bayes_logit.stan"
 
 data_file <- function(name) {
   return(system.file(k_extdata, name, package = k_package))
 }
 
-k_rstan_file <- data_file("bayes_logit.stan")
-k_german_credit_file <- data_file(k_german_credit)
+get_rstan_file <- function() {
+  return(data_file(k_rstan_model))
+}
+
+get_german_credit_file <- function() {
+  return(data_file(k_german_credit))
+}
 
 # Function to load dataset. Won't be necessary in the package
 load_dataset <- function(dataset_input_list = list(name = "toy",
@@ -273,7 +279,7 @@ stat_density_2d1_proto <- ggproto("stat_density_2d1_proto", Stat,
 
 
 #' @importFrom Rcpp cpp_object_initializer
-script <- function(use_bayes_logit) {
+script <- function(use_bayes_logit, verbose=TRUE) {
 # Stickbreaking plot
 utils::timestamp()
 base_font_size <- 8
@@ -310,8 +316,7 @@ train_dat <- list(n = dataset1$n_train,
                   y = 0.5 * (dataset1$y_train + 1),
                   beta_sd = sqrt(prior_variance))
 # Run VB approx from STAN
-stan_file <- data_file("bayes_logit.stan")
-bayes_logit_model <- rstan::stan_model(file = stan_file)
+bayes_logit_model <- rstan::stan_model(file = get_rstan_file())
 out_vb_stan <- rstan::vb(bayes_logit_model,
                          data = train_dat,
                          output_samples = n_samp,

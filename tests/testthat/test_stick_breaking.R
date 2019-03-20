@@ -23,8 +23,7 @@ test_that("Mixture of Dirichlet Processes stick-breaking works and returns", {
                     y = 0.5 * (german$y_train + 1),
                     beta_sd = sqrt(prior_variance))
 
-  stan_file <- data_file("bayes_logit.stan")
-  bayes_logit_model <- rstan::stan_model(file = stan_file)
+  bayes_logit_model <- rstan::stan_model(file = get_rstan_file())
   out_vb_stan <- rstan::vb(bayes_logit_model,
                            data = train_dat,
                            output_samples = n_samp,
