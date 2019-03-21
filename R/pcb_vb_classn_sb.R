@@ -30,6 +30,8 @@ get_german_credit_file <- function() {
 }
 
 # Function to load dataset. Won't be necessary in the package
+
+#' @export
 load_dataset <- function(dataset_input_list = list(name = "toy",
                                                    n = 200,
                                                    pct_train = 0.5)) {
@@ -136,12 +138,15 @@ stick_breaking <- function(par_c = 1, n_start = 100, eps = 10 ^ (-8)) {
 # Either "posterior_sample" is passed or the posterior
 # is assumed normal with "mix_mean" and "mix_cov" defining it.
 # "prior_sample_size" is the "c" in the paper
+
+#' @export
 mdp_logit_mvn_stickbreaking <- function(n_samp = 100,
                                         mix_mean,
                                         mix_cov,
                                         posterior_sample = NULL,
                                         prior_sample_size,
                                         dataset,
+                                        family,
                                         tol = 1e-8) {
   # Create matrix with which to store posterior samples
   theta_out <- matrix(0, nrow = n_samp, ncol = dataset$n_cov + 1)
@@ -209,7 +214,7 @@ mdp_logit_mvn_stickbreaking <- function(n_samp = 100,
     glm_fit <- stats::glm.fit(x = cbind(1, x_all),
                               y = y_all,
                               weights = wgts,
-                              family = stats::quasibinomial(link = "logit"))
+                              family = family)
     theta_out[i, ] <- glm_fit$coefficients
   }
   return(theta_out)
@@ -277,6 +282,55 @@ stat_density_2d1_proto <- ggproto("stat_density_2d1_proto", Stat,
   }
 )
 
+#' @export
+verify_quasibionmial <- function() {
+  # Load the dataset
+  dataset1 <- load_dataset(list(name = k_german_credit,
+                                                    pct_train = pct_train))
+  # Add in Stan VB
+  train_dat <- list(n = dataset1$n_train,
+                    p = dataset1$n_cov + 1,
+                    x = cbind(1, dataset1$x_train),
+                    y = 0.5 * (dataset1$y_train + 1),
+                    beta_sd = sqrt(prior_variance))
+  # Run VB approx from STAN
+  bayes_logit_model <- rstan::stan_model(file = get_rstan_file())
+  out_vb_stan <- rstan::vb(bayes_logit_model,
+                           data = train_dat,
+                           output_samples = n_samp,
+                           seed = 123)
+  stan_vb_sample <- rstan::extract(out_vb_stan)$beta
+  
+  # Get MDP samples with quasibinomial
+  
+  set.seed(1)
+  stan_sample <- stan_vb_sample[1:n_samp, ]
+  tmp_mdp_out1 <- mdp_logit_mvn_stickbreaking(n_samp = n_samp,
+                                              mix_mean = NULL,
+                                              mix_cov = NULL,
+                                              posterior_sample = stan_sample,
+                                              prior_sample_size = prior_sample_size,
+                                              dataset = dataset1,
+                                              family=stats::quasibinomial(link = "logit"),
+                                              tol = 1e-8)
+  
+  print(tmp_mdp_out1)
+  
+  # Get MDP samples with binomial
+  
+  set.seed(1)
+  
+  tmp_mdp_out2 <- mdp_logit_mvn_stickbreaking(n_samp = n_samp,
+                                              mix_mean = NULL,
+                                              mix_cov = NULL,
+                                              posterior_sample = stan_sample,
+                                              prior_sample_size = prior_sample_size,
+                                              dataset = dataset1,
+                                              family=stats::binomial(link = "logit"),
+                                              tol = 1e-8)
+  
+  return(all(tmp_mdp_out1 == tmp_mdp_out2))
+}
 
 #' @importFrom Rcpp cpp_object_initializer
 script <- function(use_bayes_logit, verbose=TRUE) {
