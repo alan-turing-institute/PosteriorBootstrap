@@ -204,12 +204,12 @@ mdp_logit_mvn_stickbreaking <- function(n_samp = 100,
       x_all <- dataset$x_train
       y_all <- 0.5 + 0.5 * dataset$y_train
     }
-    # Parameter is computed via weighted glm fit.
-    # We use quasibinomial family instead of binomial to allow the count parameters
-    # to be non-integers. Quasibinomial is the same as binomial except that it removes
-    # the integer check and does not compute AIC. See this answer on StackOverflow
-    # by the author for more details:
-    # https://stackoverflow.com/questions/12953045/warning-non-integer-successes-in-a-binomial-glm-survey-packages/55284627#55284627
+    # Parameter is computed via weighted glm fit.  We use quasibinomial family
+    # instead of binomial to allow the count parameters to be
+    # non-integers. Quasibinomial is the same as binomial except that it removes
+    # the integer check and does not compute AIC. See the answer by the
+    # author (mmorin) on this StackOverflow thread for more details:
+    # https://stackoverflow.com/questions/12953045
     stopifnot(all(y_all %in% c(0, 1)))
     glm_fit <- stats::glm.fit(x = cbind(1, x_all),
                               y = y_all,
