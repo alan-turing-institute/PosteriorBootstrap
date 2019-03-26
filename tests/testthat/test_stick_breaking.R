@@ -14,7 +14,7 @@ test_that("Mixture of Dirichlet Processes stick-breaking works and returns", {
   german <- load_dataset(list(name = k_german_credit,
                               pct_train = 1))
 
-  n_samp <- 100
+  n_bootstrap <- 100
   prior_variance <- 100
 
   train_dat <- list(n = german$n_train,
@@ -26,18 +26,15 @@ test_that("Mixture of Dirichlet Processes stick-breaking works and returns", {
   bayes_logit_model <- rstan::stan_model(file = get_rstan_file())
   out_vb_stan <- rstan::vb(bayes_logit_model,
                            data = train_dat,
-                           output_samples = n_samp,
+                           output_samples = n_bootstrap,
                            seed = 123)
   stan_vb_sample <- rstan::extract(out_vb_stan)$beta
-  stan_sample <- stan_vb_sample[1:n_samp, ]
 
-  mdp_samples <- mdp_logit_mvn_stickbreaking(n_samp = n_samp,
-                                             mix_mean = NULL,
-                                             mix_cov = NULL,
-                                             posterior_sample = stan_sample,
-                                             prior_sample_size = 1,
-                                             dataset = german,
-                                             tol = 1e-8)
+  anpl_samples <- anpl(dataset = german,
+                       concentration = 1,
+                       n_bootstrap = n_bootstrap,
+                       posterior_sample = stan_vb_sample,
+                       threshold = 1e-8)
 
-  expect_equal(dim(mdp_samples), c(n_samp, 1 + german$n_cov))
+  expect_equal(dim(anpl_samples), c(n_bootstrap, 1 + german$n_cov))
 })
