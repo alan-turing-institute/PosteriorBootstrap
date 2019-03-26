@@ -3,4 +3,3 @@
 ^\.travis\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^PosteriorBootstrap.*\.tar\.gz$
