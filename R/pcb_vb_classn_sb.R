@@ -424,21 +424,21 @@ for (concentration in concentrations) {
                                              beta21 = tmp_mdp_out[, 21],
                                              beta22 = tmp_mdp_out[, 22],
                                              Method = "MDP-VB",
-                                             prior_sample_size = i))
+                                             concentration = concentration))
   plot_df1 <- rbind(plot_df1, tibble::tibble(id = 1:n_bootstrap,
                                              beta3 = out_bayes1$beta[, 3],
                                              beta5 = out_bayes1$beta[, 5],
                                              beta21 = out_bayes1$beta[, 21],
                                              beta22 = out_bayes1$beta[, 22],
                                              Method = "Bayes",
-                                             prior_sample_size = i))
+                                             concentration = concentration))
   plot_df1 <- rbind(plot_df1, tibble::tibble(id = 1:n_bootstrap,
                                              beta3 = stan_vb_sample[, 3],
                                              beta5 = stan_vb_sample[, 5],
                                              beta21 = stan_vb_sample[, 21],
                                              beta22 = stan_vb_sample[, 22],
                                              Method = "VB_Stan",
-                                             prior_sample_size = i))
+                                             concentration = concentration))
   print(summary(tmp_mdp_out[, c(21, 22)]))
 }
 
