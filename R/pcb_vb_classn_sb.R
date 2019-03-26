@@ -124,12 +124,12 @@ load_dataset <- function(dataset_input_list = list(name = "toy",
 #' @examples
 #' stick_breaking(1)
 #' stick_breaking(1, min_stick_breaks = 10)
-#' stick_breaking(1, min_stick_breaks = 10, threshold = 10 ^ (-8)
+#' stick_breaking(1, min_stick_breaks = 10, threshold = 1e-8)
 #'
 #' @export
 stick_breaking <- function(concentration = 1,
                            min_stick_breaks = 100,
-                           threshold = 10 ^ (-8)) {
+                           threshold = 1e-8) {
 
   # This algorithm regenerates all values, which is a waste
   # but is faster than appending in a for loop, which is slow in R
@@ -375,29 +375,29 @@ prior_variance <- 100
 set.seed(1)
 
 # Load the dataset
-dataset1 <- load_dataset(list(name = k_german_credit,
+dataset <- load_dataset(list(name = k_german_credit,
                               pct_train = pct_train))
 # Get Bayes (Polson samples)
 if (use_bayes_logit) {
-  p0 <- diag(rep(1 / prior_variance, dataset1$n_cov + 1))
-  out_bayes1 <- BayesLogit::logit(y = 0.5 * (dataset1$y_train + 1),
-                                  X = cbind(1, dataset1$x_train),
+  p0 <- diag(rep(1 / prior_variance, dataset$n_cov + 1))
+  out_bayes1 <- BayesLogit::logit(y = 0.5 * (dataset$y_train + 1),
+                                  X = cbind(1, dataset$x_train),
                                   P0 = p0,
                                   samp = n_bootstrap,
                                   burn = n_bootstrap)
 } else {
-  out_bayes1 <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset1$y_train + 1),
-                                          X = cbind(1, dataset1$x_train),
+  out_bayes1 <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y_train + 1),
+                                          X = cbind(1, dataset$x_train),
                                           lambda = 1 / prior_variance,
                                           n_iter_total = 2 * n_bootstrap,
                                           burn_in = n_bootstrap)
 }
 
 # Add in Stan VB
-train_dat <- list(n = dataset1$n_train,
-                  p = dataset1$n_cov + 1,
-                  x = cbind(1, dataset1$x_train),
-                  y = 0.5 * (dataset1$y_train + 1),
+train_dat <- list(n = dataset$n_train,
+                  p = dataset$n_cov + 1,
+                  x = cbind(1, dataset$x_train),
+                  y = 0.5 * (dataset$y_train + 1),
                   beta_sd = sqrt(prior_variance))
 # Run VB approx from STAN
 # the number of samples is the same as the final bootstrap samples,
@@ -411,7 +411,7 @@ stan_vb_sample <- rstan::extract(out_vb_stan)$beta
 plot_df1 <- tibble::tibble()
 # Get MDP samples for various sample sizes
 for (concentration in concentrations) {
-  tmp_mdp_out <- anpl(dataset = dataset1,
+  tmp_mdp_out <- anpl(dataset = dataset,
                       concentration = concentration,
                       n_bootstrap = n_bootstrap,
                       posterior_sample = stan_vb_sample,

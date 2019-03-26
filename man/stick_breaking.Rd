@@ -5,7 +5,7 @@
 \title{Stick-breaking depending on a concentration parameter.}
 \usage{
 stick_breaking(concentration = 1, min_stick_breaks = 100,
-  threshold = 10^(-8))
+  threshold = 1e-08)
 }
 \arguments{
 \item{concentration}{The parameter \code{c} in the paper (page 3, formula 3),
@@ -35,6 +35,6 @@ that distribution is part of the definition of the stick-breaking process.
 \examples{
 stick_breaking(1)
 stick_breaking(1, min_stick_breaks = 10)
-stick_breaking(1, min_stick_breaks = 10, threshold = 10 ^ (-8)
+stick_breaking(1, min_stick_breaks = 10, threshold = 1e-8)
 
 }
