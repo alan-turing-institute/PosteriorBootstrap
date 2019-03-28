@@ -208,7 +208,7 @@ anpl <- function(dataset,
 
 
   # Create matrix with which to store posterior samples
-  theta_out <- matrix(0, nrow = n_bootstrap, ncol = dataset$n_cov + 1)
+  theta_hat <- matrix(0, nrow = n_bootstrap, ncol = dataset$n_cov + 1)
   # Get mixing theta
   if (is.null(posterior_sample)) {
     gamma <- MASS::mvrnorm(n = n_bootstrap,
@@ -294,9 +294,9 @@ anpl <- function(dataset,
                               y = y_all,
                               weights = wgts,
                               family = stats::quasibinomial(link = "logit"))
-    theta_out[i, ] <- glm_fit$coefficients
+    theta_hat[i, ] <- glm_fit$coefficients
   }
-  return(theta_out)
+  return(theta_hat)
 }
 
 
@@ -362,6 +362,17 @@ stat_density_2d1_proto <- ggproto("stat_density_2d1_proto", Stat,
   }
 )
 
+append_to_plot <- function(plot_df, sample, method,
+                           n_bootstrap, concentration) {
+  new_plot_df <- rbind(plot_df, tibble::tibble(id = 1:n_bootstrap,
+                                               beta3 = sample[, 3],
+                                               beta5 = sample[, 5],
+                                               beta21 = sample[, 21],
+                                               beta22 = sample[, 22],
+                                               Method = method,
+                                               concentration = concentration))
+  return(new_plot_df)
+}
 
 #' @importFrom Rcpp cpp_object_initializer
 script <- function(use_bayes_logit, verbose=TRUE) {
@@ -380,13 +391,13 @@ dataset <- load_dataset(list(name = k_german_credit,
 # Get Bayes (Polson samples)
 if (use_bayes_logit) {
   p0 <- diag(rep(1 / prior_variance, dataset$n_cov + 1))
-  out_bayes1 <- BayesLogit::logit(y = 0.5 * (dataset$y_train + 1),
+  bayes_sample <- BayesLogit::logit(y = 0.5 * (dataset$y_train + 1),
                                   X = cbind(1, dataset$x_train),
                                   P0 = p0,
                                   samp = n_bootstrap,
                                   burn = n_bootstrap)
 } else {
-  out_bayes1 <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y_train + 1),
+  bayes_sample <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y_train + 1),
                                           X = cbind(1, dataset$x_train),
                                           lambda = 1 / prior_variance,
                                           n_iter_total = 2 * n_bootstrap,
@@ -403,56 +414,47 @@ train_dat <- list(n = dataset$n_train,
 # the number of samples is the same as the final bootstrap samples,
 # as the Stan VB samples serve for the MDP stick-breaking algorithm
 bayes_logit_model <- rstan::stan_model(file = get_rstan_file())
-out_vb_stan <- rstan::vb(bayes_logit_model,
-                         data = train_dat,
-                         output_samples = n_bootstrap,
-                         seed = 123)
-stan_vb_sample <- rstan::extract(out_vb_stan)$beta
-plot_df1 <- tibble::tibble()
+stan_vb <- rstan::vb(bayes_logit_model,
+                     data = train_dat,
+                     output_samples = n_bootstrap,
+                     seed = 123,
+                     iter = 100)
+stan_vb_sample <- rstan::extract(stan_vb)$beta
+plot_df <- tibble::tibble()
 # Get MDP samples for various sample sizes
 for (concentration in concentrations) {
-  tmp_mdp_out <- anpl(dataset = dataset,
+  anpl_sample <- anpl(dataset = dataset,
                       concentration = concentration,
                       n_bootstrap = n_bootstrap,
                       posterior_sample = stan_vb_sample,
                       threshold = 1e-8)
 
-  # TODO(MMorin): refactor with a helper called three times
-  plot_df1 <- rbind(plot_df1, tibble::tibble(id = 1:n_bootstrap,
-                                             beta3 = tmp_mdp_out[, 3],
-                                             beta5 = tmp_mdp_out[, 5],
-                                             beta21 = tmp_mdp_out[, 21],
-                                             beta22 = tmp_mdp_out[, 22],
-                                             Method = "MDP-VB",
-                                             concentration = concentration))
-  plot_df1 <- rbind(plot_df1, tibble::tibble(id = 1:n_bootstrap,
-                                             beta3 = out_bayes1$beta[, 3],
-                                             beta5 = out_bayes1$beta[, 5],
-                                             beta21 = out_bayes1$beta[, 21],
-                                             beta22 = out_bayes1$beta[, 22],
-                                             Method = "Bayes",
-                                             concentration = concentration))
-  plot_df1 <- rbind(plot_df1, tibble::tibble(id = 1:n_bootstrap,
-                                             beta3 = stan_vb_sample[, 3],
-                                             beta5 = stan_vb_sample[, 5],
-                                             beta21 = stan_vb_sample[, 21],
-                                             beta22 = stan_vb_sample[, 22],
-                                             Method = "VB_Stan",
-                                             concentration = concentration))
-  print(summary(tmp_mdp_out[, c(21, 22)]))
+  # Append to plot
+  plot_df  <- append_to_plot(plot_df, sample = anpl_sample,
+                             method = "ANPL",
+                             n_bootstrap = n_bootstrap,
+                             concentration = concentration)
+  plot_df  <- append_to_plot(plot_df, sample = bayes_sample,
+                             method = "Bayes",
+                             n_bootstrap = n_bootstrap,
+                             concentration = concentration)
+  plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
+                             method = "VB_Stan",
+                             n_bootstrap = n_bootstrap,
+                             concentration = concentration)
 }
 
 gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "beta21",
                                               y = "beta22",
                                               colour = "Method"),
                           data = dplyr::filter(
-                            plot_df1, plot_df1$Method != "Bayes",
-                            plot_df1$Method != "VB")) +
+                            plot_df, plot_df$Method != "Bayes",
+                            plot_df$Method != "VB")) +
   stat_density_2d1(bins = 5) +
   ggplot2::geom_point(alpha = 0.1, size = 1,
-                      data = dplyr::filter(plot_df1,
-                                           plot_df1$Method == "Bayes",
-                                           plot_df1$id < 1001)) +
+                      data = dplyr::filter(plot_df,
+                                           plot_df$Method == "Bayes",
+                                           plot_df$id < 1001)) +
   ggplot2::facet_wrap(~prior_sample_size, nrow = 1,
                       scales = "fixed",
                       labeller = ggplot2::label_bquote(c ~" = "~
