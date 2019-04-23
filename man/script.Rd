@@ -4,7 +4,7 @@
 \alias{script}
 \title{Wrapper function for the script part of the code.}
 \usage{
-script(use_bayes_logit, verbose = TRUE)
+script(use_bayes_logit = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{use_bayes_logit}{Whether to use this package or the alternative

@@ -367,7 +367,7 @@ append_to_plot <- function(plot_df, sample, method,
 #'
 #' @importFrom Rcpp cpp_object_initializer
 #' @export
-script <- function(use_bayes_logit, verbose=TRUE) {
+script <- function(use_bayes_logit = TRUE, verbose = TRUE) {
 # Stickbreaking plot
 utils::timestamp()
 base_font_size <- 8
@@ -382,11 +382,12 @@ dataset <- load_dataset(list(name = k_german_credit))
 # Get Bayes (Polson samples)
 if (use_bayes_logit) {
   p0 <- diag(rep(1 / prior_variance, dataset$n_cov + 1))
-  bayes_sample <- BayesLogit::logit(y = 0.5 * (dataset$y + 1),
-                                  X = cbind(1, dataset$x),
-                                  P0 = p0,
-                                  samp = n_bootstrap,
-                                  burn = n_bootstrap)
+  bayes_out <- BayesLogit::logit(y = 0.5 * (dataset$y + 1),
+                                 X = cbind(1, dataset$x),
+                                 P0 = p0,
+                                 samp = n_bootstrap,
+                                 burn = n_bootstrap)
+  bayes_sample <- bayes_out$beta
 } else {
   bayes_sample <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y + 1),
                                           X = cbind(1, dataset$x),
