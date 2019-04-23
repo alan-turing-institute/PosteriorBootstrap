@@ -30,17 +30,14 @@ get_german_credit_file <- function() {
 }
 
 # Function to load dataset. Won't be necessary in the package
-load_dataset <- function(dataset_input_list = list(name = "toy",
-                                                   n = 200,
-                                                   pct_train = 0.5)) {
+load_dataset <- function(dataset_input_list = list(name = "toy", n = 200)) {
   # Check dataset_input_list has required elements
-  if (!all(c("name", "pct_train") %in% names(dataset_input_list))) {
-    stop("dataset_input_list does not contain all of (name, pct_train)")
+  if (!(c("name") %in% names(dataset_input_list))) {
+    stop("dataset_input_list does not contain name")
   }
 
   # dataset object is list we will return.
-  dataset <- list(name = dataset_input_list$name,
-                  pct_train = dataset_input_list$pct_train)
+  dataset <- list(name = dataset_input_list$name)
 
   if (dataset$name == "toy") {
     if (!("n" %in% names(dataset_input_list))) {
@@ -79,23 +76,11 @@ load_dataset <- function(dataset_input_list = list(name = "toy",
   # Add the dataset to the dataset output list.
   dataset$n <- dim(raw_dataset)[1]
   dataset$n_cov <- dim(raw_dataset)[2] - 1  # Doesn't include an intercept
-  dataset$obs <- 1:dataset$n
   dataset$x <- raw_dataset[, 1:dataset$n_cov, drop = FALSE]
 
   # Convert y to +/- 1 format
   dataset$y <- 2 * raw_dataset[, dataset$n_cov + 1] - 1
-  # Generate the training dataset and add to the list.
-  dataset$n_train <- floor(dataset$n * dataset$pct_train)
-  dataset$obs_train <- sample.int(n = dataset$n,
-                                  size = dataset$n_train,
-                                  replace = FALSE)
-  dataset$x_train <- dataset$x[dataset$obs_train, , drop = FALSE]
-  dataset$y_train <- dataset$y[dataset$obs_train]
-  # Generate the test dataset and add to the list.
-  dataset$n_test <- dataset$n - dataset$n_train
-  dataset$obs_test <- dataset$obs[!(dataset$obs %in% dataset$obs_train)]
-  dataset$x_test <- dataset$x[dataset$obs_test, , drop = FALSE]
-  dataset$y_test <- dataset$y[dataset$obs_test]
+
   # Return the dataset object.
   return(dataset)
 }
@@ -240,7 +225,7 @@ anpl <- function(dataset,
       # TODO(mmorin): understand how vrem = c/(c+n) in the paper
       # maps to this code
       w_raw_model <- stick_breaking(concentration = concentration,
-                                    min_stick_breaks = dataset$n_train,
+                                    min_stick_breaks = dataset$n,
                                     threshold = threshold)
       w_model <- w_raw_model * s_i
       n_centering_model_samples <- length(w_model)
@@ -250,9 +235,9 @@ anpl <- function(dataset,
 
       # Create prior samples
       # Prior means "model"
-      x_prior <- matrix(rep(t(dataset$x_train),
-                            n_centering_model_samples / dataset$n_train),
-                        ncol = ncol(dataset$x_train),
+      x_prior <- matrix(rep(t(dataset$x),
+                            n_centering_model_samples / dataset$n),
+                        ncol = ncol(dataset$x),
                         byrow = TRUE)
 
       # Generate classes from features, see page 7 of the paper:
@@ -264,24 +249,24 @@ anpl <- function(dataset,
                                size = 1, prob = probs)
 
       # Compute Dirichlet weights
-      wgt_mean <- c(rep(1, dataset$n_train),
+      wgt_mean <- c(rep(1, dataset$n),
                     rep(concentration / n_centering_model_samples,
                         n_centering_model_samples))
-      wgts <- stats::rgamma(n = dataset$n_train + n_centering_model_samples,
+      wgts <- stats::rgamma(n = dataset$n + n_centering_model_samples,
                             shape = wgt_mean,
-                            rate = rep(1, dataset$n_train +
+                            rate = rep(1, dataset$n +
                                             n_centering_model_samples))
-      x_all <- rbind(dataset$x_train, x_prior)
+      x_all <- rbind(dataset$x, x_prior)
       # TODO(mmorin): stop this juggling of y-values between {-1, 1} and {0, 1}
-      y_all <- c(0.5 + 0.5 * dataset$y_train, y_prior)
+      y_all <- c(0.5 + 0.5 * dataset$y, y_prior)
     } else {
       # No prior samples. Compute Dirichlet weights
-      wgt_mean <- rep(1, dataset$n_train)
-      wgts <- stats::rgamma(n = dataset$n_train,
+      wgt_mean <- rep(1, dataset$n)
+      wgts <- stats::rgamma(n = dataset$n,
                             shape = wgt_mean,
-                            rate = rep(1, dataset$n_train))
-      x_all <- dataset$x_train
-      y_all <- 0.5 + 0.5 * dataset$y_train
+                            rate = rep(1, dataset$n))
+      x_all <- dataset$x
+      y_all <- 0.5 + 0.5 * dataset$y
     }
     # Parameter is computed via weighted glm fit.  We use quasibinomial family
     # instead of binomial to allow the count parameters to be
@@ -374,41 +359,47 @@ append_to_plot <- function(plot_df, sample, method,
   return(new_plot_df)
 }
 
+#' Wrapper function for the script part of the code.
+#'
+#' @param use_bayes_logit Whether to use this package or the alternative
+#'   from Kaspar Martens
+#' @param verbose Whether to print statements
+#'
 #' @importFrom Rcpp cpp_object_initializer
+#' @export
 script <- function(use_bayes_logit, verbose=TRUE) {
 # Stickbreaking plot
 utils::timestamp()
 base_font_size <- 8
-pct_train <- 1
 n_bootstrap <- 1000
 concentrations <- c(1, 1000, 20000)
 prior_variance <- 100
 set.seed(1)
 
 # Load the dataset
-dataset <- load_dataset(list(name = k_german_credit,
-                              pct_train = pct_train))
+dataset <- load_dataset(list(name = k_german_credit))
+
 # Get Bayes (Polson samples)
 if (use_bayes_logit) {
   p0 <- diag(rep(1 / prior_variance, dataset$n_cov + 1))
-  bayes_sample <- BayesLogit::logit(y = 0.5 * (dataset$y_train + 1),
-                                  X = cbind(1, dataset$x_train),
+  bayes_sample <- BayesLogit::logit(y = 0.5 * (dataset$y + 1),
+                                  X = cbind(1, dataset$x),
                                   P0 = p0,
                                   samp = n_bootstrap,
                                   burn = n_bootstrap)
 } else {
-  bayes_sample <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y_train + 1),
-                                          X = cbind(1, dataset$x_train),
+  bayes_sample <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y + 1),
+                                          X = cbind(1, dataset$x),
                                           lambda = 1 / prior_variance,
                                           n_iter_total = 2 * n_bootstrap,
                                           burn_in = n_bootstrap)
 }
 
 # Add in Stan VB
-train_dat <- list(n = dataset$n_train,
+train_dat <- list(n = dataset$n,
                   p = dataset$n_cov + 1,
-                  x = cbind(1, dataset$x_train),
-                  y = 0.5 * (dataset$y_train + 1),
+                  x = cbind(1, dataset$x),
+                  y = 0.5 * (dataset$y + 1),
                   beta_sd = sqrt(prior_variance))
 # Run VB approx from STAN
 # the number of samples is the same as the final bootstrap samples,
