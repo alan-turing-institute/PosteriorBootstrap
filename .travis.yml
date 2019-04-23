@@ -2,20 +2,43 @@ sudo: enabled
 language: r
 warnings_are_errors: true
 
-# Only allow the lintr-bot to comment on one build (this avoids duplicate comments)
+# # Only allow the lintr-bot to comment on one build (this avoids duplicate comments)
+# matrix:
+#   include:
+#     # Build for both OSX and Linux
+#     - os: linux
+#       dist: xenial
+#     - os: osx
+#       env: LINTR_COMMENT_BOT=false
+#     # Build for three R releases
+#     - r: oldrel
+#       env: LINTR_COMMENT_BOT=false
+#     - r: release
+#     - r: devel
+#       env: LINTR_COMMENT_BOT=false
+
+env:
+  - LINTR_COMMENT_BOT=false
+os:
+  - linux
+  - osx
+r:
+  - oldrel
+  - release
+  - devel
 matrix:
   include:
-    # Build for both OSX and Linux
     - os: linux
       dist: xenial
-    - os: osx
-      env: LINTR_COMMENT_BOT=false
-    # Build for three R releases
-    - r: oldrel
-      env: LINTR_COMMENT_BOT=false
-    - r: release
-    - r: devel
-      env: LINTR_COMMENT_BOT=false
+      r: release
+      env: LINTR_COMMENT_BOT=true
+
+# matrix:
+#   exclude:
+#     - rvm: 1.9.3
+#       env: DB=mongodb SUITE=all # not 'env: DB=mongodb  SUITE=all' or 'env: SUITE=all DB=mongodb'
+#     - rvm: 1.9.3
+#       env: DB=mongodb SUITE=compact # not 'env: SUITE=compact DB=mongodb'
 
 # BayesLogit needs the gfortran compiler
 apt_packages:
