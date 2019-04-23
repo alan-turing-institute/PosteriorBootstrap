@@ -17,8 +17,14 @@ warnings_are_errors: true
 #     - r: devel
 #       env: LINTR_COMMENT_BOT=false
 
+# Use Xenial whenever running in Linux (ignored for OS X)
+dist: xenial
+
+# Disable lintr-bot comments by default
 env:
   - LINTR_COMMENT_BOT=false
+
+# Construct the matrix of OS and R versions
 os:
   - linux
   - osx
@@ -26,10 +32,10 @@ r:
   - oldrel
   - release
   - devel
+# Explicitly enable the lintr-bot for one build (this avoids duplicate comments)
 matrix:
   include:
     - os: linux
-      dist: xenial
       r: release
       env: LINTR_COMMENT_BOT=true
 
