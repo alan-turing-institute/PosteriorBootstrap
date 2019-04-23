@@ -361,6 +361,8 @@ append_to_plot <- function(plot_df, sample, method,
 
 #' Wrapper function for the script part of the code.
 #'
+#' Note: this function takes about an hour to run on a mac laptop.
+#'
 #' @param use_bayes_logit Whether to use this package or the alternative
 #'   from Kaspar Martens
 #' @param verbose Whether to print statements
