@@ -10,7 +10,7 @@ requireNamespace("PolyaGamma", quietly = TRUE)
 requireNamespace("stats", quietly = TRUE)
 requireNamespace("tibble", quietly = TRUE)
 requireNamespace("utils", quietly = TRUE)
-library(rstan)
+requireNamespace("rstan", quietly = TRUE)
 
 k_extdata <- "extdata"
 k_package <- "PosteriorBootstrap"
@@ -332,8 +332,9 @@ stat_density_2d1 <- function(mapping = NULL,
 }
 
 # Plotting detail. We can ignore.
-stat_density_2d1_proto <- ggproto("stat_density_2d1_proto", Stat,
-  default_aes = aes(colour = "#3366FF", size = 0.5),
+stat_density_2d1_proto <- ggplot2::ggproto("stat_density_2d1_proto",
+  ggplot2::Stat,
+  default_aes = ggplot2::aes(colour = "#3366FF", size = 0.5),
   required_aes = c("x", "y"),
 
   compute_group = function(data, scales, h = NULL,
