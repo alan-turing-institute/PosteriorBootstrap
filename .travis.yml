@@ -18,7 +18,10 @@ r:
   - release
   - devel
 
-# Explicitly enable the lintr-bot for one build (this avoids duplicate comments)
+# Explicitly enable the lintr-bot for one build (this avoids duplicate comments).
+# Travis treats builds with different environment variables as different builds.
+# We therefore remove the one we don't want in order to replace it with the one
+# we do.
 matrix:
   exclude:
     - os: linux
