@@ -5,16 +5,15 @@ library(PosteriorBootstrap)
 
 test_that("Mixture of Dirichlet Processes stick-breaking works and returns", {
 
-  german <- load_dataset(list(name = k_german_credit,
-                              pct_train = 1))
+  german <- load_dataset(list(name = k_german_credit))
 
   n_bootstrap <- 10
   prior_variance <- 100
 
-  train_dat <- list(n = german$n_train,
+  train_dat <- list(n = german$n,
                     p = german$n_cov + 1,
-                    x = cbind(1, german$x_train),
-                    y = 0.5 * (german$y_train + 1),
+                    x = cbind(1, german$x),
+                    y = 0.5 * (german$y + 1),
                     beta_sd = sqrt(prior_variance))
 
   bayes_logit_model <- rstan::stan_model(file = get_rstan_file())
