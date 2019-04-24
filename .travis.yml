@@ -20,8 +20,13 @@ r:
 
 # Explicitly enable the lintr-bot for one build (this avoids duplicate comments)
 matrix:
+  exclude:
+    - os: linux
+      r: release
+      env: LINTR_COMMENT_BOT=false
   include:
-      if: (os = linux) AND (r = release)
+    - os: linux
+      r: release
       env: LINTR_COMMENT_BOT=true
 
 # BayesLogit needs the gfortran compiler
