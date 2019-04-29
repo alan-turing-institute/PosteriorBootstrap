@@ -103,7 +103,7 @@ load_dataset <- function(dataset_input_list = list(name = "toy", n = 200)) {
 #'   which is an effective sample size.
 #' @param min_stick_breaks The minimal number of stick-breaks.
 #' @param threshold The threshold of stick remaining below which the function
-#'   stops looking for more stick-breaks. It correspondes to epsilon in the
+#'   stops looking for more stick-breaks. It corresponds to epsilon in the
 #'   paper, at the bottom of page 5 and in algorithm 2 in page 12.
 #' @return A vector of stick-breaks summing to one.
 #' @examples
@@ -161,6 +161,8 @@ stick_breaking <- function(concentration = 1,
 #' @param threshold The threshold of stick remaining below which the function
 #'   stops looking for more stick-breaks. It correspondes to epsilon in the
 #'   paper, at the bottom of page 5 and in algorithm 2 in page 12.
+#' @param mc.cores Number of processor cores for the parallel run of the
+#'   algorithm. See \link[parallel]{mclapply} for details.
 #' @return A matrix of bootstrap samples for the parameter of interest
 #'
 #' @export
@@ -170,7 +172,8 @@ anpl <- function(dataset,
                  posterior_sample = NULL,
                  gamma_mean = NULL,
                  gamma_vcov = NULL,
-                 threshold = 1e-8) {
+                 threshold = 1e-8,
+                 mc.cores = 1) {
 
   if (is.null(posterior_sample)) {
     if (is.null(gamma_mean) | is.null(gamma_vcov)) {
@@ -191,7 +194,6 @@ anpl <- function(dataset,
     stop("Concentration needs to be positive")
   }
 
-
   # Create matrix with which to store posterior samples
   theta_hat <- matrix(0, nrow = n_bootstrap, ncol = dataset$n_cov + 1)
   # Get mixing theta
@@ -204,7 +206,7 @@ anpl <- function(dataset,
   }
   # Generate prior samples
 
-  # `x_prior` is a `n_bootstrap x n_centering_model_samples` matrix:
+  # `x_prior` is a `concentration x n_centering_model_samples` matrix:
   # each row represents a set of prior samples for a particular gamma element.
 
   # This for loop can be be parallelised
@@ -362,7 +364,7 @@ append_to_plot <- function(plot_df, sample, method,
 
 #' Wrapper function for the script part of the code.
 #'
-#' Note: this function takes about an hour to run on a mac laptop.
+#' Note: this function takes several hours to run on a mac laptop.
 #'
 #' @param use_bayes_logit Whether to use this package or the alternative
 #'   from Kaspar Martens
