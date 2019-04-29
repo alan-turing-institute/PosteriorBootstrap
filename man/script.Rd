@@ -13,5 +13,5 @@ from Kaspar Martens}
 \item{verbose}{Whether to print statements}
 }
 \description{
-Wrapper function for the script part of the code.
+Note: this function takes several hours to run on a mac laptop.
 }
