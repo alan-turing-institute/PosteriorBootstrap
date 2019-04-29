@@ -193,6 +193,22 @@ anpl <- function(dataset,
   if (concentration < 0) {
     stop("Concentration needs to be positive")
   }
+  if (is.null(posterior_sample)) {
+    dim_gamma <- dataset$n_cov + 1
+    if (!(is.numeric(gamma_mean) & (dim_gamma == length(gamma_mean)))) {
+      stop(paste0("You need to give a vector for the mean of the centering ",
+                  "model with size ",
+                  dim_gamma,
+                  " (for the number of covariates, plus 1 for the intercept)"))
+    }
+    if (!(is.numeric(gamma_vcov) &
+            all(c(dim_gamma, dim_gamma) == dim(gamma_vcov)))) {
+      stop(paste0("You need to give a matrix for the variance-covariance ",
+                  "matrix of the centering model: ",
+                  dim_gamma, "*", dim_gamma,
+                  " (for the number of covariates, plus 1 for the intercept)"))
+    }
+  }
 
   # Create matrix with which to store posterior samples
   theta_hat <- matrix(0, nrow = n_bootstrap, ncol = dataset$n_cov + 1)
@@ -228,9 +244,6 @@ anpl <- function(dataset,
                                     threshold = threshold)
       w_model <- w_raw_model * s_i
       n_centering_model_samples <- length(w_model)
-      if (i == 1) {
-        print(paste("n_centering_model_samples = ", n_centering_model_samples))
-      }
 
       # Create prior samples
       # Prior means "model"
