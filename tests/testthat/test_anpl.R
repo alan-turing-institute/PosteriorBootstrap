@@ -16,6 +16,7 @@ test_that("Mixture of Dirichlet Processes stick-breaking works and returns", {
                        gamma_vcov = diag(1, german$n_cov + 1),
                        threshold = 1e-8)
 
+  expect_true(is.numeric(anpl_samples))
   expect_equal(dim(anpl_samples), c(n_bootstrap, 1 + german$n_cov))
 })
 
