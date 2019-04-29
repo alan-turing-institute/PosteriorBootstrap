@@ -206,9 +206,6 @@ anpl <- function(dataset,
   }
   # Generate prior samples
 
-  # `x_prior` is a `concentration x n_centering_model_samples` matrix:
-  # each row represents a set of prior samples for a particular gamma element.
-
   # This for loop can be be parallelised
   for (i in 1:n_bootstrap) {
     if (concentration != 0) {
@@ -237,6 +234,8 @@ anpl <- function(dataset,
 
       # Create prior samples
       # Prior means "model"
+      # `x_prior` is a `concentration x n_centering_model_samples` matrix:
+      # each row represents a set of prior samples for a particular gamma element.
       x_prior <- matrix(rep(t(dataset$x),
                             n_centering_model_samples / dataset$n),
                         ncol = ncol(dataset$x),
