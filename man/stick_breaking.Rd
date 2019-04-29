@@ -14,7 +14,7 @@ which is an effective sample size.}
 \item{min_stick_breaks}{The minimal number of stick-breaks.}
 
 \item{threshold}{The threshold of stick remaining below which the function
-stops looking for more stick-breaks. It correspondes to epsilon in the
+stops looking for more stick-breaks. It corresponds to epsilon in the
 paper, at the bottom of page 5 and in algorithm 2 in page 12.}
 }
 \value{

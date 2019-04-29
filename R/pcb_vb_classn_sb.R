@@ -6,11 +6,12 @@ requireNamespace("dplyr", quietly = TRUE)
 requireNamespace("e1071", quietly = TRUE)
 requireNamespace("ggplot2", quietly = TRUE)
 requireNamespace("MASS", quietly = TRUE)
+requireNamespace("parallel", quietly = TRUE)
 requireNamespace("PolyaGamma", quietly = TRUE)
+requireNamespace("rstan", quietly = TRUE)
 requireNamespace("stats", quietly = TRUE)
 requireNamespace("tibble", quietly = TRUE)
 requireNamespace("utils", quietly = TRUE)
-requireNamespace("rstan", quietly = TRUE)
 
 k_extdata <- "extdata"
 k_package <- "PosteriorBootstrap"
@@ -161,7 +162,7 @@ stick_breaking <- function(concentration = 1,
 #' @param threshold The threshold of stick remaining below which the function
 #'   stops looking for more stick-breaks. It correspondes to epsilon in the
 #'   paper, at the bottom of page 5 and in algorithm 2 in page 12.
-#' @param mc.cores Number of processor cores for the parallel run of the
+#' @param num_cores Number of processor cores for the parallel run of the
 #'   algorithm. See \link[parallel]{mclapply} for details.
 #' @return A matrix of bootstrap samples for the parameter of interest
 #'
@@ -173,7 +174,7 @@ anpl <- function(dataset,
                  gamma_mean = NULL,
                  gamma_vcov = NULL,
                  threshold = 1e-8,
-                 mc.cores = 1) {
+                 num_cores = 1) {
 
   if (is.null(posterior_sample)) {
     if (is.null(gamma_mean) | is.null(gamma_vcov)) {
@@ -210,8 +211,6 @@ anpl <- function(dataset,
     }
   }
 
-  # Create matrix with which to store posterior samples
-  theta_hat <- matrix(0, nrow = n_bootstrap, ncol = dataset$n_cov + 1)
   # Get mixing theta
   if (is.null(posterior_sample)) {
     gamma <- MASS::mvrnorm(n = n_bootstrap,
@@ -220,11 +219,33 @@ anpl <- function(dataset,
   } else {
     gamma <- posterior_sample
   }
-  # Generate prior samples
 
+  # Generate prior samples
   # This for loop can be be parallelised
+  more_args <- list("dataset" = dataset,
+                    "concentration" = concentration,
+                    "gamma" = gamma,
+                    "threshold" = threshold)
+  theta_list <- parallel::mcmapply(anpl_single, 1:n_bootstrap,
+                                   MoreArgs = more_args, mc.cores = num_cores)
+
+  # Arrange the results in a matrix
+  theta_hat <- matrix(0, nrow = n_bootstrap, ncol = dataset$n_cov + 1)
   for (i in 1:n_bootstrap) {
+    theta_hat[i, ] <- theta_list[[i]]
+  }
+  return(theta_hat)
+}
+
+anpl_single <- function(i,
+                        dataset,
+                        concentration,
+                        gamma,
+                        threshold) {
+
     if (concentration != 0) {
+      gamma_i  <- gamma[i, ]
+
       # Get stick-breaking split between data and model
       # s_i is random around c / (c + n)
       # s_i is s^{(i)} is the "model vs data weight" in algorithm 2, page 12
@@ -248,7 +269,11 @@ anpl <- function(dataset,
       # Create prior samples
       # Prior means "model"
       # `x_prior` is a `concentration x n_centering_model_samples` matrix:
-      # each row represents a set of prior samples for a particular gamma element.
+      # each row represents a set of prior samples for a particular gamma
+      # element.
+      # TODO(mmorin): what if n_centering_model_samples is not a multiple
+      # of dataset$n?
+      # TODO(mmorin): replace this stacking with a Kronecker product
       x_prior <- matrix(rep(t(dataset$x),
                             n_centering_model_samples / dataset$n),
                         ncol = ncol(dataset$x),
@@ -258,7 +283,7 @@ anpl <- function(dataset,
       # "When generating synthetic samples for the posterior bootstrap, both
       #  features and classes are needed. Classes are generated, given features,
       #  according to the probability specified by the logistic distribution."
-      probs <- e1071::sigmoid(cbind(1, x_prior) %*% gamma[i, ])
+      probs <- e1071::sigmoid(cbind(1, x_prior) %*% gamma_i)
       y_prior <- stats::rbinom(n = n_centering_model_samples,
                                size = 1, prob = probs)
 
@@ -282,20 +307,18 @@ anpl <- function(dataset,
       x_all <- dataset$x
       y_all <- 0.5 + 0.5 * dataset$y
     }
+    stopifnot(all(y_all %in% c(0, 1)))
     # Parameter is computed via weighted glm fit.  We use quasibinomial family
     # instead of binomial to allow the count parameters to be
     # non-integers. Quasibinomial is the same as binomial except that it removes
     # the integer check and does not compute AIC. See the answer by the
     # author (mmorin) on this StackOverflow thread for more details:
     # https://stackoverflow.com/questions/12953045
-    stopifnot(all(y_all %in% c(0, 1)))
     glm_fit <- stats::glm.fit(x = cbind(1, x_all),
                               y = y_all,
                               weights = wgts,
                               family = stats::quasibinomial(link = "logit"))
-    theta_hat[i, ] <- glm_fit$coefficients
-  }
-  return(theta_hat)
+    return(glm_fit$coefficients)
 }
 
 

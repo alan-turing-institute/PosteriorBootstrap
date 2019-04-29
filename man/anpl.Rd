@@ -6,7 +6,7 @@
 \usage{
 anpl(dataset, concentration, n_bootstrap = 100,
   posterior_sample = NULL, gamma_mean = NULL, gamma_vcov = NULL,
-  threshold = 1e-08)
+  threshold = 1e-08, num_cores = 1)
 }
 \arguments{
 \item{dataset}{The dataset with classes and features (in a specific format
@@ -29,6 +29,9 @@ variance-covariance of the centering model for gamma (equation 9, page 4).}
 \item{threshold}{The threshold of stick remaining below which the function
 stops looking for more stick-breaks. It correspondes to epsilon in the
 paper, at the bottom of page 5 and in algorithm 2 in page 12.}
+
+\item{num_cores}{Number of processor cores for the parallel run of the
+algorithm. See \link[parallel]{mclapply} for details.}
 }
 \value{
 A matrix of bootstrap samples for the parameter of interest
