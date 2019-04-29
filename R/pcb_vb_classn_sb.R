@@ -6,11 +6,12 @@ requireNamespace("dplyr", quietly = TRUE)
 requireNamespace("e1071", quietly = TRUE)
 requireNamespace("ggplot2", quietly = TRUE)
 requireNamespace("MASS", quietly = TRUE)
+requireNamespace("parallel", quietly = TRUE)
 requireNamespace("PolyaGamma", quietly = TRUE)
+requireNamespace("rstan", quietly = TRUE)
 requireNamespace("stats", quietly = TRUE)
 requireNamespace("tibble", quietly = TRUE)
 requireNamespace("utils", quietly = TRUE)
-requireNamespace("rstan", quietly = TRUE)
 
 k_extdata <- "extdata"
 k_package <- "PosteriorBootstrap"
@@ -29,7 +30,13 @@ get_german_credit_file <- function() {
   return(data_file(k_german_credit))
 }
 
-# Function to load dataset. Won't be necessary in the package
+#' Function to load dataset. Won't be necessary in the package
+#'
+#' @param dataset_input_list A list with a name and, in the case of "toy", a
+#'   number of samples
+#'
+#' @return A dataset in the right format
+#' @export
 load_dataset <- function(dataset_input_list = list(name = "toy", n = 200)) {
   # Check dataset_input_list has required elements
   if (!(c("name") %in% names(dataset_input_list))) {
@@ -161,6 +168,8 @@ stick_breaking <- function(concentration = 1,
 #' @param threshold The threshold of stick remaining below which the function
 #'   stops looking for more stick-breaks. It correspondes to epsilon in the
 #'   paper, at the bottom of page 5 and in algorithm 2 in page 12.
+#' @param num_cores Number of processor cores for the parallel run of the
+#'   algorithm. See \code{mc.cores} in \link[parallel]{mclapply} for details.
 #' @return A matrix of bootstrap samples for the parameter of interest
 #'
 #' @export
@@ -170,7 +179,8 @@ anpl <- function(dataset,
                  posterior_sample = NULL,
                  gamma_mean = NULL,
                  gamma_vcov = NULL,
-                 threshold = 1e-8) {
+                 threshold = 1e-8,
+                 num_cores = 1) {
 
   if (is.null(posterior_sample)) {
     if (is.null(gamma_mean) | is.null(gamma_vcov)) {
@@ -190,10 +200,23 @@ anpl <- function(dataset,
   if (concentration < 0) {
     stop("Concentration needs to be positive")
   }
+  if (is.null(posterior_sample)) {
+    dim_gamma <- dataset$n_cov + 1
+    if (!(is.numeric(gamma_mean) & (dim_gamma == length(gamma_mean)))) {
+      stop(paste0("You need to give a vector for the mean of the centering ",
+                  "model with size ",
+                  dim_gamma,
+                  " (for the number of covariates, plus 1 for the intercept)"))
+    }
+    if (!(is.numeric(gamma_vcov) &
+            all(c(dim_gamma, dim_gamma) == dim(gamma_vcov)))) {
+      stop(paste0("You need to give a matrix for the variance-covariance ",
+                  "matrix of the centering model: ",
+                  dim_gamma, "*", dim_gamma,
+                  " (for the number of covariates, plus 1 for the intercept)"))
+    }
+  }
 
-
-  # Create matrix with which to store posterior samples
-  theta_hat <- matrix(0, nrow = n_bootstrap, ncol = dataset$n_cov + 1)
   # Get mixing theta
   if (is.null(posterior_sample)) {
     gamma <- MASS::mvrnorm(n = n_bootstrap,
@@ -202,14 +225,33 @@ anpl <- function(dataset,
   } else {
     gamma <- posterior_sample
   }
+
   # Generate prior samples
-
-  # `x_prior` is a `concentration x n_centering_model_samples` matrix:
-  # each row represents a set of prior samples for a particular gamma element.
-
   # This for loop can be be parallelised
+  more_args <- list("dataset" = dataset,
+                    "concentration" = concentration,
+                    "gamma" = gamma,
+                    "threshold" = threshold)
+  theta_list <- parallel::mcmapply(anpl_single, 1:n_bootstrap,
+                                   MoreArgs = more_args, mc.cores = num_cores)
+
+  # Arrange the results in a matrix
+  theta_hat <- matrix(0, nrow = n_bootstrap, ncol = dataset$n_cov + 1)
   for (i in 1:n_bootstrap) {
+    theta_hat[i, ] <- theta_list[[i]]
+  }
+  return(theta_hat)
+}
+
+anpl_single <- function(i,
+                        dataset,
+                        concentration,
+                        gamma,
+                        threshold) {
+
     if (concentration != 0) {
+      gamma_i  <- gamma[i, ]
+
       # Get stick-breaking split between data and model
       # s_i is random around c / (c + n)
       # s_i is s^{(i)} is the "model vs data weight" in algorithm 2, page 12
@@ -229,12 +271,15 @@ anpl <- function(dataset,
                                     threshold = threshold)
       w_model <- w_raw_model * s_i
       n_centering_model_samples <- length(w_model)
-      if (i == 1) {
-        print(paste("n_centering_model_samples = ", n_centering_model_samples))
-      }
 
       # Create prior samples
       # Prior means "model"
+      # `x_prior` is a `concentration x n_centering_model_samples` matrix:
+      # each row represents a set of prior samples for a particular gamma
+      # element.
+      # TODO(mmorin): what if n_centering_model_samples is not a multiple
+      # of dataset$n?
+      # TODO(mmorin): replace this stacking with a Kronecker product
       x_prior <- matrix(rep(t(dataset$x),
                             n_centering_model_samples / dataset$n),
                         ncol = ncol(dataset$x),
@@ -244,7 +289,7 @@ anpl <- function(dataset,
       # "When generating synthetic samples for the posterior bootstrap, both
       #  features and classes are needed. Classes are generated, given features,
       #  according to the probability specified by the logistic distribution."
-      probs <- e1071::sigmoid(cbind(1, x_prior) %*% gamma[i, ])
+      probs <- e1071::sigmoid(cbind(1, x_prior) %*% gamma_i)
       y_prior <- stats::rbinom(n = n_centering_model_samples,
                                size = 1, prob = probs)
 
@@ -268,20 +313,18 @@ anpl <- function(dataset,
       x_all <- dataset$x
       y_all <- 0.5 + 0.5 * dataset$y
     }
+    stopifnot(all(y_all %in% c(0, 1)))
     # Parameter is computed via weighted glm fit.  We use quasibinomial family
     # instead of binomial to allow the count parameters to be
     # non-integers. Quasibinomial is the same as binomial except that it removes
     # the integer check and does not compute AIC. See the answer by the
     # author (mmorin) on this StackOverflow thread for more details:
     # https://stackoverflow.com/questions/12953045
-    stopifnot(all(y_all %in% c(0, 1)))
     glm_fit <- stats::glm.fit(x = cbind(1, x_all),
                               y = y_all,
                               weights = wgts,
                               family = stats::quasibinomial(link = "logit"))
-    theta_hat[i, ] <- glm_fit$coefficients
-  }
-  return(theta_hat)
+    return(glm_fit$coefficients)
 }
 
 
