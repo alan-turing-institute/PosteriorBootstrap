@@ -30,7 +30,13 @@ get_german_credit_file <- function() {
   return(data_file(k_german_credit))
 }
 
-# Function to load dataset. Won't be necessary in the package
+#' Function to load dataset. Won't be necessary in the package
+#'
+#' @param dataset_input_list A list with a name and, in the case of "toy", a
+#'   number of samples
+#'
+#' @return A dataset in the right format
+#' @export
 load_dataset <- function(dataset_input_list = list(name = "toy", n = 200)) {
   # Check dataset_input_list has required elements
   if (!(c("name") %in% names(dataset_input_list))) {
