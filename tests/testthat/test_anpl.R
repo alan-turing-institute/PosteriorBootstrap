@@ -1,7 +1,6 @@
 context("Adaptive non-parametric learning function")
 library(PosteriorBootstrap)
-
-# TODO(mmorin): speed up this test after playing with function parameters
+library(parallel)
 
 test_that("Mixture of Dirichlet Processes stick-breaking works and returns", {
 
@@ -20,6 +19,12 @@ test_that("Mixture of Dirichlet Processes stick-breaking works and returns", {
   expect_equal(dim(anpl_samples), c(n_bootstrap, 1 + german$n_cov))
 })
 
+test_that("Multiple processors are available", {
+  num_cores <- parallel::detectCores(logical = FALSE)
+  print(paste0("Physical cores available: ", num_cores))
+  expect_true(num_cores >= 2, "Multiple processors are available")
+})
+
 test_that("Parallelisation works and is faster", {
   german <- load_dataset(list(name = k_german_credit))
 
@@ -33,7 +38,7 @@ test_that("Parallelisation works and is faster", {
                        gamma_vcov = diag(1, german$n_cov + 1),
                        threshold = 1e-8,
                        num_cores = 1)
-  one_core_duration <- (Sys.time() - start)
+  one_core_duration <- as.double((Sys.time() - start), units = "secs")
 
   start <- Sys.time()
   anpl_samples <- anpl(dataset = german,
@@ -43,11 +48,12 @@ test_that("Parallelisation works and is faster", {
                        gamma_vcov = diag(1, german$n_cov + 1),
                        threshold = 1e-8,
                        num_cores = 2)
-  two_cores_duration <- Sys.time() - start
+  two_cores_duration <- as.double(Sys.time() - start, units = "secs")
+  speedup <- one_core_duration / two_cores_duration
 
-  print(one_core_duration)
-  print(two_cores_duration)
-  expect_true(one_core_duration >= 1.25 * two_cores_duration,
-              "Parallelisation is faster")
+  print(sprintf("Duration with 1 core requested: %4.0f s", one_core_duration))
+  print(sprintf("Duration with 2 cores requested: %4.0f s", two_cores_duration))
+  print(sprintf("Speedup: %3.1f", speedup))
+  expect_true(speedup >= 1.25, "Parallelisation is faster")
 
 })

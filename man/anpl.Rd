@@ -31,7 +31,7 @@ stops looking for more stick-breaks. It correspondes to epsilon in the
 paper, at the bottom of page 5 and in algorithm 2 in page 12.}
 
 \item{num_cores}{Number of processor cores for the parallel run of the
-algorithm. See \link[parallel]{mclapply} for details.}
+algorithm. See \code{mc.cores} in \link[parallel]{mclapply} for details.}
 }
 \value{
 A matrix of bootstrap samples for the parameter of interest

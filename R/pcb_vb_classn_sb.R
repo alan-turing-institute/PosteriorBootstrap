@@ -163,7 +163,7 @@ stick_breaking <- function(concentration = 1,
 #'   stops looking for more stick-breaks. It correspondes to epsilon in the
 #'   paper, at the bottom of page 5 and in algorithm 2 in page 12.
 #' @param num_cores Number of processor cores for the parallel run of the
-#'   algorithm. See \link[parallel]{mclapply} for details.
+#'   algorithm. See \code{mc.cores} in \link[parallel]{mclapply} for details.
 #' @return A matrix of bootstrap samples for the parameter of interest
 #'
 #' @export
