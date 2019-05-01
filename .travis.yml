@@ -19,6 +19,12 @@ apt_packages:
 # Install BayesLogit 0.6 using devtools
 before_install:
   - Rscript -e 'install.packages("devtools"); require(devtools); install_version("BayesLogit", version = "0.6")'
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew cask install basictex;
+      sudo tlmgr update --self;
+      sudo tlmgr update --all;
+      sudo tlmgr install titling framed inconsolata;
+      sudo tlmgr install collection-fontsrecommended; fi
 
 # Install PolyaGamma using devtools::install_github
 r_github_packages:
