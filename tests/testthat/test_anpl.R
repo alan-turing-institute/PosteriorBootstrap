@@ -26,36 +26,16 @@ test_that("Multiple processors are available", {
 })
 
 test_that("Parallelisation works and is faster", {
-  german <- load_dataset(list(name = k_german_credit))
-
-  n_bootstrap <- c(10, 100, 1000)
-
-  for (n_bootstrap in c(10, 100, 1000)) {
-  start <- Sys.time()
-  anpl_samples <- anpl(dataset = german,
-                       concentration = 1,
-                       n_bootstrap = n_bootstrap,
-                       gamma_mean = rep(0, german$n_cov + 1),
-                       gamma_vcov = diag(1, german$n_cov + 1),
-                       threshold = 1e-8,
-                       num_cores = 1)
-  one_core_duration <- as.double((Sys.time() - start), units = "secs")
-
-  start <- Sys.time()
-  anpl_samples <- anpl(dataset = german,
-                       concentration = 1,
-                       n_bootstrap = n_bootstrap,
-                       gamma_mean = rep(0, german$n_cov + 1),
-                       gamma_vcov = diag(1, german$n_cov + 1),
-                       threshold = 1e-8,
-                       num_cores = 2)
-  two_cores_duration <- as.double(Sys.time() - start, units = "secs")
-  speedup <- one_core_duration / two_cores_duration
 
   # The calculation of the expected speedup depends on the number of bootstrap
-  # samples and not, like Amdahl's law, on the number of processors. On my
-  # machine, I ran n_boostrap from 10 to 1000 by steps of 100, and 3 tries for
-  # each value, and timed the duration of the code, then ran a linear regression
+  # samples and the number of processors. On Travis, we are limited to 2 cores,
+  # so that limits the comparison. In addition, the speedup depends on the
+  # system: it is larger on macOS than on Linux, with some variation depending
+  # on the version of R.
+  #
+  # On a macOS machine, I ran n_boostrap from 10 to 1000 by steps of 100, and 3
+  # tries for each value, and timed the duration of the code, then ran a linear
+  # regression
   #
   # t \approx a + b * n_boostrap
   #
@@ -65,19 +45,46 @@ test_that("Parallelisation works and is faster", {
   # is Amdahl's law for 2 processors, i.e. 92% of the code in `mcmapply` is
   # parallelisable (= 2 * (1.85 - 1) / 1.85, for s = 2 and S_latency = 1.85).
   #
-  # On Travis, the running times are different and the virtualisation could be a
-  # reason, and I am using those running times from the logs of failed tests.
-  # The maximum speedup with 2 cores is around 1.6.
+  # On Travis, the running times are different, so I only verify that the
+  # speedup increases with the sample size and that the last speedup is greater
+  # than 1.2
 
-  expected_speedup  <- ((0.004099 + 0.017387 * n_bootstrap)
-    / (0.11002 + 0.01105 * n_bootstrap))
+  german <- load_dataset(list(name = k_german_credit))
 
-  # Add a tolerance of 0.9 on the speedup
-  print(sprintf("Duration with 1 core requested: %4.4f s", one_core_duration))
-  print(sprintf("Duration with 2 cores requested: %4.4f s", two_cores_duration))
-  print(sprintf("Speedup: %3.2f (1 = same duration)", speedup))
-  print(sprintf("Expected speedup: %3.2f", expected_speedup))
-  expect_true(speedup >= 0.9 * expected_speedup, "Parallelisation has an expected speedup")
+  n_bootstrap <- c(10, 100, 1000)
+  speedups <- c()
 
+  for (n_bootstrap in c(10, 100, 1000)) {
+    start <- Sys.time()
+    anpl_samples <- anpl(dataset = german,
+                         concentration = 1,
+                         n_bootstrap = n_bootstrap,
+                         gamma_mean = rep(0, german$n_cov + 1),
+                         gamma_vcov = diag(1, german$n_cov + 1),
+                         threshold = 1e-8,
+                         num_cores = 1)
+    one_core_duration <- as.double((Sys.time() - start), units = "secs")
+
+    start <- Sys.time()
+    anpl_samples <- anpl(dataset = german,
+                         concentration = 1,
+                         n_bootstrap = n_bootstrap,
+                         gamma_mean = rep(0, german$n_cov + 1),
+                         gamma_vcov = diag(1, german$n_cov + 1),
+                         threshold = 1e-8,
+                         num_cores = 2)
+    two_cores_duration <- as.double(Sys.time() - start, units = "secs")
+    speedup <- one_core_duration / two_cores_duration
+
+    print(sprintf("Duration with 1 core: %4.4f s", one_core_duration))
+    print(sprintf("Duration with 2 cores: %4.4f s", two_cores_duration))
+    print(sprintf("Speedup: %3.2f (1 = same duration)", speedup))
+    speedups <- c(speedups, speedup)
   }
+
+  n_speedups <- length(speedups)
+  expect_true(all(speedups[1:n_speedups - 1] < speedups[2:n_speedups]),
+              "Parallelization speedup increases with sample size")
+  expect_true(speedups[n_speedups] > 1.2,
+              "Largest parallelization speedup is larger than 20%")
 })
