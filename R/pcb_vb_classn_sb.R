@@ -103,7 +103,7 @@ load_dataset <- function(dataset_input_list = list(name = "toy", n = 200)) {
 #'   which is an effective sample size.
 #' @param min_stick_breaks The minimal number of stick-breaks.
 #' @param threshold The threshold of stick remaining below which the function
-#'   stops looking for more stick-breaks. It correspondes to epsilon in the
+#'   stops looking for more stick-breaks. It corresponds to epsilon in the
 #'   paper, at the bottom of page 5 and in algorithm 2 in page 12.
 #' @return A vector of stick-breaks summing to one.
 #' @examples
@@ -204,7 +204,7 @@ anpl <- function(dataset,
   }
   # Generate prior samples
 
-  # `x_prior` is a `n_bootstrap x n_centering_model_samples` matrix:
+  # `x_prior` is a `concentration x n_centering_model_samples` matrix:
   # each row represents a set of prior samples for a particular gamma element.
 
   # This for loop can be be parallelised
@@ -362,7 +362,7 @@ append_to_plot <- function(plot_df, sample, method,
 
 #' Wrapper function for the script part of the code.
 #'
-#' Note: this function takes about an hour to run on a mac laptop.
+#' Note: this function takes several hours to run on a mac laptop.
 #'
 #' @param use_bayes_logit Whether to use this package or the alternative
 #'   from Kaspar Martens
