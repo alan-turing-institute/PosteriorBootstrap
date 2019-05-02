@@ -19,7 +19,10 @@ apt_packages:
 # Install BayesLogit 0.6 using devtools
 before_install:
   - Rscript -e 'install.packages("devtools"); require(devtools); install_version("BayesLogit", version = "0.6")'
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then tlmgr option repository http://mirror.ctan.org/systems/texlive/tlnet; sudo tlmgr install titling framed inconsolata; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+  sudo tlmgr option repository http://mirror.ctan.org/systems/texlive/tlnet;
+  sudo tlmgr install titling framed inconsolata;
+  fi
 
 # Install PolyaGamma using devtools::install_github
 r_github_packages:
