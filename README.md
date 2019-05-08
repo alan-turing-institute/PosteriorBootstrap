@@ -27,7 +27,7 @@ the duration of the task with one core divided by the duration of the task with
 I inverted Ahmdal's law to compute the proportion of the execution time that is
 parallelisable from the speedup as as:
 
-$$ p = \frac{\frac{1}{S_{latency}}} - 1}{\frac{1}{s} - 1}
+$$ p = \frac{\frac{1}{S_{latency}}} - 1}{\frac{1}{s} - 1} $$
 
 where $S_{latency}$ is the theoretical speedup of the whole task in Ahmdal's law
 and the observed speedup here, and $s$ is the speedup of the part of the task
