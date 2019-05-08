@@ -22,7 +22,7 @@ the duration of the task with one core divided by the duration of the task with
 `N` processors. For the number of bootstrap samples in
 100, 1000, and 10,000, the speedup is:
 
-![Parallelisation speedup](Speedup.pdf)
+![Parallelisation speedup](Speedup.png)
 
 I inverted Ahmdal's law to compute the proportion of the execution time that is
 parallelisable from the speedup as as:
@@ -35,7 +35,7 @@ that can be parallelised, and thus equal to the number of
 processors. Calculating this value for the durations from 1 to 8 cores, I got
 this plot:
 
-![Parallelisation proportion](Proportion.pdf)
+![Parallelisation proportion](Proportion.png)
 
 The proportion of the code that can be parallelised is high, and higher the
 large the bootstrap samples, and always below 1. For large samples with
