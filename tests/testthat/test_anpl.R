@@ -27,32 +27,6 @@ test_that("Multiple processors are available", {
 
 test_that("Parallelisation works and is faster", {
 
-  # The calculation of the expected speedup depends on the number of bootstrap
-  # samples and the number of processors. On Travis, we are limited to 2 cores,
-  # so that limits the comparison. In addition, the speedup depends on the
-  # system: it is larger on macOS than on Linux, with some variation depending
-  # on the version of R.
-  #
-  # On a macOS machine, I ran n_boostrap from 10 to 1000 by steps of 100, and 3
-  # tries for each value, and timed the duration of the code, then ran a linear
-  # regression
-  #
-  # t \approx a + b * n_boostrap
-  #
-  # for 1 or 2 cores separately. I found an overhead of around 0.13 seconds
-  # (intercept a) for both 1 and 2 cores. Each draw takes 0.01186 seconds on one
-  # core and 0.006357 on two cores (slope b). The maximum speedup is 1.86, which
-  # is Amdahl's law for 2 processors, i.e. 92% of the code in `mcmapply` is
-  # parallelisable (= 2 * (1.85 - 1) / 1.85, for s = 2 and S_latency = 1.85).
-  #
-  # On Travis, the running times are different, so I only verify that the
-  # speedup increases with the sample size and that the last speedup is greater
-  # than 1.2
-  #
-  # On Azure, the speedup was once decreasing in the number of bootstrap
-  # samples, 1.53 for n=10 and 1.49 for n=100. So I dropped the increasing
-  # speedup and test only the last one.
-
   german <- load_dataset(list(name = k_german_credit))
 
   n_bootstrap <- 1000
@@ -82,6 +56,9 @@ test_that("Parallelisation works and is faster", {
   print(sprintf("Duration with 2 cores: %4.4f s", two_cores_duration))
   print(sprintf("Speedup: %3.2f (1 = same duration)", speedup))
 
+  # From tests on macOS on a local machine and Linux on a virtual machine, the
+  # speedups for n = 1000 vary between 1.75 and 1.89. So 1.7 seems a reasonable
+  # number, but in the future, revisit this "magic number" as needed.
   expect_true(speedup > 1.7,
               "Largest parallelization speedup is larger than 70%")
 })
