@@ -48,43 +48,40 @@ test_that("Parallelisation works and is faster", {
   # On Travis, the running times are different, so I only verify that the
   # speedup increases with the sample size and that the last speedup is greater
   # than 1.2
+  #
+  # On Azure, the speedup was once decreasing in the number of bootstrap
+  # samples, 1.53 for n=10 and 1.49 for n=100. So I dropped the increasing
+  # speedup and test only the last one.
 
   german <- load_dataset(list(name = k_german_credit))
 
-  n_bootstrap <- c(10, 100, 1000)
-  speedups <- c()
+  n_bootstrap <- 1000
 
-  for (n_bootstrap in c(10, 100, 1000)) {
-    start <- Sys.time()
-    anpl_samples <- anpl(dataset = german,
-                         concentration = 1,
-                         n_bootstrap = n_bootstrap,
-                         gamma_mean = rep(0, german$n_cov + 1),
-                         gamma_vcov = diag(1, german$n_cov + 1),
-                         threshold = 1e-8,
-                         num_cores = 1)
-    one_core_duration <- as.double((Sys.time() - start), units = "secs")
+  start <- Sys.time()
+  anpl_samples <- anpl(dataset = german,
+                       concentration = 1,
+                       n_bootstrap = n_bootstrap,
+                       gamma_mean = rep(0, german$n_cov + 1),
+                       gamma_vcov = diag(1, german$n_cov + 1),
+                       threshold = 1e-8,
+                       num_cores = 1)
+  one_core_duration <- as.double((Sys.time() - start), units = "secs")
 
-    start <- Sys.time()
-    anpl_samples <- anpl(dataset = german,
-                         concentration = 1,
-                         n_bootstrap = n_bootstrap,
-                         gamma_mean = rep(0, german$n_cov + 1),
-                         gamma_vcov = diag(1, german$n_cov + 1),
-                         threshold = 1e-8,
-                         num_cores = 2)
-    two_cores_duration <- as.double(Sys.time() - start, units = "secs")
-    speedup <- one_core_duration / two_cores_duration
+  start <- Sys.time()
+  anpl_samples <- anpl(dataset = german,
+                       concentration = 1,
+                       n_bootstrap = n_bootstrap,
+                       gamma_mean = rep(0, german$n_cov + 1),
+                       gamma_vcov = diag(1, german$n_cov + 1),
+                       threshold = 1e-8,
+                       num_cores = 2)
+  two_cores_duration <- as.double(Sys.time() - start, units = "secs")
+  speedup <- one_core_duration / two_cores_duration
 
-    print(sprintf("Duration with 1 core: %4.4f s", one_core_duration))
-    print(sprintf("Duration with 2 cores: %4.4f s", two_cores_duration))
-    print(sprintf("Speedup: %3.2f (1 = same duration)", speedup))
-    speedups <- c(speedups, speedup)
-  }
+  print(sprintf("Duration with 1 core: %4.4f s", one_core_duration))
+  print(sprintf("Duration with 2 cores: %4.4f s", two_cores_duration))
+  print(sprintf("Speedup: %3.2f (1 = same duration)", speedup))
 
-  n_speedups <- length(speedups)
-  expect_true(all(speedups[1:n_speedups - 1] < speedups[2:n_speedups]),
-              "Parallelization speedup increases with sample size")
-  expect_true(speedups[n_speedups] > 1.2,
-              "Largest parallelization speedup is larger than 20%")
+  expect_true(speedup > 1.7,
+              "Largest parallelization speedup is larger than 70%")
 })
