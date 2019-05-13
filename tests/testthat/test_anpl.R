@@ -58,7 +58,14 @@ test_that("Parallelisation works and is faster", {
 
   # From tests on macOS on a local machine and Linux on a virtual machine, the
   # speedups for n = 1000 vary between 1.75 and 1.89. So 1.7 seems a reasonable
-  # number, but in the future, revisit this "magic number" as needed.
-  expect_true(speedup > 1.7,
+  # number on macOS. On Linux, the speedups vary between 1.5 and 1.56, so 1.4
+  # seems a reasonable number for now. In the future, revisit this "magic
+  # number" as needed.
+  if ("Darwin" == Sys.info()["sysname"]) {
+    expected_speedup <- 1.7
+  } else {
+    expected_speedup <- 1.4
+  }
+  expect_true(speedup > expected_speedup,
               "Largest parallelization speedup is larger than 70%")
 })
