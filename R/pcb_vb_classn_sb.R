@@ -22,6 +22,11 @@ data_file <- function(name) {
   return(system.file(k_extdata, name, package = k_package))
 }
 
+#' Get the RStan file with Variational Bayes for comparison
+#'
+#' @return An RStan file with the model for variational Bayes that ships with
+#'   this package (extension \code{.stan}).
+#' @export
 get_rstan_file <- function() {
   return(data_file(k_rstan_model))
 }
