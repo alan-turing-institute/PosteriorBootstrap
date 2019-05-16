@@ -22,11 +22,6 @@ data_file <- function(name) {
   return(system.file(k_extdata, name, package = k_package))
 }
 
-#' Get the RStan file with Variational Bayes for comparison
-#'
-#' @return An RStan file with the model for variational Bayes that ships with
-#'   this package (extension \code{.stan}).
-#' @export
 get_rstan_file <- function() {
   return(data_file(k_rstan_model))
 }
@@ -402,7 +397,7 @@ stat_density_2d1_proto <- ggplot2::ggproto("stat_density_2d1_proto",
     df$group <- data$group[1]
 
     if (contour) {
-      StatContour$compute_panel(df, scales, bins, binwidth)
+      ggplot2::StatContour$compute_panel(df, scales, bins, binwidth)
     } else {
       names(df) <- c("x", "y", "density", "group")
       df$level <- 1
@@ -482,11 +477,15 @@ stan_vb_sample <- rstan::extract(stan_vb)$beta
 plot_df <- tibble::tibble()
 # Get MDP samples for various sample sizes
 for (concentration in concentrations) {
+  if (verbose) {
+    print(paste0("Sampling at concentration = ", concentration))
+  }
   anpl_sample <- anpl(dataset = dataset,
                       concentration = concentration,
                       n_bootstrap = n_bootstrap,
                       posterior_sample = stan_vb_sample,
-                      threshold = 1e-8)
+                      threshold = 1e-8,
+                      show_progress = verbose)
 
   # Append to plot
   plot_df  <- append_to_plot(plot_df, sample = anpl_sample,
@@ -514,10 +513,10 @@ gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "beta21",
                       data = dplyr::filter(plot_df,
                                            plot_df$Method == "Bayes",
                                            plot_df$id < 1001)) +
-  ggplot2::facet_wrap(~prior_sample_size, nrow = 1,
+  ggplot2::facet_wrap(~concentration, nrow = 1,
                       scales = "fixed",
                       labeller = ggplot2::label_bquote(c ~" = "~
-                                                         .(prior_sample_size))
+                                                         .(concentration))
                       ) +
   ggplot2::theme_grey(base_size = base_font_size) +
   ggplot2::xlab(expression(beta[21])) +
@@ -526,12 +525,12 @@ gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "beta21",
                  plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
 
 ggplot2::ggsave(
-  paste0("vb_logit_scatter_sb (bayesLogit = ",
+  paste0("../190516 vb_logit_scatter_sb (bayesLogit = ",
          use_bayes_logit,
          ").pdf"),
   plot = gplot2, width = 14, height = 5, units = "cm")
 
-save.image("data/workspace_pcb_vb_classn_sb.RData")
+#save.image("data/workspace_pcb_vb_classn_sb.RData")
 }
 
 # Produce the image with script(use_bayes_logit = {T, F})
