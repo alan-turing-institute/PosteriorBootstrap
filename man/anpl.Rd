@@ -6,7 +6,7 @@
 \usage{
 anpl(dataset, concentration, n_bootstrap = 100,
   posterior_sample = NULL, gamma_mean = NULL, gamma_vcov = NULL,
-  threshold = 1e-08, num_cores = 1)
+  threshold = 1e-08, num_cores = 1, show_progress = FALSE)
 }
 \arguments{
 \item{dataset}{The dataset with classes and features (in a specific format
@@ -32,6 +32,9 @@ paper, at the bottom of page 5 and in algorithm 2 in page 12.}
 
 \item{num_cores}{Number of processor cores for the parallel run of the
 algorithm. See \code{mc.cores} in \link[parallel]{mclapply} for details.}
+
+\item{show_progress}{Boolean whether to show the progress of the algorithm in
+a progress bar.}
 }
 \value{
 A matrix of bootstrap samples for the parameter of interest
