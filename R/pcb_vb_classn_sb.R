@@ -170,6 +170,8 @@ stick_breaking <- function(concentration = 1,
 #'   paper, at the bottom of page 5 and in algorithm 2 in page 12.
 #' @param num_cores Number of processor cores for the parallel run of the
 #'   algorithm. See \code{mc.cores} in \link[parallel]{mclapply} for details.
+#' @param show_progress Boolean whether to show the progress of the algorithm in
+#'   a progress bar.
 #' @return A matrix of bootstrap samples for the parameter of interest
 #'
 #' @export
@@ -180,7 +182,8 @@ anpl <- function(dataset,
                  gamma_mean = NULL,
                  gamma_vcov = NULL,
                  threshold = 1e-8,
-                 num_cores = 1) {
+                 num_cores = 1,
+                 show_progress = FALSE) {
 
   if (is.null(posterior_sample)) {
     if (is.null(gamma_mean) | is.null(gamma_vcov)) {
@@ -226,12 +229,19 @@ anpl <- function(dataset,
     gamma <- posterior_sample
   }
 
+  if (show_progress) {
+    progress_bar <- utils::txtProgressBar(min = 0, max = n_bootstrap, style = 3)
+  } else {
+    progress_bar <- NULL
+  }
+
   # Generate prior samples
   # This for loop can be be parallelised
   more_args <- list("dataset" = dataset,
                     "concentration" = concentration,
                     "gamma" = gamma,
-                    "threshold" = threshold)
+                    "threshold" = threshold,
+                    "progress_bar" = progress_bar)
   theta_list <- parallel::mcmapply(anpl_single, 1:n_bootstrap,
                                    MoreArgs = more_args, mc.cores = num_cores)
 
@@ -247,7 +257,8 @@ anpl_single <- function(i,
                         dataset,
                         concentration,
                         gamma,
-                        threshold) {
+                        threshold,
+                        progress_bar = NULL) {
 
     if (concentration != 0) {
       gamma_i  <- gamma[i, ]
@@ -324,6 +335,11 @@ anpl_single <- function(i,
                               y = y_all,
                               weights = wgts,
                               family = stats::quasibinomial(link = "logit"))
+
+  if (!is.null(progress_bar)) {
+    utils::setTxtProgressBar(progress_bar, i)
+  }
+
     return(glm_fit$coefficients)
 }
 
