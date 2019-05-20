@@ -494,7 +494,7 @@ for (concentration in concentrations) {
 
   # Append to plot
   plot_df  <- append_to_plot(plot_df, sample = anpl_sample,
-                             method = "ANPL",
+                             method = "MDP-VB",
                              n_bootstrap = n_bootstrap,
                              concentration = concentration)
   plot_df  <- append_to_plot(plot_df, sample = bayes_sample,
