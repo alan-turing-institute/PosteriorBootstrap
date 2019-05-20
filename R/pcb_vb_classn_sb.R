@@ -240,22 +240,23 @@ anpl <- function(dataset,
     progress_bar <- NULL
   }
 
-  # Generate prior samples
-  # This for loop can be be parallelised
+  # The parallel `mcmapply` requires the constant arguments to
+  # go as a list in `MoreArgs`
   more_args <- list("dataset" = dataset,
                     "concentration" = concentration,
                     "gamma" = gamma,
                     "threshold" = threshold,
                     "progress_bar" = progress_bar)
-  theta_list <- parallel::mcmapply(anpl_single, 1:n_bootstrap,
-                                   MoreArgs = more_args, mc.cores = num_cores)
 
-  # Arrange the results in a matrix
-  theta_hat <- matrix(0, nrow = n_bootstrap, ncol = dataset$n_cov + 1)
-  for (i in 1:n_bootstrap) {
-    theta_hat[i, ] <- theta_list[[i]]
-  }
-  return(theta_hat)
+  # Generate samples in parallel. `mcmapply` returns a matrix where the result
+  # of is flipped, as an additional run goes into a new column and not a new row
+  theta_transpose <- parallel::mcmapply(anpl_single, 1:n_bootstrap,
+                                     MoreArgs = more_args, mc.cores = num_cores)
+
+  # Verify dimensions
+  stopifnot(all(dim(theta_transpose) == c(dataset$n_cov + 1, n_bootstrap)))
+
+  return(t(theta_transpose))
 }
 
 anpl_single <- function(i,
@@ -476,8 +477,7 @@ bayes_logit_model <- rstan::stan_model(file = get_rstan_file())
 stan_vb <- rstan::vb(bayes_logit_model,
                      data = train_dat,
                      output_samples = n_bootstrap,
-                     seed = 123,
-                     iter = 100)
+                     seed = 123)
 stan_vb_sample <- rstan::extract(stan_vb)$beta
 plot_df <- tibble::tibble()
 # Get MDP samples for various sample sizes
