@@ -1,7 +1,6 @@
 ^LICENSE\.md$
 ^Meta$
 ^doc$
->>>>>>> d854f0f... Ignored vignette files
 ^codecov\.yml$
 ^\.lintr$
 ^\.travis\.yml$
