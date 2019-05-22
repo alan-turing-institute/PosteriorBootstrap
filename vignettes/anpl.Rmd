@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Adaptive non-parametric learning}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
   %\VignetteEncoding{UTF-8}
 ---
 
@@ -41,7 +41,6 @@ We require our package and the `rstan` package for variational Bayes:
 
 ```{r}
 requireNamespace("PosteriorBootstrap", quietly = TRUE)
-requireNamespace("rstan", quietly = TRUE)
 ```
 
 ## Plotting functions
@@ -118,11 +117,11 @@ variational Bayes, and Adaptive Non-Parametric Learning.
 We tune the settings for the sampling with the number of draws, setting the
 seed, and getting the data:
 
-```{r}
+```{r, echo = TRUE}
 prior_variance <- 100
 n_bootstrap <- 1000
 set.seed(1)
-dataset <- PosteriorBootstrap::load_dataset(list(name = "statlog-german-credit.dat"))
+german <- PosteriorBootstrap::load_dataset(list(name = "statlog-german-credit.dat"))
 ```
 
 For Bayesian logistic regression, we draw samples for the coefficients using the `PolyaGamma` package:
@@ -140,23 +139,13 @@ automatic differentiation variational inference using the `rstan` package. The
 number of samples is `n_bootstrap`,  as these samples serve for the Adaptive
 Non-Parametric Learning algorithm:
 
-```{r}
-train_dat <- list(n = dataset$n,
-                  p = dataset$n_cov + 1,
-                  x = cbind(1, dataset$x),
-                  y = 0.5 * (dataset$y + 1),
-                  beta_sd = sqrt(prior_variance))
-				  
-bayes_logit_model <- rstan::stan_model(file = PosteriorBootstrap::get_rstan_file())
-
-stan_vb <- rstan::vb(bayes_logit_model,
-                     data = train_dat,
-                     output_samples = n_bootstrap,
-                     seed = 123)
-					 
-stan_vb_sample <- rstan::extract(stan_vb)$beta
-print(stan_vb_sample)
-stopifnot(!is.null(stan_vb_sample))
+```{r, echo = TRUE, include = TRUE}
+stan_vb_sample <- PosteriorBootstrap::run_variational_bayes(x = cbind(1, dataset$x),
+                                                            y = 0.5 * (dataset$y + 1),
+															output_samples = 10,
+															beta_sd = sqrt(prior_variance),
+															iter = 100)
+print(str(stan_vb_sample))
 ```
 
 We now run the Adaptive Non-Parametric Learning algorithm, using the samples

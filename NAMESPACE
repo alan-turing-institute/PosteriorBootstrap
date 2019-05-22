@@ -3,4 +3,6 @@
 export(anpl)
 export(get_rstan_file)
 export(load_dataset)
+export(run_variational_bayes)
 export(stick_breaking)
+importFrom(Rcpp,cpp_object_initializer)
