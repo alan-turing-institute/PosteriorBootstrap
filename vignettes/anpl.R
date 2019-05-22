@@ -1,18 +1,28 @@
 
+setwd("~/Projects/PosteriorBootstrap/PosteriorBootstrap")
+
+recompile  <- FALSE
+resample <- FALSE
+
+if (recompile) {
+  devtools::document();devtools::build();devtools::install();
+}
+requireNamespace("PosteriorBootstrap")
+
+dataset_path <- file.path("inst", "extdata")
 
 # Plotting detail. We can ignore.
-# TODO(mmorin): fix ellipsis in the middle of the arguments
 stat_density_2d1 <- function(mapping = NULL,
                              data = NULL,
                              geom = "density_2d",
                              position = "identity",
-                             ...,
                              contour = TRUE,
                              n = 100,
                              h = NULL,
                              na_rm = FALSE,
                              show_legend = NA,
-                             inherit_aes = TRUE) {
+                             inherit_aes = TRUE,
+                             ...) {
     ggplot2::layer(
       data = data,
       mapping = mapping,
@@ -32,7 +42,7 @@ stat_density_2d1 <- function(mapping = NULL,
 }
 
 # Plotting detail. We can ignore.
-stat_density_2d1_proto <- ggplot2::ggproto("stat_density_2d1_proto",
+stat_density_2d1_proto <- ggplot2::ggproto("stat_density_2d1",
   ggplot2::Stat,
   default_aes = ggplot2::aes(colour = "#3366FF", size = 0.5),
   required_aes = c("x", "y"),
@@ -66,8 +76,6 @@ stat_density_2d1_proto <- ggplot2::ggproto("stat_density_2d1_proto",
 append_to_plot <- function(plot_df, sample, method,
                            n_bootstrap, concentration) {
   new_plot_df <- rbind(plot_df, tibble::tibble(id = 1:n_bootstrap,
-                                               beta3 = sample[, 3],
-                                               beta5 = sample[, 5],
                                                beta21 = sample[, 21],
                                                beta22 = sample[, 22],
                                                Method = method,
@@ -75,76 +83,78 @@ append_to_plot <- function(plot_df, sample, method,
   return(new_plot_df)
 }
 
-#' Wrapper function for the script part of the code.
-#'
-#' Note: this function takes several hours to run on a mac laptop.
-#'
-#' @param use_bayes_logit Whether to use this package or the alternative
-#'   from Kaspar Martens
-#' @param verbose Whether to print statements
-#'
-#' @importFrom Rcpp cpp_object_initializer
-#' @export
-script <- function(use_bayes_logit = TRUE, verbose = TRUE) {
-# Stickbreaking plot
-utils::timestamp()
-base_font_size <- 8
-n_bootstrap <- 1000
-concentrations <- c(1, 1000, 20000)
-prior_variance <- 100
-set.seed(1)
 
-# Load the dataset
-dataset <- load_dataset(list(name = k_german_credit))
+use_bayes_logit <- TRUE
+verbose <- TRUE
 
-# Get Bayes (Polson samples)
-if (use_bayes_logit) {
-  p0 <- diag(rep(1 / prior_variance, dataset$n_cov + 1))
-  bayes_out <- BayesLogit::logit(y = 0.5 * (dataset$y + 1),
-                                 X = cbind(1, dataset$x),
-                                 P0 = p0,
-                                 samp = n_bootstrap,
-                                 burn = n_bootstrap)
-  bayes_sample <- bayes_out$beta
+if (!resample) {
+  load(file = "../samples.RData")
 } else {
-  bayes_sample <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y + 1),
-                                          X = cbind(1, dataset$x),
-                                          lambda = 1 / prior_variance,
-                                          n_iter_total = 2 * n_bootstrap,
-                                          burn_in = n_bootstrap)
+  # Stickbreaking plot
+  base_font_size <- 8
+  n_bootstrap <- 1000
+  concentrations <- c(1)
+  prior_variance <- 100
+  set.seed(1)
+
+  # Load the dataset
+
+  dataset <- PosteriorBootstrap::load_dataset(list(name = "statlog-german-credit.dat"))
+  
+
+  # Get Bayes (Polson samples)
+  if (use_bayes_logit) {
+    p0 <- diag(rep(1 / prior_variance, dataset$n_cov + 1))
+    bayes_out <- BayesLogit::logit(y = 0.5 * (dataset$y + 1),
+                                   X = cbind(1, dataset$x),
+                                   P0 = p0,
+                                   samp = n_bootstrap,
+                                   burn = n_bootstrap)
+    bayes_sample <- bayes_out$beta
+  } else {
+    bayes_sample <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y + 1),
+                                              X = cbind(1, dataset$x),
+                                              lambda = 1 / prior_variance,
+                                              n_iter_total = 2 * n_bootstrap,
+                                              burn_in = n_bootstrap)
+  }
+
+  # Add in Stan VB
+  train_dat <- list(n = dataset$n,
+                    p = dataset$n_cov + 1,
+                    x = cbind(1, dataset$x),
+                    y = 0.5 * (dataset$y + 1),
+                    beta_sd = sqrt(prior_variance))
+  # Run VB approx from STAN
+  # the number of samples is the same as the final bootstrap samples,
+  # as the Stan VB samples serve for the MDP stick-breaking algorithm
+  stan_file <- file.path(dataset_path, "bayes_logit.stan")
+  bayes_logit_model <- rstan::stan_model(file = stan_file)
+
+  #bayes_logit_model <- rstan::stan_model(file = PosteriorBootstrap::get_rstan_file())
+  stan_vb <- rstan::vb(bayes_logit_model,
+                       data = train_dat,
+                       output_samples = n_bootstrap,
+                       seed = 123)
+  stan_vb_sample <- rstan::extract(stan_vb)$beta
+
+  # Get MDP samples for various sample sizes
+  for (concentration in concentrations) {
+    anpl_sample <- PosteriorBootstrap::anpl(dataset = dataset,
+                                            concentration = concentration,
+                                            n_bootstrap = n_bootstrap,
+                                            posterior_sample = stan_vb_sample,
+                                            threshold = 1e-8)
+  }
 }
 
-# Add in Stan VB
-train_dat <- list(n = dataset$n,
-                  p = dataset$n_cov + 1,
-                  x = cbind(1, dataset$x),
-                  y = 0.5 * (dataset$y + 1),
-                  beta_sd = sqrt(prior_variance))
-# Run VB approx from STAN
-# the number of samples is the same as the final bootstrap samples,
-# as the Stan VB samples serve for the MDP stick-breaking algorithm
-bayes_logit_model <- rstan::stan_model(file = get_rstan_file())
-stan_vb <- rstan::vb(bayes_logit_model,
-                     data = train_dat,
-                     output_samples = n_bootstrap,
-                     seed = 123)
-stan_vb_sample <- rstan::extract(stan_vb)$beta
 plot_df <- tibble::tibble()
-# Get MDP samples for various sample sizes
-for (concentration in concentrations) {
-  if (verbose) {
-    print(paste0("Sampling at concentration = ", concentration))
-  }
-  anpl_sample <- anpl(dataset = dataset,
-                      concentration = concentration,
-                      n_bootstrap = n_bootstrap,
-                      posterior_sample = stan_vb_sample,
-                      threshold = 1e-8,
-                      show_progress = verbose)
+
+anpl_name <- "MDP-VB"
 
   # Append to plot
   plot_df  <- append_to_plot(plot_df, sample = anpl_sample,
-                             method = "MDP-VB",
+                             method = anpl_name,
                              n_bootstrap = n_bootstrap,
                              concentration = concentration)
   plot_df  <- append_to_plot(plot_df, sample = bayes_sample,
@@ -155,7 +165,7 @@ for (concentration in concentrations) {
                              method = "VB_Stan",
                              n_bootstrap = n_bootstrap,
                              concentration = concentration)
-}
+
 
 gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "beta21",
                                               y = "beta22",
@@ -180,12 +190,7 @@ gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "beta21",
                  plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
 
 ggplot2::ggsave(
-  paste0("../190516 vb_logit_scatter_sb (bayesLogit = ",
-         use_bayes_logit,
-         ").pdf"),
+  paste0("../plot.pdf"),
   plot = gplot2, width = 14, height = 5, units = "cm")
 
-}
-
-# Produce the image with script(use_bayes_logit = {T, F})
-
+save.image(file = "../samples.RData")
