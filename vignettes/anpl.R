@@ -1,19 +1,15 @@
+## ----setup, include = FALSE----------------------------------------------
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
 
+## ------------------------------------------------------------------------
 requireNamespace("PosteriorBootstrap", quietly = TRUE)
 requireNamespace("rstan", quietly = TRUE)
 
-setwd("~/Projects/PosteriorBootstrap/PosteriorBootstrap")
-load(file = "../samples2.RData")
-
-recompile  <- FALSE
-resample <- TRUE
-
-if (recompile) {
-  devtools::document();devtools::build();devtools::install();
-}
-
-# Define a ggproto to compute the density of samples. The first argument is
-# required, either NULL or an arbitrary string.
+## ------------------------------------------------------------------------
+#The first argument is required, either NULL or an arbitrary string.
 stat_density_2d1_proto <- ggplot2::ggproto(NULL,
   ggplot2::Stat,
   required_aes = c("x", "y"),
@@ -59,7 +55,7 @@ stat_density_2d1 <- function(data = NULL,
     )
 }
 
-# This function appends all samples to a dataframe, ready for plotting
+## ------------------------------------------------------------------------
 append_to_plot <- function(plot_df, sample, method,
                            concentration, x_index, y_index) {
   new_plot_df <- rbind(plot_df, tibble::tibble(x = sample[, x_index],
@@ -69,113 +65,9 @@ append_to_plot <- function(plot_df, sample, method,
   return(new_plot_df)
 }
 
+## ------------------------------------------------------------------------
+prior_variance <- 100
+n_bootstrap <- 1000
+set.seed(1)
+dataset <- PosteriorBootstrap::load_dataset(list(name = "statlog-german-credit.dat"))
 
-use_bayes_logit <- TRUE
-verbose <- TRUE
-
-  # Settings for drawing the samples
-  n_bootstrap <- 1000
-  concentrations <- c(1, 2, 3)
-  prior_variance <- 100
-  set.seed(1)
-
-if (resample) {
-  # Load the dataset
-
-  dataset <- PosteriorBootstrap::load_dataset(list(name = "statlog-german-credit.dat"))
-  
-  # Get Bayes (Polson samples)
-  if (use_bayes_logit) {
-    p0 <- diag(rep(1 / prior_variance, dataset$n_cov + 1))
-    bayes_out <- BayesLogit::logit(y = 0.5 * (dataset$y + 1),
-                                   X = cbind(1, dataset$x),
-                                   P0 = p0,
-                                   samp = n_bootstrap,
-                                   burn = n_bootstrap)
-    bayes_sample <- bayes_out$beta
-  } else {
-    bayes_sample <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y + 1),
-                                              X = cbind(1, dataset$x),
-                                              lambda = 1 / prior_variance,
-                                              n_iter_total = 2 * n_bootstrap,
-                                              burn_in = n_bootstrap)
-  }
-
-  # Add in Stan VB
-  train_dat <- list(n = dataset$n,
-                    p = dataset$n_cov + 1,
-                    x = cbind(1, dataset$x),
-                    y = 0.5 * (dataset$y + 1),
-                    beta_sd = sqrt(prior_variance))
-
-  # Run VB approx from STAN. The number of samples is the same as the final
-  # bootstrap samples, as the Stan VB samples serve for the ANPL algorithm.
-  bayes_logit_model <- rstan::stan_model(file = PosteriorBootstrap::get_rstan_file())
-  stan_vb <- rstan::vb(bayes_logit_model,
-                       data = train_dat,
-                       output_samples = n_bootstrap,
-                       seed = 123)
-  stan_vb_sample <- rstan::extract(stan_vb)$beta
-
-  # Get ANPL samples for various concentrations
-  anpl_samples <- list()
-  for (concentration in concentrations) {
-    anpl_sample <- PosteriorBootstrap::anpl(dataset = dataset,
-                                            concentration = concentration,
-                                            n_bootstrap = n_bootstrap,
-                                            posterior_sample = stan_vb_sample,
-                                            threshold = 1e-8)
-    anpl_samples[[paste0(concentration)]] <- anpl_sample
-  }
-}
-
-plot_df <- tibble::tibble()
-
-# Settings for plot
-anpl_name <- "MDP-VB"  # Mixture of Dirichlet Processes with Variational Bayes
-
-# Index of coefficients in the plot
-x_index <- 21
-y_index <- 22
-
-# Create a plot data frame with all the samples
-for (concentration in concentrations) {
-  plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[paste0(concentration)]],
-                             method = anpl_name,
-                             concentration = concentration,
-                             x_index = x_index, y_index = y_index)
-  plot_df  <- append_to_plot(plot_df, sample = bayes_sample,
-                             method = "Bayes",
-                             concentration = concentration,
-                             x_index = x_index, y_index = y_index)
-  plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
-                             method = "VB_Stan",
-                             concentration = concentration,
-                             x_index = x_index, y_index = y_index)
-}
-
-gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y",
-                                              colour = "Method"),
-                          data = dplyr::filter(
-                            plot_df, plot_df$Method != "Bayes")) +
-  stat_density_2d1(bins = 5) +
-  ggplot2::geom_point(alpha = 0.1, size = 1,
-                      data = dplyr::filter(plot_df,
-                                           plot_df$Method == "Bayes")) +
-  ggplot2::facet_wrap(~concentration, nrow = 1,
-                      scales = "fixed",
-                      labeller = ggplot2::label_bquote(c ~" = "~
-                                                         .(concentration))
-                      ) +
-  ggplot2::theme_grey(base_size = 8) +
-  ggplot2::xlab(bquote(beta[.(x_index)])) +
-  ggplot2::ylab(bquote(beta[.(y_index)])) +
-  ggplot2::theme(legend.position = "none",
-                 plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
-
-ggplot2::ggsave("../plot.pdf", plot = gplot2, width = 14, height = 5,
-                units = "cm")
-
-gplot2
-
-save(file = "../samples2.RData", list = c("bayes_sample", "stan_vb_sample", "anpl_sample"))

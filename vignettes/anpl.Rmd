@@ -24,36 +24,215 @@ does not assume that the model is true. Our approach admits a Monte Carlo sampli
 scheme that can afford massive scalability on modern computer architectures. The
 model-based aspect of learning is particularly attractive for regularizing
 nonparametric inference when the sample size is small, and also for correcting
-approximate approaches such as variational Bayes (VB).
+approximate approaches such as variational Bayes.
 
-Here, we demonstrate the approach on a VB classifiers.
+Here, we demonstrate the approach on a variational Bayes classifier.
+
+We demonstrate this in practice through a VB logistic regression model fit to
+the Statlog German Credit dataset, containing 1000 observations and 25
+covariates (including intercept), from the [UCI ML
+repository](http://archive.ics.uci.edu/ml/datasets/Statlog+%28German+Credit+Data%29)
+and which ships with the package. The outcome is whether an individual has good
+credit rating.
 
 ## Setup
 
-The figure sizes have been customised so that you can easily put two images side-by-side. 
+We require our package and the `rstan` package for variational Bayes:
 
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r}
+requireNamespace("PosteriorBootstrap", quietly = TRUE)
+requireNamespace("rstan", quietly = TRUE)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+## Plotting functions
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+We define a `ggproto` object to compute the density of samples, and wrap it in a `ggplot2` object:
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+```{r}
+#The first argument is required, either NULL or an arbitrary string.
+stat_density_2d1_proto <- ggplot2::ggproto(NULL,
+  ggplot2::Stat,
+  required_aes = c("x", "y"),
 
-## More Examples
+  compute_group = function(data, scales, bins, n) {
+    # Choose the bandwidth of Gaussian kernel estimators and increase it for
+    # smoother densities in small sample sizes
+    h <- c(MASS::bandwidth.nrd(data$x) * 1.5,
+           MASS::bandwidth.nrd(data$y) * 1.5)
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+    # Estimate two-dimensional density
+    dens <- MASS::kde2d(
+      data$x, data$y, h = h, n = n,
+      lims = c(scales$x$dimension(), scales$y$dimension())
+    )
+    
+    # Store in data frame
+    df <- data.frame(expand.grid(x = dens$x, y = dens$y), z = as.vector(dens$z))
 
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+    # Add a label of this density for ggplot2
+    df$group <- data$group[1]
+
+    # plot
+    ggplot2::StatContour$compute_panel(df, scales, bins)
+  }
+)
+
+# Wrap that ggproto in a ggplot2 object
+stat_density_2d1 <- function(data = NULL,
+                             geom = "density_2d",
+                             position = "identity",
+                             n = 100,
+                             ...) {
+    ggplot2::layer(
+      data = data,
+      stat = stat_density_2d1_proto,
+      geom = geom,
+      position = position,
+      params = list(
+        n = n,
+        ...
+      )
+    )
+}
 ```
 
-Also a quote using `>`:
+We define a shorthand function that appends all samples to a dataframe and is ready for plotting.
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+```{r}
+append_to_plot <- function(plot_df, sample, method,
+                           concentration, x_index, y_index) {
+  new_plot_df <- rbind(plot_df, tibble::tibble(x = sample[, x_index],
+                                               y = sample[, y_index],
+                                               Method = method,
+                                               concentration = concentration))
+  return(new_plot_df)
+}
+```
+
+## Sampling
+
+We assign an independent normal prior with variance 100 to each covariate, and
+generate 1000 posterior samples for each method: Bayesian logistic regression,
+variational Bayes, and Adaptive Non-Parametric Learning.
+
+We tune the settings for the sampling with the number of draws, setting the
+seed, and getting the data:
+
+```{r}
+prior_variance <- 100
+n_bootstrap <- 1000
+set.seed(1)
+dataset <- PosteriorBootstrap::load_dataset(list(name = "statlog-german-credit.dat"))
+```
+
+For Bayesian logistic regression, we draw samples for the coefficients using the `PolyaGamma` package:
+
+```{r}
+bayes_sample <- PolyaGamma::gibbs_sampler(y = 0.5 * (dataset$y + 1),
+                                          X = cbind(1, dataset$x),
+                                          lambda = 1 / prior_variance,
+                                          n_iter_total = 2 * n_bootstrap,
+                                          burn_in = n_bootstrap)
+```
+
+For variational Bayes, we obtain a mean-field variational Bayes sample using
+automatic differentiation variational inference using the `rstan` package. The
+number of samples is `n_bootstrap`,  as these samples serve for the Adaptive
+Non-Parametric Learning algorithm:
+
+```{r}
+train_dat <- list(n = dataset$n,
+                  p = dataset$n_cov + 1,
+                  x = cbind(1, dataset$x),
+                  y = 0.5 * (dataset$y + 1),
+                  beta_sd = sqrt(prior_variance))
+				  
+bayes_logit_model <- rstan::stan_model(file = PosteriorBootstrap::get_rstan_file())
+
+stan_vb <- rstan::vb(bayes_logit_model,
+                     data = train_dat,
+                     output_samples = n_bootstrap,
+                     seed = 123)
+					 
+stan_vb_sample <- rstan::extract(stan_vb)$beta
+print(stan_vb_sample)
+stopifnot(!is.null(stan_vb_sample))
+```
+
+We now run the Adaptive Non-Parametric Learning algorithm, using the samples
+from variational Bayes, for different values of the concentration
+hyper-parameter:
+
+```{r}
+concentrations <- c(1, 2, 3)
+anpl_samples <- list()
+for (concentration in concentrations) {
+  anpl_sample <- PosteriorBootstrap::anpl(dataset = dataset,
+                                          concentration = concentration,
+                                          n_bootstrap = n_bootstrap,
+                                          posterior_sample = stan_vb_sample,
+                                          threshold = 1e-8)
+  anpl_samples[[paste0(concentration)]] <- anpl_sample
+}
+```
+
+## Preparing the plot
+
+We now prepare a dataframe with all the samples ready for plotting:
+
+```{r}
+# Initialise
+plot_df <- tibble::tibble()
+
+# Index of coefficients in the plot
+x_index <- 21
+y_index <- 22
+
+# Create a plot data frame with all the samples
+for (concentration in concentrations) {
+  plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[paste0(concentration)]],
+                             method = "MDP-VB",
+                             concentration = concentration,
+                             x_index = x_index, y_index = y_index)
+  plot_df  <- append_to_plot(plot_df, sample = bayes_sample,
+                             method = "Bayes",
+                             concentration = concentration,
+                             x_index = x_index, y_index = y_index)
+  plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
+                             method = "VB_Stan",
+                             concentration = concentration,
+                             x_index = x_index, y_index = y_index)
+}
+```
+
+## Plotting the results
+
+And now we plot the result of the algorithm:
+
+```{r, fig.show = "asis"}
+gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y",
+                                              colour = "Method"),
+                          data = dplyr::filter(
+                            plot_df, plot_df$Method != "Bayes")) +
+  stat_density_2d1(bins = 5) +
+  ggplot2::geom_point(alpha = 0.1, size = 1,
+                      data = dplyr::filter(plot_df,
+                                           plot_df$Method == "Bayes")) +
+  ggplot2::facet_wrap(~concentration, nrow = 1,
+                      scales = "fixed",
+                      labeller = ggplot2::label_bquote(c ~" = "~
+                                                         .(concentration))
+                      ) +
+  ggplot2::theme_grey(base_size = 8) +
+  ggplot2::xlab(bquote(beta[.(x_index)])) +
+  ggplot2::ylab(bquote(beta[.(y_index)])) +
+  ggplot2::theme(legend.position = "none",
+                 plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
+```
+
+The Non-parametric update effectively corrects the variational Bayes
+approximation for small values of the concentration `c`. Of course, local
+variational methods can provide more accurate posterior approximations to
+Bayesian logistic posteriors, though these too are approximations, that our
+algorithm can correct.
+
