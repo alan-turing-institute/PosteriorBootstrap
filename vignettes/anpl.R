@@ -1,5 +1,6 @@
 
 setwd("~/Projects/PosteriorBootstrap/PosteriorBootstrap")
+load(file = "../samples2.RData")
 
 recompile  <- FALSE
 resample <- FALSE
@@ -10,6 +11,37 @@ if (recompile) {
 requireNamespace("PosteriorBootstrap")
 
 dataset_path <- file.path("inst", "extdata")
+
+stat_density_2d1_proto <- ggplot2::ggproto("stat_density_2d1",
+  ggplot2::Stat,
+  default_aes = ggplot2::aes(colour = "#3366FF", size = 4.5),
+  required_aes = c("x", "y"),
+
+  compute_group = function(data, scales, h = NULL,
+                           contour = TRUE, n = 100, bins = NULL,
+                           binwidth = NULL) {
+    if (is.null(h)) {
+      h <- c(MASS::bandwidth.nrd(data$x) * 1.5,
+             MASS::bandwidth.nrd(data$y) * 1.5)
+    }
+
+    dens <- MASS::kde2d(
+      data$x, data$y, h = h, n = n,
+      lims = c(scales$x$dimension(), scales$y$dimension())
+    )
+    df <- data.frame(expand.grid(x = dens$x, y = dens$y), z = as.vector(dens$z))
+    df$group <- data$group[1]
+
+    if (contour) {
+      ggplot2::StatContour$compute_panel(df, scales, bins, binwidth)
+    } else {
+      names(df) <- c("x", "y", "density", "group")
+      df$level <- 1
+      df$piece <- 1
+      df
+    }
+  }
+)
 
 # Plotting detail. We can ignore.
 stat_density_2d1 <- function(mapping = NULL,
@@ -41,42 +73,10 @@ stat_density_2d1 <- function(mapping = NULL,
     )
 }
 
-# Plotting detail. We can ignore.
-stat_density_2d1_proto <- ggplot2::ggproto("stat_density_2d1",
-  ggplot2::Stat,
-  default_aes = ggplot2::aes(colour = "#3366FF", size = 0.5),
-  required_aes = c("x", "y"),
-
-  compute_group = function(data, scales, h = NULL,
-                           contour = TRUE, n = 100, bins = NULL,
-                           binwidth = NULL) {
-    if (is.null(h)) {
-      h <- c(MASS::bandwidth.nrd(data$x) * 1.5,
-             MASS::bandwidth.nrd(data$y) * 1.5)
-    }
-
-    dens <- MASS::kde2d(
-      data$x, data$y, h = h, n = n,
-      lims = c(scales$x$dimension(), scales$y$dimension())
-    )
-    df <- data.frame(expand.grid(x = dens$x, y = dens$y), z = as.vector(dens$z))
-    df$group <- data$group[1]
-
-    if (contour) {
-      ggplot2::StatContour$compute_panel(df, scales, bins, binwidth)
-    } else {
-      names(df) <- c("x", "y", "density", "group")
-      df$level <- 1
-      df$piece <- 1
-      df
-    }
-  }
-)
 
 append_to_plot <- function(plot_df, sample, method,
                            n_bootstrap, concentration) {
-  new_plot_df <- rbind(plot_df, tibble::tibble(id = 1:n_bootstrap,
-                                               beta21 = sample[, 21],
+  new_plot_df <- rbind(plot_df, tibble::tibble(beta21 = sample[, 21],
                                                beta22 = sample[, 22],
                                                Method = method,
                                                concentration = concentration))
@@ -87,9 +87,6 @@ append_to_plot <- function(plot_df, sample, method,
 use_bayes_logit <- TRUE
 verbose <- TRUE
 
-if (!resample) {
-  load(file = "../samples.RData")
-} else {
   # Stickbreaking plot
   base_font_size <- 8
   n_bootstrap <- 1000
@@ -97,11 +94,11 @@ if (!resample) {
   prior_variance <- 100
   set.seed(1)
 
+if (resample) {
   # Load the dataset
 
   dataset <- PosteriorBootstrap::load_dataset(list(name = "statlog-german-credit.dat"))
   
-
   # Get Bayes (Polson samples)
   if (use_bayes_logit) {
     p0 <- diag(rep(1 / prior_variance, dataset$n_cov + 1))
@@ -148,6 +145,7 @@ if (!resample) {
   }
 }
 
+concentration <- concentrations[1]
 plot_df <- tibble::tibble()
 
 anpl_name <- "MDP-VB"
@@ -171,13 +169,11 @@ gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "beta21",
                                               y = "beta22",
                                               colour = "Method"),
                           data = dplyr::filter(
-                            plot_df, plot_df$Method != "Bayes",
-                            plot_df$Method != "VB")) +
+                            plot_df, plot_df$Method != "Bayes")) +
   stat_density_2d1(bins = 5) +
   ggplot2::geom_point(alpha = 0.1, size = 1,
                       data = dplyr::filter(plot_df,
-                                           plot_df$Method == "Bayes",
-                                           plot_df$id < 1001)) +
+                                           plot_df$Method == "Bayes")) +
   ggplot2::facet_wrap(~concentration, nrow = 1,
                       scales = "fixed",
                       labeller = ggplot2::label_bquote(c ~" = "~
@@ -193,4 +189,4 @@ ggplot2::ggsave(
   paste0("../plot.pdf"),
   plot = gplot2, width = 14, height = 5, units = "cm")
 
-save.image(file = "../samples.RData")
+save(file = "../samples2.RData", list = c("bayes_sample", "stan_vb_sample", "anpl_sample"))
