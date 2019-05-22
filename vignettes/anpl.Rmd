@@ -1,6 +1,6 @@
 ---
 title: "Adaptive non-parametric learning"
-author: "Simon Lyddon, Miguel Morin, and James Robinson"
+author: "Chris Holmes, Simon Lyddon, Miguel Morin, and James Robinson"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -16,25 +16,19 @@ knitr::opts_chunk$set(
 )
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+Bayesian learning is built on an assumption that the model space contains a true
+reflection of the data generating mechanism. This assumption is problematic,
+particularly in complex data environments. Here we present a Bayesian
+nonparametric approach to learning that makes use of statistical models, but
+does not assume that the model is true. Our approach admits a Monte Carlo sampling
+scheme that can afford massive scalability on modern computer architectures. The
+model-based aspect of learning is particularly attractive for regularizing
+nonparametric inference when the sample size is small, and also for correcting
+approximate approaches such as variational Bayes (VB).
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+Here, we demonstrate the approach on a VB classifiers.
 
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
+## Setup
 
 The figure sizes have been customised so that you can easily put two images side-by-side. 
 
