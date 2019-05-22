@@ -535,7 +535,6 @@ ggplot2::ggsave(
          ").pdf"),
   plot = gplot2, width = 14, height = 5, units = "cm")
 
-#save.image("data/workspace_pcb_vb_classn_sb.RData")
 }
 
 # Produce the image with script(use_bayes_logit = {T, F})
