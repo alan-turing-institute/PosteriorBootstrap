@@ -117,7 +117,7 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
   col_means <- colMeans(anpl_samples)
   print(col_means[21])
   print(col_means[22])
-  expect_true((col_means[21] >= 0.1) && (col_means[21] <= 0.4),
+  expect_true((col_means[21] >= 0.5) && (col_means[21] <= 0.4),
               "The average coefficient for column 21 is as expected")
   expect_true((col_means[22] >= -0.3) && (col_means[22] <= -0),
               "The average coefficient for column 22 is as expected")
