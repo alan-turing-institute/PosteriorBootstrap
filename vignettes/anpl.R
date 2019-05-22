@@ -12,62 +12,48 @@ requireNamespace("PosteriorBootstrap")
 
 dataset_path <- file.path("inst", "extdata")
 
+# Define a ggproto to compute the density of samples. The first argument is
+# required, either NULL or an arbitrary string.
 stat_density_2d1_proto <- ggplot2::ggproto(NULL,
   ggplot2::Stat,
-  default_aes = ggplot2::aes(colour = "#3366FF", size = 4.5),
   required_aes = c("x", "y"),
 
-  compute_group = function(data, scales, h = NULL,
-                           contour = TRUE, n = 100, bins = NULL,
-                           binwidth = NULL) {
-    if (is.null(h)) {
-      h <- c(MASS::bandwidth.nrd(data$x) * 1.5,
-             MASS::bandwidth.nrd(data$y) * 1.5)
-    }
+  compute_group = function(data, scales, bins, n) {
+    # Choose the bandwidth of Gaussian kernel estimators and increase it for
+    # smoother densities in small sample sizes
+    h <- c(MASS::bandwidth.nrd(data$x) * 1.5,
+           MASS::bandwidth.nrd(data$y) * 1.5)
 
+    # Estimate two-dimensional density
     dens <- MASS::kde2d(
       data$x, data$y, h = h, n = n,
       lims = c(scales$x$dimension(), scales$y$dimension())
     )
+    
+    # Store in data frame
     df <- data.frame(expand.grid(x = dens$x, y = dens$y), z = as.vector(dens$z))
+
+    # Add a label of this density for ggplot2
     df$group <- data$group[1]
 
-    if (contour) {
-      ggplot2::StatContour$compute_panel(df, scales, bins, binwidth)
-    } else {
-      names(df) <- c("x", "y", "density", "group")
-      df$level <- 1
-      df$piece <- 1
-      df
-    }
+    # plot
+    ggplot2::StatContour$compute_panel(df, scales, bins)
   }
 )
 
-# Plotting detail. We can ignore.
-stat_density_2d1 <- function(mapping = NULL,
-                             data = NULL,
+# Wrap that ggproto in a ggplot2 object
+stat_density_2d1 <- function(data = NULL,
                              geom = "density_2d",
                              position = "identity",
-                             contour = TRUE,
                              n = 100,
-                             h = NULL,
-                             na_rm = FALSE,
-                             show_legend = NA,
-                             inherit_aes = TRUE,
                              ...) {
     ggplot2::layer(
       data = data,
-      mapping = mapping,
       stat = stat_density_2d1_proto,
       geom = geom,
       position = position,
-      show.legend = show_legend,
-      inherit.aes = inherit_aes,
       params = list(
-        na.rm = na_rm,
-        contour = contour,
         n = n,
-        h = h,
         ...
       )
     )
@@ -125,17 +111,14 @@ if (resample) {
   # Run VB approx from STAN
   # the number of samples is the same as the final bootstrap samples,
   # as the Stan VB samples serve for the MDP stick-breaking algorithm
-  stan_file <- file.path(dataset_path, "bayes_logit.stan")
-  bayes_logit_model <- rstan::stan_model(file = stan_file)
-
-  #bayes_logit_model <- rstan::stan_model(file = PosteriorBootstrap::get_rstan_file())
+  bayes_logit_model <- rstan::stan_model(file = PosteriorBootstrap::get_rstan_file())
   stan_vb <- rstan::vb(bayes_logit_model,
                        data = train_dat,
                        output_samples = n_bootstrap,
                        seed = 123)
   stan_vb_sample <- rstan::extract(stan_vb)$beta
 
-  # Get MDP samples for various sample sizes
+  # Get ANPL samples for various concentrations
   for (concentration in concentrations) {
     anpl_sample <- PosteriorBootstrap::anpl(dataset = dataset,
                                             concentration = concentration,
