@@ -1,16 +1,16 @@
 
+requireNamespace("PosteriorBootstrap", quietly = TRUE)
+requireNamespace("rstan", quietly = TRUE)
+
 setwd("~/Projects/PosteriorBootstrap/PosteriorBootstrap")
 load(file = "../samples2.RData")
 
 recompile  <- FALSE
-resample <- FALSE
+resample <- TRUE
 
 if (recompile) {
   devtools::document();devtools::build();devtools::install();
 }
-requireNamespace("PosteriorBootstrap")
-
-dataset_path <- file.path("inst", "extdata")
 
 # Define a ggproto to compute the density of samples. The first argument is
 # required, either NULL or an arbitrary string.
@@ -59,11 +59,11 @@ stat_density_2d1 <- function(data = NULL,
     )
 }
 
-
+# This function appends all samples to a dataframe, ready for plotting
 append_to_plot <- function(plot_df, sample, method,
-                           n_bootstrap, concentration) {
-  new_plot_df <- rbind(plot_df, tibble::tibble(beta21 = sample[, 21],
-                                               beta22 = sample[, 22],
+                           concentration, x_index, y_index) {
+  new_plot_df <- rbind(plot_df, tibble::tibble(x = sample[, x_index],
+                                               y = sample[, y_index],
                                                Method = method,
                                                concentration = concentration))
   return(new_plot_df)
@@ -73,10 +73,9 @@ append_to_plot <- function(plot_df, sample, method,
 use_bayes_logit <- TRUE
 verbose <- TRUE
 
-  # Stickbreaking plot
-  base_font_size <- 8
+  # Settings for drawing the samples
   n_bootstrap <- 1000
-  concentrations <- c(1)
+  concentrations <- c(1, 2, 3)
   prior_variance <- 100
   set.seed(1)
 
@@ -108,9 +107,9 @@ if (resample) {
                     x = cbind(1, dataset$x),
                     y = 0.5 * (dataset$y + 1),
                     beta_sd = sqrt(prior_variance))
-  # Run VB approx from STAN
-  # the number of samples is the same as the final bootstrap samples,
-  # as the Stan VB samples serve for the MDP stick-breaking algorithm
+
+  # Run VB approx from STAN. The number of samples is the same as the final
+  # bootstrap samples, as the Stan VB samples serve for the ANPL algorithm.
   bayes_logit_model <- rstan::stan_model(file = PosteriorBootstrap::get_rstan_file())
   stan_vb <- rstan::vb(bayes_logit_model,
                        data = train_dat,
@@ -119,37 +118,43 @@ if (resample) {
   stan_vb_sample <- rstan::extract(stan_vb)$beta
 
   # Get ANPL samples for various concentrations
+  anpl_samples <- list()
   for (concentration in concentrations) {
     anpl_sample <- PosteriorBootstrap::anpl(dataset = dataset,
                                             concentration = concentration,
                                             n_bootstrap = n_bootstrap,
                                             posterior_sample = stan_vb_sample,
                                             threshold = 1e-8)
+    anpl_samples[[paste0(concentration)]] <- anpl_sample
   }
 }
 
-concentration <- concentrations[1]
 plot_df <- tibble::tibble()
 
-anpl_name <- "MDP-VB"
+# Settings for plot
+anpl_name <- "MDP-VB"  # Mixture of Dirichlet Processes with Variational Bayes
 
-  # Append to plot
-  plot_df  <- append_to_plot(plot_df, sample = anpl_sample,
+# Index of coefficients in the plot
+x_index <- 21
+y_index <- 22
+
+# Create a plot data frame with all the samples
+for (concentration in concentrations) {
+  plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[paste0(concentration)]],
                              method = anpl_name,
-                             n_bootstrap = n_bootstrap,
-                             concentration = concentration)
+                             concentration = concentration,
+                             x_index = x_index, y_index = y_index)
   plot_df  <- append_to_plot(plot_df, sample = bayes_sample,
                              method = "Bayes",
-                             n_bootstrap = n_bootstrap,
-                             concentration = concentration)
+                             concentration = concentration,
+                             x_index = x_index, y_index = y_index)
   plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
                              method = "VB_Stan",
-                             n_bootstrap = n_bootstrap,
-                             concentration = concentration)
+                             concentration = concentration,
+                             x_index = x_index, y_index = y_index)
+}
 
-
-gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "beta21",
-                                              y = "beta22",
+gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y",
                                               colour = "Method"),
                           data = dplyr::filter(
                             plot_df, plot_df$Method != "Bayes")) +
@@ -162,14 +167,15 @@ gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "beta21",
                       labeller = ggplot2::label_bquote(c ~" = "~
                                                          .(concentration))
                       ) +
-  ggplot2::theme_grey(base_size = base_font_size) +
-  ggplot2::xlab(expression(beta[21])) +
-  ggplot2::ylab(expression(beta[22])) +
+  ggplot2::theme_grey(base_size = 8) +
+  ggplot2::xlab(bquote(beta[.(x_index)])) +
+  ggplot2::ylab(bquote(beta[.(y_index)])) +
   ggplot2::theme(legend.position = "none",
                  plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
 
-ggplot2::ggsave(
-  paste0("../plot.pdf"),
-  plot = gplot2, width = 14, height = 5, units = "cm")
+ggplot2::ggsave("../plot.pdf", plot = gplot2, width = 14, height = 5,
+                units = "cm")
+
+gplot2
 
 save(file = "../samples2.RData", list = c("bayes_sample", "stan_vb_sample", "anpl_sample"))
