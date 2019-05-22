@@ -3,6 +3,4 @@
 export(anpl)
 export(get_rstan_file)
 export(load_dataset)
-export(script)
 export(stick_breaking)
-importFrom(Rcpp,cpp_object_initializer)
