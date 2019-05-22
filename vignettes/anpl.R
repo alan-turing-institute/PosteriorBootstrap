@@ -12,7 +12,7 @@ requireNamespace("PosteriorBootstrap")
 
 dataset_path <- file.path("inst", "extdata")
 
-stat_density_2d1_proto <- ggplot2::ggproto("stat_density_2d1",
+stat_density_2d1_proto <- ggplot2::ggproto(NULL,
   ggplot2::Stat,
   default_aes = ggplot2::aes(colour = "#3366FF", size = 4.5),
   required_aes = c("x", "y"),
