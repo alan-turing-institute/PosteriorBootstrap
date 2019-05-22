@@ -80,7 +80,7 @@ test_that("Parallelisation works and is faster", {
               "Largest parallelization speedup is larger than 70%")
 })
 
-test_that("Adaptive non-parametric learning with posterior samples works well", {
+test_that("Adaptive non-parametric learning with posterior samples works", {
 
   german <- load_dataset(list(name = k_german_credit))
   n_bootstrap <- 100
@@ -109,7 +109,7 @@ test_that("Adaptive non-parametric learning with posterior samples works well", 
                        posterior_sample = stan_vb_sample,
                        threshold = 1e-8,
                        num_cores = 2)
-  
+
   # Once we got a problem with coefficients way off because of misuse of
   # `mcmapply` (as if it were a list instead of a matrix). So we added a test
   # for the average value of the coefficients in the paper for the specific
