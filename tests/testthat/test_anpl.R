@@ -87,20 +87,10 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
 
   # Get posterior samples
   prior_variance <- 100
-  bayes_logit_model <- rstan::stan_model(file = get_rstan_file())
-  train_dat <- list(n = german$n,
-                    p = german$n_cov + 1,
-                    x = cbind(1, german$x),
-                    y = 0.5 * (german$y + 1),
-                    beta_sd = sqrt(prior_variance))
-
-  set.seed(1)
-  stan_vb <- rstan::vb(bayes_logit_model,
-                       data = train_dat,
-                       output_samples = n_bootstrap,
-                       seed = 123,
-                       iter = 100)
-  stan_vb_sample <- rstan::extract(stan_vb)$beta
+  stan_vb_sample <- run_variational_bayes(x = cbind(1, german$x),
+                                          y = 0.5 * (german$y + 1),
+                                          output_samples = n_bootstrap,
+                                          beta_sd = sqrt(prior_variance))
 
   # Use these samples in ANPL with multiple cores
   anpl_samples <- anpl(dataset = german,

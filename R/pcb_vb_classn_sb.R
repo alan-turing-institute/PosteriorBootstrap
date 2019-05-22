@@ -97,6 +97,54 @@ load_dataset <- function(dataset_input_list = list(name = "toy", n = 200)) {
   return(dataset)
 }
 
+#' Run variational Bayes
+#'
+#' \code{run_variational_bayes} returns samples of the parameters estimated with
+#' `rstan` on the data provided in the arguments.
+#'
+#' @param x The features of the data for the model
+#' @param y The outcomes of the data for the model
+#' @param output_samples The number of output samples to draw
+#' @param beta_sd The standard deviation of the prior on the parameters
+#' @param stan_file A custom Stan file, if different from the default which
+#'   ships with the package and models Bayesian logistic regression
+#' @param iter The maximum number of iterations for Rstan to run
+#' @param seed A seed to start the Rstan sampling
+#' @param verbose Whether to print output from RStan
+#' @return Matrix of size `output_samples`x`dim(x)[2]` drawn from the RStan
+#'   model applied to `y` and `x`
+#'
+#' @importFrom Rcpp cpp_object_initializer
+#' @export
+run_variational_bayes <- function(x, y, output_samples, beta_sd,
+                                  stan_file = get_rstan_file(),
+                                  iter = 10000, seed = 123, verbose = FALSE) {
+
+  # Check inputs
+  if (length(y) != dim(x)[1]) {
+    stop("The length of y must be the same as the first dimension of x")
+  }
+
+  n_input <- length(y)
+  p <- dim(x)[2]
+
+  train_dat <- list(n = n_input, p = p, x = x, y = y, beta_sd = beta_sd)
+
+  stan_model <- rstan::stan_model(file = stan_file)
+
+  params <- list(object = stan_model, data = train_dat, seed = seed,
+                 output_samples = output_samples, iter = iter)
+  if (verbose) {
+    stan_vb <- do.call(rstan::vb, params)
+  } else {
+    log <- utils::capture.output(
+      stan_vb <- do.call(rstan::vb, params)
+    )
+  }
+
+  return(rstan::extract(stan_vb)$beta)
+}
+
 # TODO: robustify -1 and 1, or change the Bayes Logit call
 
 #' Stick-breaking depending on a concentration parameter.
