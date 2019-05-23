@@ -3,7 +3,7 @@ library(PosteriorBootstrap)
 
 test_that("Rstan variational Bayes model runs", {
 
-  german <- load_dataset()
+  german <- get_german_credit_dataset()
   n_bootstrap <- 10
   prior_variance <- 100
 

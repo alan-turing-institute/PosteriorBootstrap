@@ -126,7 +126,7 @@ seed, and getting the data:
 prior_variance <- 100
 n_bootstrap <- 1000
 set.seed(1)
-german <- PosteriorBootstrap::load_dataset()
+german <- PosteriorBootstrap::get_german_credit_dataset()
 ```
 
 For Bayesian logistic regression, we draw samples for the coefficients using the `PolyaGamma` package:
