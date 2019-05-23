@@ -32,12 +32,14 @@ test_that("Adaptive non-parametric learning with centering model works", {
 })
 
 test_that("Multiple processors are available", {
+  skip_on_cran()
   num_cores <- parallel::detectCores(logical = FALSE)
   print(paste0("Physical cores available: ", num_cores))
   expect_true(num_cores >= 2, "Multiple processors are available")
 })
 
 test_that("Parallelisation works and is faster", {
+  skip_on_cran()
 
   german <- get_german_credit_dataset()
   n_cov <- ncol(german$x)
@@ -99,8 +101,7 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
                        concentration = 1,
                        n_bootstrap = n_bootstrap,
                        posterior_sample = stan_vb_sample,
-                       threshold = 1e-8,
-                       num_cores = 2)
+                       threshold = 1e-8)
 
   # Once we got a problem with coefficients way off because of misuse of
   # `mcmapply` (as if it were a list instead of a matrix). So we added a test
