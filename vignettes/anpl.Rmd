@@ -141,6 +141,7 @@ number of samples is `n_bootstrap`,  as these samples serve for the Adaptive
 Non-Parametric Learning algorithm:
 
 ```{r, echo = FALSE}
+library(rstan)
 stan_vb_sample <- PosteriorBootstrap::run_variational_bayes(x = cbind(1, german$x),
                                                             y = 0.5 * (german$y + 1),
                                                             output_samples = n_bootstrap,
