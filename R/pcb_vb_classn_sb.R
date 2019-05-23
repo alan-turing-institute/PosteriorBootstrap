@@ -1,14 +1,11 @@
 ## Code generating figure 2 in Lyddon, Walker & Holmes, 2018.
 options(warn = 1)
 
-requireNamespace("dplyr", quietly = TRUE)
 requireNamespace("e1071", quietly = TRUE)
-requireNamespace("ggplot2", quietly = TRUE)
 requireNamespace("MASS", quietly = TRUE)
 requireNamespace("parallel", quietly = TRUE)
 requireNamespace("rstan", quietly = TRUE)
 requireNamespace("stats", quietly = TRUE)
-requireNamespace("tibble", quietly = TRUE)
 requireNamespace("utils", quietly = TRUE)
 
 k_extdata <- "extdata"
