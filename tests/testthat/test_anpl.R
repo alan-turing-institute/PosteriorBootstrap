@@ -5,7 +5,7 @@ library(rstan)
 
 test_that("Adaptive non-parametric learning with centering model works", {
 
-  german <- load_dataset(list(name = k_german_credit))
+  german <- load_dataset()
 
   n_bootstrap <- 10
 
@@ -37,7 +37,7 @@ test_that("Multiple processors are available", {
 
 test_that("Parallelisation works and is faster", {
 
-  german <- load_dataset(list(name = k_german_credit))
+  german <- load_dataset()
 
   n_bootstrap <- 1000
 
@@ -82,7 +82,7 @@ test_that("Parallelisation works and is faster", {
 
 test_that("Adaptive non-parametric learning with posterior samples works", {
 
-  german <- load_dataset(list(name = k_german_credit))
+  german <- load_dataset()
   n_bootstrap <- 100
 
   # Get posterior samples

@@ -37,53 +37,25 @@ get_german_credit_file <- function() {
 
 #' Function to load dataset. Won't be necessary in the package
 #'
-#' @param dataset_input_list A list with a name and, in the case of "toy", a
-#'   number of samples
-#'
 #' @return A dataset in the right format
 #' @export
-load_dataset <- function(dataset_input_list = list(name = "toy", n = 200)) {
-  # Check dataset_input_list has required elements
-  if (!(c("name") %in% names(dataset_input_list))) {
-    stop("dataset_input_list does not contain name")
-  }
-
+load_dataset <- function() {
   # dataset object is list we will return.
-  dataset <- list(name = dataset_input_list$name)
+  dataset <- list()
 
-  if (dataset$name == "toy") {
-    if (!("n" %in% names(dataset_input_list))) {
-      stop("dataset_input_list does not contain n")
-    }
+  filepath <- get_german_credit_file()
+  raw_dataset <- as.matrix(utils::read.table(filepath))
+  # German statlog dataset outcomes are (1, 2), so
+  # subtract 1 here to make them 0, 1, as in the toy dataset
+  raw_dataset[, ncol(raw_dataset)] <- raw_dataset[, ncol(raw_dataset)] - 1
 
-    # Generate the dataset
+  # Standardise raw dataset to have mean 0 and variance 1, except for the last
+  # column (the response)
+  col_range <- 1:(ncol(raw_dataset) - 1)
+  raw_dataset[, col_range] <- scale(raw_dataset[, col_range])
+  stopifnot(all(raw_dataset[, ncol(raw_dataset)] %in% c(0, 1)))
 
-    # This line gives values 0 or 1
-    raw_dataset <- stats::rbinom(n = dataset_input_list$n,
-                                 size = 1,
-                                 prob = 0.5)
-    raw_dataset <- cbind(stats::rnorm(n = dataset_input_list$n,
-                                      mean = raw_dataset * 2 - 1,
-                                      sd = 1),
-                         raw_dataset)
-  } else {
-    # Load the dataset
-    filepath <- data_file(dataset$name)
-    raw_dataset <- as.matrix(utils::read.table(filepath))
-    # German statlog dataset outcomes are (1, 2), so
-    # subtract 1 here to make them 0, 1, as in the toy dataset
-    if (k_german_credit == dataset_input_list$name) {
-      raw_dataset[, ncol(raw_dataset)] <- raw_dataset[, ncol(raw_dataset)] - 1
-    }
-
-    # Standardise raw dataset to have mean 0 and variance 1, except for the last
-    # column (the response)
-    col_range <- 1:(ncol(raw_dataset) - 1)
-    raw_dataset[, col_range] <- scale(raw_dataset[, col_range])
-    stopifnot(all(raw_dataset[, ncol(raw_dataset)] %in% c(0, 1)))
-
-    colnames(raw_dataset) <- NULL
-  }
+  colnames(raw_dataset) <- NULL
 
   # Add the dataset to the dataset output list.
   dataset$n <- dim(raw_dataset)[1]
