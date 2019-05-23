@@ -47,6 +47,11 @@ we use `library(rstan)`.
 
 ```{r echo = T, results = 'hide'}
 requireNamespace("PosteriorBootstrap", quietly = TRUE)
+
+requireNamespace("dplyr", quietly = TRUE)
+requireNamespace("ggplot2", quietly = TRUE)
+requireNamespace("tibble", quietly = TRUE)
+
 library(rstan)
 ```
 
@@ -263,10 +268,6 @@ for a plot with 8 cores.  We compute the duration for one or two cores and for
 the number of bootstrap samples in 100, 1000, and 10,000.
 
 ```{r}
-library(ggplot2)
-library(gridExtra)
-library(parallel)
-
 speedups  <- data.frame(stringsAsFactors = FALSE)
 max_cores <- 2
 n_bootstrap_array <- c(1e2, 1e3, 1e4)
@@ -311,6 +312,8 @@ processors. Calculating this value for the durations from 1 to 8 cores, we obtai
 this plot, where the proportion of the code that can be parallelised is high:
 
 ```{r}
+library(gridExtra)
+
 # Remove single core speedup, where the proportion is not defined
 speedups <- speedups[1 != speedups$Num_cores, ]
 speedups$proportion <- (1 / speedups$speedup - 1) / (1 / speedups$Num_cores - 1)
