@@ -25,7 +25,7 @@ the duration of the task with one core divided by the duration of the task with
 ![Parallelisation speedup](Speedup.png)
 
 I inverted Ahmdal's law to compute the proportion of the execution time that is
-parallelisable from the speedup as as:
+parallelisable from the speedup as:
 
 $$ p = \frac{\frac{1}{S_{latency}}} - 1}{\frac{1}{s} - 1} $$
 

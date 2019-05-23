@@ -4,13 +4,14 @@
 \alias{anpl}
 \title{Adaptive non-parametric learning function}
 \usage{
-anpl(dataset, concentration, n_bootstrap = 100,
-  posterior_sample = NULL, gamma_mean = NULL, gamma_vcov = NULL,
-  threshold = 1e-08, num_cores = 1, show_progress = FALSE)
+anpl(x, y, concentration, n_bootstrap = 100, posterior_sample = NULL,
+  gamma_mean = NULL, gamma_vcov = NULL, threshold = 1e-08,
+  num_cores = 1, show_progress = FALSE)
 }
 \arguments{
-\item{dataset}{The dataset with classes and features (in a specific format
-that will be changed)}
+\item{x}{The features of the data.}
+
+\item{y}{The outcomes of the data (either \code{0} or \code{1}).}
 
 \item{concentration}{The parameter \code{c} in the paper (page 3, formula 3),}
 
