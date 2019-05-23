@@ -56,6 +56,14 @@ get_stan_file <- function() {
 
 #' File with the German Statlog credit dataset.
 #'
+#' The file contains a local copy of the German Statlog credit dataset with
+#' 1,000 observations and 24 features. The data page is at:
+#' https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data) and the
+#' original files at:
+#' http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/ We
+#' use the file `german.data-numeric`, which has 24 covariates instead of the 20
+#' in the original data (as some are qualitative).
+#'
 #' @return A file with the plain-text raw data for the German Statlog credit
 #'   that ships with this package (extension \code{.dat}).
 #'
