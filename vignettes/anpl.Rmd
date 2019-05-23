@@ -137,7 +137,7 @@ For Bayesian logistic regression, we draw samples using the `rstan` package and
 the Bayesian logistic regression model that ships with this package:
 
 ```{r echo = T, results = 'hide'}
-train_dat <- list(n = n_input, p = p, x = x, y = y, beta_sd = prior_sd)
+train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x, y = german$y, beta_sd = prior_sd)
 stan_model <- rstan::stan_model(file = get_stan_file())
 bayes_log_reg <- rstan::stan(stan_file, data = train_dat, seed = seed,
                       iter = n_bootstrap * 2, chains = 1)
