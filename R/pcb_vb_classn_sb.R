@@ -196,6 +196,52 @@ stick_breaking <- function(concentration = 1,
   return(stick_breaks)
 }
 
+check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
+                 gamma_mean, gamma_vcov) {
+  if (is.null(posterior_sample)) {
+    if (is.null(gamma_mean) | is.null(gamma_vcov)) {
+      stop(paste0("If you don't provide a posterior sample, ",
+                  "you must provide a centering model"))
+    }
+
+    if (! all(is.numeric(gamma_mean)) & all(is.numeric(gamma_vcov))) {
+      stop(paste0("Invalid input: the mean and variance-covariance ",
+                    "of the centering model need to be numeric"))
+    }
+    dim_gamma <- dataset$n_cov + 1
+    if (!(is.numeric(gamma_mean) & (dim_gamma == length(gamma_mean)))) {
+      stop(paste0("You need to give a vector for the mean of the centering ",
+                  "model with size ",
+                  dim_gamma,
+                  " (for the number of covariates, plus 1 for the intercept)"))
+    }
+    if (!(is.numeric(gamma_vcov) &
+            all(c(dim_gamma, dim_gamma) == dim(gamma_vcov)))) {
+      stop(paste0("You need to give a matrix for the variance-covariance ",
+                  "matrix of the centering model: ",
+                  dim_gamma, "*", dim_gamma,
+                  " (for the number of covariates, plus 1 for the intercept)"))
+    }
+  }
+
+  if (!is.null(posterior_sample)) {
+    if (dim(posterior_sample)[2] != dataset$n_cov + 1) {
+      stop(paste0("The number of columns in the posterior sample must be the ",
+                  "same as the number of covariates"))
+    }
+    if (dim(posterior_sample)[1] < n_bootstrap) {
+      stop(paste0("The posterior sample must have a number of rows no smaller ",
+                  "than n_bootstrap"))
+    }
+  }
+
+  if (!is.numeric(concentration)) {
+    stop("Concentration needs to be numeric")
+  }
+  if (concentration < 0) {
+    stop("Concentration needs to be positive")
+  }
+}
  
 #' Adaptive non-parametric learning function
 #'
@@ -212,8 +258,12 @@ stick_breaking <- function(concentration = 1,
 #' @param concentration The parameter \code{c} in the paper (page 3, formula 3),
 #' @param n_bootstrap The number of bootstrap samples required.
 #' @param posterior_sample The function can take samples from the posterior to
-#'   generate non-parametric-learning samples. Or it can take NULL and the
-#'   posterior is assumed normal N(\code{gamma_mean}, \code{gamma_vcov}).
+#'   generate non-parametric-learning samples, or it can take NULL and the
+#'   posterior is assumed normal N(\code{gamma_mean}, \code{gamma_vcov}). If
+#'   provided, the posterior sample must have a number of columns equal to the
+#'   number of covariates plus one (for the intercept) and a number of rows
+#'   equal or larger than the `n_bootrstap` (as the algorithm draws a new sample
+#'   based on a single draw of the posterior sample).
 #' @param gamma_mean In case \code{posterior_sample} is NULL, the mean for the
 #'   centering model (equation 9, page 4)
 #' @param gamma_vcov In case \code{posterior_sample} is NULL, the
@@ -238,40 +288,10 @@ anpl <- function(dataset,
                  num_cores = 1,
                  show_progress = FALSE) {
 
-  if (is.null(posterior_sample)) {
-    if (is.null(gamma_mean) | is.null(gamma_vcov)) {
-      stop("You must provide either a posterior sample or a centering model")
-    }
-
-    if (! all(is.numeric(gamma_mean)) & all(is.numeric(gamma_vcov))) {
-      msg <- paste0("Invalid input: the mean and variance-covariance ",
-                    "of the centering model need to be numeric")
-      stop(msg)
-    }
-  }
-
-  if (!is.numeric(concentration)) {
-    stop("Concentration needs to be numeric")
-  }
-  if (concentration < 0) {
-    stop("Concentration needs to be positive")
-  }
-  if (is.null(posterior_sample)) {
-    dim_gamma <- dataset$n_cov + 1
-    if (!(is.numeric(gamma_mean) & (dim_gamma == length(gamma_mean)))) {
-      stop(paste0("You need to give a vector for the mean of the centering ",
-                  "model with size ",
-                  dim_gamma,
-                  " (for the number of covariates, plus 1 for the intercept)"))
-    }
-    if (!(is.numeric(gamma_vcov) &
-            all(c(dim_gamma, dim_gamma) == dim(gamma_vcov)))) {
-      stop(paste0("You need to give a matrix for the variance-covariance ",
-                  "matrix of the centering model: ",
-                  dim_gamma, "*", dim_gamma,
-                  " (for the number of covariates, plus 1 for the intercept)"))
-    }
-  }
+  # Check inputs
+  check_inputs(dataset = dataset, concentration = concentration,
+               n_bootstrap = n_bootstrap, posterior_sample = posterior_sample,
+               gamma_mean = gamma_mean, gamma_vcov = gamma_vcov)
 
   # Get mixing theta
   if (is.null(posterior_sample)) {
@@ -384,7 +404,8 @@ anpl_single <- function(i,
     # non-integers. Quasibinomial is the same as binomial except that it removes
     # the integer check and does not compute AIC. See the answer by the
     # author (mmorin) on this StackOverflow thread for more details:
-    # https://stackoverflow.com/questions/12953045
+      # https://stackoverflow.com/questions/12953045
+      # TODO(mmorin): standardise intercept throughout
     glm_fit <- stats::glm.fit(x = cbind(1, x_all),
                               y = y_all,
                               weights = wgts,

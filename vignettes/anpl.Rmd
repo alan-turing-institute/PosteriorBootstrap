@@ -97,7 +97,7 @@ stat_density_2d1 <- function(data = NULL,
 
 We define a shorthand function that appends all samples to a dataframe and is ready for plotting.
 
-```{r}
+```{r, echo = FALSE}
 append_to_plot <- function(plot_df, sample, method,
                            concentration, x_index, y_index) {
   new_plot_df <- rbind(plot_df, tibble::tibble(x = sample[, x_index],
@@ -117,7 +117,7 @@ variational Bayes, and Adaptive Non-Parametric Learning.
 We tune the settings for the sampling with the number of draws, setting the
 seed, and getting the data:
 
-```{r, echo = TRUE}
+```{r, echo = FALSE}
 prior_variance <- 100
 n_bootstrap <- 1000
 set.seed(1)
@@ -126,12 +126,13 @@ german <- PosteriorBootstrap::load_dataset(list(name = "statlog-german-credit.da
 
 For Bayesian logistic regression, we draw samples for the coefficients using the `PolyaGamma` package:
 
-```{r}
-bayes_sample <- PolyaGamma::gibbs_sampler(y = 0.5 * (german$y + 1),
-                                          X = cbind(1, german$x),
-                                          lambda = 1 / prior_variance,
-                                          n_iter_total = 2 * n_bootstrap,
-                                          burn_in = n_bootstrap)
+```{r, echo = FALSE}
+bayes <- PolyaGamma::gibbs_sampler(y = 0.5 * (german$y + 1),
+                                   X = cbind(1, german$x),
+                                   lambda = 1 / prior_variance,
+                                   n_iter_total = 2 * n_bootstrap,
+                                   burn_in = n_bootstrap)
+bayes_sample <- bayes$beta
 ```
 
 For variational Bayes, we obtain a mean-field variational Bayes sample using
@@ -139,12 +140,11 @@ automatic differentiation variational inference using the `rstan` package. The
 number of samples is `n_bootstrap`,  as these samples serve for the Adaptive
 Non-Parametric Learning algorithm:
 
-```{r, echo = TRUE, include = TRUE}
+```{r, echo = FALSE}
 stan_vb_sample <- PosteriorBootstrap::run_variational_bayes(x = cbind(1, german$x),
                                                             y = 0.5 * (german$y + 1),
-                                                            output_samples = 10, 
-                                                            beta_sd = sqrt(prior_variance),
-                                                            iter = 100)
+                                                            output_samples = n_bootstrap,
+                                                            beta_sd = sqrt(prior_variance))
 ```
 
 We now run the Adaptive Non-Parametric Learning algorithm, using the samples
@@ -198,10 +198,8 @@ for (concentration in concentrations) {
 And now we plot the result of the algorithm:
 
 ```{r, fig.show = "asis"}
-gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y",
-                                              colour = "Method"),
-                          data = dplyr::filter(
-                            plot_df, plot_df$Method != "Bayes")) +
+ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
+                data = dplyr::filter(plot_df, plot_df$Method != "Bayes")) +
   stat_density_2d1(bins = 5) +
   ggplot2::geom_point(alpha = 0.1, size = 1,
                       data = dplyr::filter(plot_df,
