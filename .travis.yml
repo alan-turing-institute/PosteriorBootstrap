@@ -35,14 +35,16 @@ matrix:
 # macOS 10.12 version
 osx_image: xcode9.2
 
-# Install lintr using devtools::install_github, because the GitHub version is
-# sharper than the R package (e.g., for names like "PosteriorBootstrap" and
-# double parentheses)
-r_github_packages:
-  - jimhester/lintr
+# The lintr R package is slightly behind its Github version but it is fine for
+# now. If we have lintr problems in the future, revert to
+# ```
+# r_github_packages:
+#   - jimhester/lintr
+# ```
 
 r_packages:
   - covr
+  - lintr
 
 after_success:
   - Rscript -e 'covr::codecov()'

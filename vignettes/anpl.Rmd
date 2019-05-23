@@ -46,7 +46,7 @@ credit rating.
 
 We require our package and the `rstan` package for variational Bayes. Note that,
 for technical reasons, the `rstan` package needs to be loaded and attached, so
-we use `library(rstan)`.
+we use `library("rstan")`.
 
 ```{r echo = T, results = 'hide'}
 requireNamespace("PosteriorBootstrap", quietly = TRUE)
@@ -55,7 +55,7 @@ requireNamespace("dplyr", quietly = TRUE)
 requireNamespace("ggplot2", quietly = TRUE)
 requireNamespace("tibble", quietly = TRUE)
 
-library(rstan)
+library("rstan")
 ```
 
 ## Plotting functions
@@ -315,7 +315,7 @@ processors. Calculating this value for the durations from 1 to 8 cores, we obtai
 this plot, where the proportion of the code that can be parallelised is high:
 
 ```{r}
-library(gridExtra)
+library("gridExtra")
 
 # Remove single core speedup, where the proportion is not defined
 speedups <- speedups[1 != speedups$Num_cores, ]

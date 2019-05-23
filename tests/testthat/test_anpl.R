@@ -1,7 +1,7 @@
 context("Adaptive non-parametric learning function")
-library(parallel)
-library(PosteriorBootstrap)
-library(rstan)
+library("parallel")
+library("PosteriorBootstrap")
+library("rstan")
 
 test_that("Adaptive non-parametric learning with centering model works", {
 
@@ -109,8 +109,8 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
   col_means <- colMeans(anpl_samples)
   print(col_means[21])
   print(col_means[22])
-  expect_true((col_means[21] >= 0.05) && (col_means[21] <= 0.4),
-              "The average coefficient for column 21 is as expected")
-  expect_true((col_means[22] >= -0.3) && (col_means[22] <= -0),
-              "The average coefficient for column 22 is as expected")
+  ok21 <- (col_means[21] >= 0.05) && (col_means[21] <= 0.4)
+  ok22 <- (col_means[22] >= -0.3) && (col_means[22] <= 0)
+  expect_true(ok21, "The average coefficient for column 21 is as expected")
+  expect_true(ok22, "The average coefficient for column 22 is as expected")
 })

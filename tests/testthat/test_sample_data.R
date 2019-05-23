@@ -1,5 +1,5 @@
 context("German Statlog credit dataset")
-library(PosteriorBootstrap)
+library("PosteriorBootstrap")
 
 
 test_that("German Statlog data outcomes are in {1, 2}", {
