@@ -172,7 +172,7 @@ hyper-parameter:
 
 ```{r}
 if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
-  concentrations <- c(1, 2, 3)
+  concentrations <- c(1, 1000, 20000)
   anpl_samples <- list()
   for (concentration in concentrations) {
     anpl_sample <- PosteriorBootstrap::anpl(x = german$x, y = german$y,
