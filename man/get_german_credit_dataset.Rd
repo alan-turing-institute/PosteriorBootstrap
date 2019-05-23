@@ -4,12 +4,17 @@
 \alias{get_german_credit_dataset}
 \title{Function to load the dataset that ships with the package.}
 \usage{
-get_german_credit_dataset(scale = TRUE, add_intercept = TRUE)
+get_german_credit_dataset(scale = TRUE, add_intercept = TRUE,
+  download_destination = NULL)
 }
 \arguments{
 \item{scale}{Whether to scale the features to have mean 0 and variance 1.}
 
 \item{add_intercept}{Whether to add an intercept as the first feature.}
+
+\item{download_destination}{Provide a filepath if you want to download the
+dataset from source. Note that although the original dataset has 20
+features (some of them qualitative), the numeric dataset has 24 features.}
 }
 \value{
 A list with fields \code{x} for features and \code{y} for outcomes.

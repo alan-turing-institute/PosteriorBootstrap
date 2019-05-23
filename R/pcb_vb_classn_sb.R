@@ -1,6 +1,3 @@
-## Code generating figure 2 in Lyddon, Walker & Holmes, 2018.
-options(warn = 1)
-
 requireNamespace("e1071", quietly = TRUE)
 requireNamespace("MASS", quietly = TRUE)
 requireNamespace("parallel", quietly = TRUE)
@@ -11,7 +8,9 @@ requireNamespace("utils", quietly = TRUE)
 k_extdata <- "extdata"
 k_package <- "PosteriorBootstrap"
 k_german_credit <- "statlog-german-credit.dat"
-k_german_credit_url <- "http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data-numeric"
+k_german_credit_url <- paste0("http://archive.ics.uci.edu/ml/",
+                              "machine-learning-databases/statlog/",
+                              "german/german.data-numeric")
 k_rstan_model <- "bayes_logit.stan"
 
 data_file <- function(name) {
@@ -70,7 +69,7 @@ get_german_credit_dataset <- function(scale = TRUE, add_intercept = TRUE,
                                       download_destination = NULL) {
 
   if (is.null(download_destination)) {
-    filepath <- get_german_credit_file()    
+    filepath <- get_german_credit_file()
   } else {
     utils::download.file(k_german_credit_url, download_destination)
     filepath <- download_destination
@@ -224,7 +223,6 @@ stick_breaking <- function(concentration = 1,
   # and so it adds up to one
   stick_breaks <- stick_breaks / sum(stick_breaks)
 
-  print("new")
   return(stick_breaks)
 }
 

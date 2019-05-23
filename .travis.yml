@@ -36,7 +36,8 @@ matrix:
 osx_image: xcode9.2
 
 # Install lintr using devtools::install_github, because the GitHub version is
-# sharper than the R package
+# sharper than the R package (e.g., for names like "PosteriorBootstrap" and
+# double parentheses)
 r_github_packages:
   - jimhester/lintr
 

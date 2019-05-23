@@ -18,6 +18,9 @@ knitr::opts_chunk$set(
 )
 ```
 
+This vignette shows the code generating figure 2 in Lyddon, Walker & Holmes,
+2018, and also reuses material from that paper.
+
 Bayesian learning is built on an assumption that the model space contains a true
 reflection of the data generating mechanism. This assumption is problematic,
 particularly in complex data environments. Here we present a Bayesian
