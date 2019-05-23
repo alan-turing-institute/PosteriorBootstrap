@@ -119,7 +119,7 @@ append_to_plot <- function(plot_df, sample, method,
 
 ## Sampling
 
-We assign an independent normal prior with variance 100 to each covariate, and
+We assign an independent normal prior with standard deviation 10 to each covariate, and
 generate 1000 posterior samples for each method: Bayesian logistic regression,
 variational Bayes, and Adaptive Non-Parametric Learning.
 
@@ -127,33 +127,35 @@ We tune the settings for the sampling with the number of draws, setting the
 seed, and getting the data:
 
 ```{r}
-prior_variance <- 100
+seed <- 123
+prior_sd <- 10
 n_bootstrap <- 1000
 german <- PosteriorBootstrap::get_german_credit_dataset()
 ```
 
-For Bayesian logistic regression, we draw samples for the coefficients using the `PolyaGamma` package:
+For Bayesian logistic regression, we draw samples using the `rstan` package and
+the Bayesian logistic regression model that ships with this package:
 
 ```{r echo = T, results = 'hide'}
-set.seed(1)
-bayes <- PolyaGamma::gibbs_sampler(y = german$y,
-                                   X = german$x,
-                                   lambda = 1 / prior_variance,
-                                   n_iter_total = 2 * n_bootstrap,
-                                   burn_in = n_bootstrap)
-bayes_sample <- bayes$beta
+train_dat <- list(n = n_input, p = p, x = x, y = y, beta_sd = prior_sd)
+stan_model <- rstan::stan_model(file = get_stan_file())
+bayes_log_reg <- rstan::stan(stan_file, data = train_dat, seed = seed,
+                      iter = n_bootstrap * 2, chains = 1)
+bayes_sample <- rstan::extract(bayes_log_reg)$beta
 ```
 
 For variational Bayes, we obtain a mean-field variational Bayes sample using
-automatic differentiation variational inference using the `rstan` package. The
+automatic differentiation variational inference using the `rstan` package and
+the same logistic regression model as above. The
 number of samples is `n_bootstrap`,  as these samples serve for the Adaptive
 Non-Parametric Learning algorithm:
 
 ```{r echo = T, results = 'hide'}
 stan_vb_sample <- PosteriorBootstrap::run_variational_bayes(x = german$x,
                                                             y = german$y,
+                                                            seed = seed,
                                                             output_samples = n_bootstrap,
-                                                            beta_sd = sqrt(prior_variance))
+                                                            beta_sd = prior_sd))
 ```
 
 We now run the Adaptive Non-Parametric Learning algorithm, using the samples
