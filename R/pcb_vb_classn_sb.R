@@ -57,6 +57,7 @@ get_german_credit_file <- function() {
 #' Function to load the dataset that ships with the package.
 #'
 #' @param scale Whether to scale the features to have mean 0 and variance 1.
+#' @param add_intercept Whether to add an intercept as the first feature.
 #'
 #' @return A dataset in the right format
 #'
@@ -66,7 +67,7 @@ get_german_credit_file <- function() {
 #' head(german$x)
 #'
 #' @export
-get_german_credit_dataset <- function(scale = TRUE) {
+get_german_credit_dataset <- function(scale = TRUE, add_intercept = TRUE) {
   filepath <- get_german_credit_file()
   raw_dataset <- as.matrix(utils::read.table(filepath))
   colnames(raw_dataset) <- NULL
@@ -82,6 +83,9 @@ get_german_credit_dataset <- function(scale = TRUE) {
   # Standardise features to have mean 0 and variance 1
   if (scale) {
     x <- scale(x)
+  }
+  if (add_intercept) {
+    x <- cbind(1, x)
   }
 
   # Return the list object
@@ -191,7 +195,7 @@ stick_breaking <- function(concentration = 1,
 }
 
 check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
-                 gamma_mean, gamma_vcov) {
+                         gamma_mean, gamma_vcov) {
   if (is.null(posterior_sample)) {
     if (is.null(gamma_mean) | is.null(gamma_vcov)) {
       stop(paste0("If you don't provide a posterior sample, ",
@@ -202,24 +206,33 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
       stop(paste0("Invalid input: the mean and variance-covariance ",
                     "of the centering model need to be numeric"))
     }
-    dim_gamma <- ncol(dataset$x) + 1
-    if (!(is.numeric(gamma_mean) & (dim_gamma == length(gamma_mean)))) {
+
+    if (!(is.numeric(gamma_mean) & is.numeric(gamma_vcov))) {
+      stop(paste0("The mean and variance-covariance of the centering model ",
+                  "have to be numeric."))
+    }
+
+    dim_gamma <- ncol(dataset$x)
+    if (!(dim_gamma == length(gamma_mean))) {
       stop(paste0("You need to give a vector for the mean of the centering ",
                   "model with size ",
                   dim_gamma,
-                  " (for the number of covariates, plus 1 for the intercept)"))
+                  " (for the number of covariates) and instead you gave ",
+                  length(gamma_mean),
+                  "."))
     }
-    if (!(is.numeric(gamma_vcov) &
-            all(c(dim_gamma, dim_gamma) == dim(gamma_vcov)))) {
+    if (!all(c(dim_gamma, dim_gamma) == dim(gamma_vcov))) {
       stop(paste0("You need to give a matrix for the variance-covariance ",
                   "matrix of the centering model: ",
                   dim_gamma, "*", dim_gamma,
-                  " (for the number of covariates, plus 1 for the intercept)"))
+                  " (for the number of covariates) and instead you gave ",
+                  dim(gamma_vcov),
+                  "."))
     }
   }
 
   if (!is.null(posterior_sample)) {
-    if (ncol(posterior_sample) != ncol(dataset$x) + 1) {
+    if (ncol(posterior_sample) != ncol(dataset$x)) {
       stop(paste0("The number of columns in the posterior sample must be the ",
                   "same as the number of covariates"))
     }
@@ -258,9 +271,9 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
 #'   generate non-parametric-learning samples, or it can take NULL and the
 #'   posterior is assumed normal N(\code{gamma_mean}, \code{gamma_vcov}). If
 #'   provided, the posterior sample must have a number of columns equal to the
-#'   number of covariates plus one (for the intercept) and a number of rows
-#'   equal or larger than the `n_bootrstap` (as the algorithm draws a new sample
-#'   based on a single draw of the posterior sample).
+#'   number of covariates and a number of rows equal or larger than the
+#'   `n_bootrstap` (as the algorithm draws a new sample based on a single draw
+#'   of the posterior sample).
 #' @param gamma_mean In case \code{posterior_sample} is NULL, the mean for the
 #'   centering model (equation 9, page 4)
 #' @param gamma_vcov In case \code{posterior_sample} is NULL, the
@@ -319,7 +332,7 @@ anpl <- function(dataset,
                                      MoreArgs = more_args, mc.cores = num_cores)
 
   # Verify dimensions
-  stopifnot(all(dim(theta_transpose) == c(ncol(dataset$x) + 1, n_bootstrap)))
+  stopifnot(all(dim(theta_transpose) == c(ncol(dataset$x), n_bootstrap)))
 
   return(t(theta_transpose))
 }
@@ -372,7 +385,7 @@ anpl_single <- function(i,
       # "When generating synthetic samples for the posterior bootstrap, both
       #  features and classes are needed. Classes are generated, given features,
       #  according to the probability specified by the logistic distribution."
-      probs <- e1071::sigmoid(cbind(1, x_prior) %*% gamma_i)
+      probs <- e1071::sigmoid(x_prior %*% gamma_i)
       y_prior <- stats::rbinom(n = n_centering_model_samples,
                                size = 1, prob = probs)
 
@@ -402,8 +415,7 @@ anpl_single <- function(i,
     # the integer check and does not compute AIC. See the answer by the
     # author (mmorin) on this StackOverflow thread for more details:
       # https://stackoverflow.com/questions/12953045
-      # TODO(mmorin): standardise intercept throughout
-    glm_fit <- stats::glm.fit(x = cbind(1, x_all),
+    glm_fit <- stats::glm.fit(x = x_all,
                               y = y_all,
                               weights = wgts,
                               family = stats::quasibinomial(link = "logit"))

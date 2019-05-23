@@ -13,12 +13,12 @@ test_that("Adaptive non-parametric learning with centering model works", {
   anpl_samples <- anpl(dataset = german,
                        concentration = 1,
                        n_bootstrap = n_bootstrap,
-                       gamma_mean = rep(0, n_cov + 1),
-                       gamma_vcov = diag(1, n_cov + 1),
+                       gamma_mean = rep(0, n_cov),
+                       gamma_vcov = diag(1, n_cov),
                        threshold = 1e-8)
 
   expect_true(is.numeric(anpl_samples))
-  expect_equal(dim(anpl_samples), c(n_bootstrap, 1 + n_cov))
+  expect_equal(dim(anpl_samples), c(n_bootstrap, n_cov))
 
   # The following two tests relate to using the result of `mcmapply`. If it's
   # used as a list (like the result of `mclapply`) instead of a matrix, either
@@ -43,25 +43,21 @@ test_that("Parallelisation works and is faster", {
 
   n_bootstrap <- 1000
 
+  params <- list(dataset = german,
+                 concentration = 1,
+                 n_bootstrap = n_bootstrap,
+                 gamma_mean = rep(0, n_cov),
+                 gamma_vcov = diag(1, n_cov),
+                 threshold = 1e-8)
+
   start <- Sys.time()
-  anpl_samples <- anpl(dataset = german,
-                       concentration = 1,
-                       n_bootstrap = n_bootstrap,
-                       gamma_mean = rep(0, n_cov + 1),
-                       gamma_vcov = diag(1, n_cov + 1),
-                       threshold = 1e-8,
-                       num_cores = 1)
+  anpl_samples <- do.call(anpl, c(list(num_cores = 1), params))
   one_core_duration <- as.double((Sys.time() - start), units = "secs")
 
   start <- Sys.time()
-  anpl_samples <- anpl(dataset = german,
-                       concentration = 1,
-                       n_bootstrap = n_bootstrap,
-                       gamma_mean = rep(0, n_cov + 1),
-                       gamma_vcov = diag(1, n_cov + 1),
-                       threshold = 1e-8,
-                       num_cores = 2)
+  anpl_samples <- do.call(anpl, c(list(num_cores = 2), params))
   two_cores_duration <- as.double(Sys.time() - start, units = "secs")
+
   speedup <- one_core_duration / two_cores_duration
 
   print(sprintf("Duration with 1 core: %4.4f s", one_core_duration))
@@ -90,7 +86,7 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
 
   # Get posterior samples
   prior_variance <- 100
-  stan_vb_sample <- run_variational_bayes(x = cbind(1, german$x),
+  stan_vb_sample <- run_variational_bayes(x = german$x,
                                           y = german$y,
                                           output_samples = n_bootstrap,
                                           beta_sd = sqrt(prior_variance))

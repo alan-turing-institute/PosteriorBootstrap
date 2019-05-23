@@ -4,10 +4,12 @@
 \alias{get_german_credit_dataset}
 \title{Function to load the dataset that ships with the package.}
 \usage{
-get_german_credit_dataset(scale = TRUE)
+get_german_credit_dataset(scale = TRUE, add_intercept = TRUE)
 }
 \arguments{
 \item{scale}{Whether to scale the features to have mean 0 and variance 1.}
+
+\item{add_intercept}{Whether to add an intercept as the first feature.}
 }
 \value{
 A dataset in the right format

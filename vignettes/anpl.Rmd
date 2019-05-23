@@ -133,7 +133,7 @@ For Bayesian logistic regression, we draw samples for the coefficients using the
 
 ```{r, echo = FALSE}
 bayes <- PolyaGamma::gibbs_sampler(y = german$y,
-                                   X = cbind(1, german$x),
+                                   X = german$x,
                                    lambda = 1 / prior_variance,
                                    n_iter_total = 2 * n_bootstrap,
                                    burn_in = n_bootstrap)
@@ -146,7 +146,7 @@ number of samples is `n_bootstrap`,  as these samples serve for the Adaptive
 Non-Parametric Learning algorithm:
 
 ```{r, echo = FALSE}
-stan_vb_sample <- PosteriorBootstrap::run_variational_bayes(x = cbind(1, german$x),
+stan_vb_sample <- PosteriorBootstrap::run_variational_bayes(x = german$x,
                                                             y = german$y,
                                                             output_samples = n_bootstrap,
                                                             beta_sd = sqrt(prior_variance))

@@ -7,11 +7,11 @@ test_that("Rstan variational Bayes model runs", {
   n_bootstrap <- 10
   prior_variance <- 100
 
-  stan_vb_sample <- run_variational_bayes(x = cbind(1, german$x),
+  stan_vb_sample <- run_variational_bayes(x = german$x,
                                           y = german$y,
                                           output_samples = n_bootstrap,
                                           beta_sd = sqrt(prior_variance),
                                           iter = 10)
   expect_true(nrow(stan_vb_sample) == n_bootstrap)
-  expect_true(ncol(stan_vb_sample) == ncol(german$x) + 1)
+  expect_true(ncol(stan_vb_sample) == ncol(german$x))
 })
