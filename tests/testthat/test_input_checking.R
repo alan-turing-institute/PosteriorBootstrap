@@ -21,8 +21,14 @@ test_that("German statlog data fields are consistent", {
 })
 
 test_that("German statlog data loads properly", {
-  german <- get_german_credit_dataset(scale = FALSE)
+  german <- get_german_credit_dataset(scale = FALSE, add_intercept = FALSE)
+  num_attributes <- 24
+  expect_true(num_attributes == ncol(german$x))
   expect_true(all(german$y[1:5] == c(0, 1, 0, 0, 1)))
   expect_true(all(german$x[1, 1:5] == c(1, 6, 4, 12, 5)))
   expect_true(all(german$x[2, 1:5] == c(2, 48, 2, 60, 1)))
+
+  german <- get_german_credit_dataset(scale = FALSE, add_intercept = TRUE)
+  expect_true(num_attributes + 1 == ncol(german$x))
+  expect_true(all(german$x[, 1] == 1))
 })
