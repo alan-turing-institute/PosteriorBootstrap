@@ -125,13 +125,13 @@ seed, and getting the data:
 ```{r}
 prior_variance <- 100
 n_bootstrap <- 1000
-set.seed(1)
 german <- PosteriorBootstrap::get_german_credit_dataset()
 ```
 
 For Bayesian logistic regression, we draw samples for the coefficients using the `PolyaGamma` package:
 
 ```{r echo = T, results = 'hide'}
+set.seed(1)
 bayes <- PolyaGamma::gibbs_sampler(y = german$y,
                                    X = german$x,
                                    lambda = 1 / prior_variance,
@@ -227,3 +227,88 @@ variational methods can provide more accurate posterior approximations to
 Bayesian logistic posteriors, though these too are approximations, that our
 algorithm can correct.
 
+## Parallelisation and performance
+
+Our construction admits a trivially parallelizable sampler once the parametric
+posterior samples have been generated (or if the concentration `c` equals
+0). Note that, although some algorithms to generate the parametric posterior
+samples may be parallelisable, above we use a Markov Chain-Monte Carlo algorithm
+from RStan, which is not parallelisable. We emphasise that the part of our
+algorithm that benefits from modern parallel computer architectures happens
+after we have the posterior samples (or if `c=0`).
+ 
+We now illustrate the paralellisation speedup. The calculation of the expected
+speedup depends on the number of bootstrap samples and the number of
+processors. It also depends on the system: it is larger on macOS than on Linux,
+with some variation depending on the version of R.
+
+### Ahmdal's law
+
+Fixing the number of samples corresponds to [Ahmdal's
+law](https://en.wikipedia.org/wiki/Ahmdal's_Law), or the speedup in the task as
+a function of the number of processors. The speedup `S_latency` of `N`
+processors is defined as the duration of the task with one core divided by the
+duration of the task with `N` processors. Due to limitations in the R workflow,
+[we are limited to one or two
+cores](https://stackoverflow.com/questions/41307178/error-processing-vignette-failed-with-diagnostics-4-simultaneous-processes-spa),
+but see the [GitHub
+README](https://github.com/alan-turing-institute/PosteriorBootstrap/blob/master/README.md)
+for a plot with 8 cores.  We compute the duration for one or two cores and for
+the number of bootstrap samples in 100, 1000, and 10,000.
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+library(parallel)
+
+speedups  <- data.frame(stringsAsFactors = FALSE)
+max_cores <- 2
+n_bootstrap_array <- c(1e2, 1e3, 1e4)
+
+for (n_bootstrap in n_bootstrap_array) {
+  one_core_duration <- NULL
+  for (num_cores in seq(1, max_cores)) {
+    
+    start <- Sys.time()
+    anpl_samples <- PosteriorBootstrap::anpl(x = german$x, y = german$y,
+                                             concentration = 1,
+                                             n_bootstrap = n_bootstrap,
+                                             gamma_mean = rep(0, ncol(german$x)),
+                                             gamma_vcov = diag(1, ncol(german$x)),
+                                             threshold = 1e-8,
+                                             num_cores = num_cores)
+    lap <- as.double((Sys.time() - start), units = "secs")
+	if (1 == num_cores) {
+	  one_core_duration <- lap
+    }
+    speedups <- rbind(speedups, c(num_cores, n_bootstrap, one_core_duration / lap))
+  }
+  names(speedups) <- c("Num_cores", "N_bootstrap", "speedup")
+}
+
+# Convert n_bootstrap to strings for ggplot2 to arrange them into groups
+speedups$N_bootstrap <- paste0("N_", speedups$N_bootstrap)
+
+ggplot(data = speedups,
+       aes(x = Num_cores, y = speedup)) + geom_line(aes(colour = N_bootstrap))
+```
+
+We invert Ahmdal's law to compute the proportion of the execution time that is
+parallelisable from the speedup as:
+
+$$ p = \frac{\frac{1}{S_{latency}}} - 1}{\frac{1}{s} - 1} $$
+
+where $S_{latency}$ is the theoretical speedup of the whole task in Ahmdal's law
+and the observed speedup here, and $s$ is the speedup of the part of the task
+that can be parallelised, and thus equal to the number of
+processors. Calculating this value for the durations from 1 to 8 cores, we obtain
+this plot, where the proportion of the code that can be parallelised is high:
+
+```{r}
+# Remove single core speedup, where the proportion is not defined
+speedups <- speedups[1 != speedups$Num_cores, ]
+speedups$proportion <- (1 / speedups$speedup - 1) / (1 / speedups$Num_cores - 1)
+
+qplot(proportion, data = speedups, fill = N_bootstrap, binwidth = 0.005) +
+  facet_wrap(facets = ~N_bootstrap)
+```
