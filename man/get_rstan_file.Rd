@@ -13,3 +13,10 @@ An RStan file with the model for variational Bayes that ships with
 \description{
 Get the RStan file with Variational Bayes for comparison
 }
+\examples{
+f <- get_rstan_file()
+\dontrun{
+show.file(f)
+}
+
+}

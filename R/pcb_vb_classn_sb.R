@@ -26,11 +26,30 @@ data_file <- function(name) {
 #'
 #' @return An RStan file with the model for variational Bayes that ships with
 #'   this package (extension \code{.stan}).
+#'
+#' @examples
+#' f <- get_rstan_file()
+#' \dontrun{
+#' show.file(f)
+#' }
+#'
 #' @export
 get_rstan_file <- function() {
   return(data_file(k_rstan_model))
 }
 
+#' Get the file with the German Statlog credit dataset
+#'
+#' @return A file with the plain-text raw data for the German Statlog credit
+#'   that ships with this package (extension \code{.dat}).
+#'
+#' @examples
+#' f <- get_german_credit_file()
+#' \dontrun{
+#' show.file(f)
+#' }
+#'
+#' @export
 get_german_credit_file <- function() {
   return(data_file(k_german_credit))
 }
