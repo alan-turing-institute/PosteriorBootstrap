@@ -160,6 +160,11 @@ run_variational_bayes <- function(x, y, output_samples, beta_sd,
 #' function calculates the parameter T in algorithm 1, which is the only
 #' difference between the two algorithms. The code uses the Beta distribution as
 #' that distribution is part of the definition of the stick-breaking process.
+#' The function draws from the beta distribution, e.g. \code{b_1}, \code{b_2},
+#' \code{b_3}, ..., and computes the stick breaks as \code{b_1},
+#' \code{(1-b_1)*b_2}, \code{(1-b_1)*(1-b_2)*b_3}, ... . The length remaining in
+#' the stick at each step is \code{1-b_1}, \code{(1-b_1)* (1-b_2)},
+#' \code{(1-b_1)*(1-b_2)*(1-b_3)}, ... so the latter converges to zero.
 #'
 #' @param concentration The parameter \code{c} in the paper (page 3, formula 3),
 #'   which is an effective sample size.
@@ -178,27 +183,48 @@ stick_breaking <- function(concentration = 1,
                            min_stick_breaks = 100,
                            threshold = 1e-8) {
 
-  # This algorithm regenerates all values, which is a waste
-  # but is faster than appending in a for loop, which is slow in R
+  # This algorithm regenerates all values, which is a waste but is faster than
+  # appending in a for loop, which is slow in R.  The loop is often unnecessary,
+  # as the function is called with min_stick_breaks equal to the the number of
+  # rows in the dataset, which is 1,000, and it only goes once through the
+  # loop. This algorithm also uses some shortcuts in array multiplication to get
+  # the right numbers.
+
+  # The array `stick_remaining` holds the remainder of the stick if we stopped
+  # at that index: 1, 1-beta_draws[1], (1-beta_draws[1])*(1-beta_draws[2]), ...
+  # The algorithm is statistically guaranteed to finish because the last value
+  # of the `stick_remaining` array is a product of numbers between 0 and 1, so
+  # increasing the number of values in that product drives it to zero (even if
+  # we draw new values each time).
 
   num_stick_breaks <- min_stick_breaks
-  stick_remaining <- 1
-  continue <- TRUE
-  while (continue) {
-    u_s <- stats::rbeta(n = num_stick_breaks,
-                        shape1 = 1, shape2 = concentration)
-    c_rem <- c(1, cumprod(1 - u_s))
-    # TODO(mmorin): How is the loop guaranteed to finish if this
-    # stick_remaining is a brand new value at each iteration?
-    stick_remaining <- c_rem[num_stick_breaks + 1]
-    if (stick_remaining <= threshold) {
-      continue <- FALSE
+  while (TRUE) {
+    # Draw `num_stick_breaks` independent numbers from the
+    # Beta(1, concentration) distribution. All numbers are between 0 and 1.
+    beta_draws <- stats::rbeta(n = num_stick_breaks,
+                               shape1 = 1, shape2 = concentration)
+
+    # Calculate stick remaining at each index.
+    stick_remaining <- c(1, cumprod(1 - beta_draws))
+
+    if (stick_remaining[length(stick_remaining)] <= threshold) {
+      break
     } else {
+      # Increase the number of stick breaks to go below the threshold.
+      # The magic number 10 here is arbitrary.
       num_stick_breaks <- num_stick_breaks * 10
     }
   }
-  stick_breaks <- c_rem[1:num_stick_breaks] * u_s
+
+  # The stick breaks are the beta_draws multiplied by the stick remaining,
+  # which starts at 1.
+  stick_breaks <- stick_remaining[1:num_stick_breaks] * beta_draws
+
+  # Divide by the sum to remove the unallocated stick due to the threshold
+  # and so it adds up to one
   stick_breaks <- stick_breaks / sum(stick_breaks)
+
+  print("new")
   return(stick_breaks)
 }
 
