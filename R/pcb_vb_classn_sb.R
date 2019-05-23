@@ -30,7 +30,7 @@ data_file <- function(name) {
 #' @examples
 #' f <- get_rstan_file()
 #' \dontrun{
-#' show.file(f)
+#' file.show(f)
 #' }
 #'
 #' @export
@@ -46,7 +46,7 @@ get_rstan_file <- function() {
 #' @examples
 #' f <- get_german_credit_file()
 #' \dontrun{
-#' show.file(f)
+#' file.show(f)
 #' }
 #'
 #' @export
@@ -56,6 +56,8 @@ get_german_credit_file <- function() {
 
 #' Function to load the dataset that ships with the package.
 #'
+#' @param scale Whether to scale the features to have mean 0 and variance 1.
+#' 
 #' @return A dataset in the right format
 #'
 #' @examples
@@ -64,31 +66,34 @@ get_german_credit_file <- function() {
 #' head(german$x)
 #'
 #' @export
-get_german_credit_dataset <- function() {
+get_german_credit_dataset <- function(scale = TRUE) {
   # dataset object is list we will return.
   dataset <- list()
 
   filepath <- get_german_credit_file()
   raw_dataset <- as.matrix(utils::read.table(filepath))
-  # German statlog dataset outcomes are (1, 2), so
-  # subtract 1 here to make them 0, 1, as in the toy dataset
-  raw_dataset[, ncol(raw_dataset)] <- raw_dataset[, ncol(raw_dataset)] - 1
-
-  # Standardise raw dataset to have mean 0 and variance 1, except for the last
-  # column (the response)
-  col_range <- 1:(ncol(raw_dataset) - 1)
-  raw_dataset[, col_range] <- scale(raw_dataset[, col_range])
-  stopifnot(all(raw_dataset[, ncol(raw_dataset)] %in% c(0, 1)))
-
   colnames(raw_dataset) <- NULL
+
+  x <- raw_dataset[, 1:(ncol(raw_dataset) - 1)]
+  y <- raw_dataset[, ncol(raw_dataset)]
+
+  # German statlog dataset outcomes are (1, 2), so
+  # subtract 1 here to make them (0, 1)
+  y <-  y - 1
+  stopifnot(all(y %in% c(0, 1)))
+
+  # Standardise features to have mean 0 and variance 1
+  if (scale) {
+    x <- scale(x)
+  }
 
   # Add the dataset to the dataset output list.
   dataset$n <- dim(raw_dataset)[1]
   dataset$n_cov <- dim(raw_dataset)[2] - 1  # Doesn't include an intercept
-  dataset$x <- raw_dataset[, 1:dataset$n_cov, drop = FALSE]
+  dataset$x <- x
 
   # Convert y to +/- 1 format
-  dataset$y <- 2 * raw_dataset[, dataset$n_cov + 1] - 1
+  dataset$y <- 2 * y - 1
 
   # Return the dataset object.
   return(dataset)

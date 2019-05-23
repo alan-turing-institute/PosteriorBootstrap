@@ -16,7 +16,7 @@ Get the RStan file with Variational Bayes for comparison
 \examples{
 f <- get_rstan_file()
 \dontrun{
-show.file(f)
+file.show(f)
 }
 
 }

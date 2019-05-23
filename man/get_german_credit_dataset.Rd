@@ -4,7 +4,7 @@
 \alias{get_german_credit_dataset}
 \title{Function to load the dataset that ships with the package.}
 \usage{
-get_german_credit_dataset()
+get_german_credit_dataset(scale = TRUE)
 }
 \value{
 A dataset in the right format

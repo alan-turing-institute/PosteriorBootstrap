@@ -16,7 +16,7 @@ Get the file with the German Statlog credit dataset
 \examples{
 f <- get_german_credit_file()
 \dontrun{
-show.file(f)
+file.show(f)
 }
 
 }
