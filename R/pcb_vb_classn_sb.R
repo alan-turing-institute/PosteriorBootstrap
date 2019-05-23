@@ -28,13 +28,13 @@ data_file <- function(name) {
 #'   this package (extension \code{.stan}).
 #'
 #' @examples
-#' f <- get_rstan_file()
+#' f <- get_stan_file()
 #' \dontrun{
 #' file.show(f)
 #' }
 #'
 #' @export
-get_rstan_file <- function() {
+get_stan_file <- function() {
   return(data_file(k_rstan_model))
 }
 
@@ -112,7 +112,7 @@ get_german_credit_dataset <- function(scale = TRUE, add_intercept = TRUE) {
 #' @importFrom Rcpp cpp_object_initializer
 #' @export
 run_variational_bayes <- function(x, y, output_samples, beta_sd,
-                                  stan_file = get_rstan_file(),
+                                  stan_file = get_stan_file(),
                                   iter = 10000, seed = 123, verbose = FALSE) {
 
   # Check inputs

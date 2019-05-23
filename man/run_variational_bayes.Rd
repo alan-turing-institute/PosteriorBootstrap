@@ -5,7 +5,7 @@
 \title{Run variational Bayes}
 \usage{
 run_variational_bayes(x, y, output_samples, beta_sd,
-  stan_file = get_rstan_file(), iter = 10000, seed = 123,
+  stan_file = get_stan_file(), iter = 10000, seed = 123,
   verbose = FALSE)
 }
 \arguments{
