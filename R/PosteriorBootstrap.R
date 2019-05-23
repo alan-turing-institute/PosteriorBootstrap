@@ -1,3 +1,18 @@
+#' PosteriorBootstrap: A package with a parallel approach for adaptive
+#' non-parametric learning
+#'
+#' The foo package provides two categories of functions. The first category
+#' returns or loads the system files that ship with the package: get_stan_file,
+#' get_german_credit_file, get_german_credit_dataset. The second category
+#' performs statistical sampling: stick_breaking and anpl (for
+#' "adaptive non-parametric learning").
+#'
+#' Please see the vignette for sample usage and performance metrics.
+#'
+#' @docType package
+#' @name PosteriorBootstrap
+NULL
+
 requireNamespace("e1071", quietly = TRUE)
 requireNamespace("MASS", quietly = TRUE)
 requireNamespace("parallel", quietly = TRUE)
@@ -14,7 +29,7 @@ k_german_credit_url <- paste0("http://archive.ics.uci.edu/ml/",
 k_rstan_model <- "bayes_logit.stan"
 
 .onAttach <- function(libname, pkgname) {
-  msg <- paste0("Welcome to PosteriorBootstrap, a parallel scheme for ",
+  msg <- paste0("Welcome to PosteriorBootstrap, a parallel approach for ",
                 "adaptive non-parametric learning")
   packageStartupMessage(msg)
 }
@@ -23,7 +38,7 @@ data_file <- function(name) {
   return(system.file(k_extdata, name, package = k_package))
 }
 
-#' Get the RStan file with Variational Bayes for comparison
+#' Stan file with Bayesian Logistic Regression.
 #'
 #' @return An RStan file with the model for variational Bayes that ships with
 #'   this package (extension \code{.stan}).
@@ -39,7 +54,7 @@ get_stan_file <- function() {
   return(data_file(k_rstan_model))
 }
 
-#' Get the file with the German Statlog credit dataset
+#' File with the German Statlog credit dataset.
 #'
 #' @return A file with the plain-text raw data for the German Statlog credit
 #'   that ships with this package (extension \code{.dat}).
@@ -55,7 +70,7 @@ get_german_credit_file <- function() {
   return(data_file(k_german_credit))
 }
 
-#' Function to load the dataset that ships with the package.
+#' Load and pre-process the dataset that ships with the package.
 #'
 #' @param scale Whether to scale the features to have mean 0 and variance 1.
 #' @param add_intercept Whether to add an intercept as the first feature.
@@ -103,7 +118,7 @@ get_german_credit_dataset <- function(scale = TRUE, add_intercept = TRUE,
   return(list(x = x, y = y))
 }
 
-#' Run variational Bayes
+#' Run variational Bayes.
 #'
 #' \code{run_variational_bayes} returns samples of the parameters estimated with
 #' `rstan` on the data provided in the arguments.
@@ -291,7 +306,7 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
   }
 }
 
-#' Adaptive non-parametric learning function
+#' Adaptive non-parametric learning function.
 #'
 #' \code{anpl} returns samples of the parameter of interest
 #'
