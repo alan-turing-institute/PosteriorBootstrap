@@ -13,6 +13,12 @@ k_german_credit_url <- paste0("http://archive.ics.uci.edu/ml/",
                               "german/german.data-numeric")
 k_rstan_model <- "bayes_logit.stan"
 
+.onAttach <- function(libname, pkgname) {
+  msg <- paste0("Welcome to PosteriorBootstrap, a parallel scheme for ",
+                "adaptive non-parametric learning")
+  packageStartupMessage(msg)
+}
+
 data_file <- function(name) {
   return(system.file(k_extdata, name, package = k_package))
 }
