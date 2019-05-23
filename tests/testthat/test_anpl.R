@@ -6,18 +6,19 @@ library(rstan)
 test_that("Adaptive non-parametric learning with centering model works", {
 
   german <- get_german_credit_dataset()
+  n_cov <- ncol(german$x)
 
   n_bootstrap <- 10
 
   anpl_samples <- anpl(dataset = german,
                        concentration = 1,
                        n_bootstrap = n_bootstrap,
-                       gamma_mean = rep(0, german$n_cov + 1),
-                       gamma_vcov = diag(1, german$n_cov + 1),
+                       gamma_mean = rep(0, n_cov + 1),
+                       gamma_vcov = diag(1, n_cov + 1),
                        threshold = 1e-8)
 
   expect_true(is.numeric(anpl_samples))
-  expect_equal(dim(anpl_samples), c(n_bootstrap, 1 + german$n_cov))
+  expect_equal(dim(anpl_samples), c(n_bootstrap, 1 + n_cov))
 
   # The following two tests relate to using the result of `mcmapply`. If it's
   # used as a list (like the result of `mclapply`) instead of a matrix, either
@@ -38,6 +39,7 @@ test_that("Multiple processors are available", {
 test_that("Parallelisation works and is faster", {
 
   german <- get_german_credit_dataset()
+  n_cov <- ncol(german$x)
 
   n_bootstrap <- 1000
 
@@ -45,8 +47,8 @@ test_that("Parallelisation works and is faster", {
   anpl_samples <- anpl(dataset = german,
                        concentration = 1,
                        n_bootstrap = n_bootstrap,
-                       gamma_mean = rep(0, german$n_cov + 1),
-                       gamma_vcov = diag(1, german$n_cov + 1),
+                       gamma_mean = rep(0, n_cov + 1),
+                       gamma_vcov = diag(1, n_cov + 1),
                        threshold = 1e-8,
                        num_cores = 1)
   one_core_duration <- as.double((Sys.time() - start), units = "secs")
@@ -55,8 +57,8 @@ test_that("Parallelisation works and is faster", {
   anpl_samples <- anpl(dataset = german,
                        concentration = 1,
                        n_bootstrap = n_bootstrap,
-                       gamma_mean = rep(0, german$n_cov + 1),
-                       gamma_vcov = diag(1, german$n_cov + 1),
+                       gamma_mean = rep(0, n_cov + 1),
+                       gamma_vcov = diag(1, n_cov + 1),
                        threshold = 1e-8,
                        num_cores = 2)
   two_cores_duration <- as.double(Sys.time() - start, units = "secs")
@@ -83,6 +85,7 @@ test_that("Parallelisation works and is faster", {
 test_that("Adaptive non-parametric learning with posterior samples works", {
 
   german <- get_german_credit_dataset()
+
   n_bootstrap <- 100
 
   # Get posterior samples

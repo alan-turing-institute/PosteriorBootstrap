@@ -1,4 +1,4 @@
-context("Require no code style errors")
+context("Code style errors")
 library(lintr)
 
 test_that("Package has no lintr errors", {

@@ -67,9 +67,6 @@ get_german_credit_file <- function() {
 #'
 #' @export
 get_german_credit_dataset <- function(scale = TRUE) {
-  # dataset object is list we will return.
-  dataset <- list()
-
   filepath <- get_german_credit_file()
   raw_dataset <- as.matrix(utils::read.table(filepath))
   colnames(raw_dataset) <- NULL
@@ -79,7 +76,7 @@ get_german_credit_dataset <- function(scale = TRUE) {
 
   # German statlog dataset outcomes are (1, 2), so
   # subtract 1 here to make them (0, 1)
-  y <-  y - 1
+  y <- y - 1
   stopifnot(all(y %in% c(0, 1)))
 
   # Standardise features to have mean 0 and variance 1
@@ -87,15 +84,8 @@ get_german_credit_dataset <- function(scale = TRUE) {
     x <- scale(x)
   }
 
-  # Add the dataset to the dataset output list.
-  dataset$n <- dim(raw_dataset)[1]
-  dataset$n_cov <- dim(raw_dataset)[2] - 1  # Doesn't include an intercept
-  dataset$x <- x
-
-  dataset$y <- y
-
-  # Return the dataset object.
-  return(dataset)
+  # Return the list object
+  return(list(x = x, y = y))
 }
 
 #' Run variational Bayes
@@ -212,7 +202,7 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
       stop(paste0("Invalid input: the mean and variance-covariance ",
                     "of the centering model need to be numeric"))
     }
-    dim_gamma <- dataset$n_cov + 1
+    dim_gamma <- ncol(dataset$x) + 1
     if (!(is.numeric(gamma_mean) & (dim_gamma == length(gamma_mean)))) {
       stop(paste0("You need to give a vector for the mean of the centering ",
                   "model with size ",
@@ -229,7 +219,7 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
   }
 
   if (!is.null(posterior_sample)) {
-    if (dim(posterior_sample)[2] != dataset$n_cov + 1) {
+    if (ncol(posterior_sample) != ncol(dataset$x) + 1) {
       stop(paste0("The number of columns in the posterior sample must be the ",
                   "same as the number of covariates"))
     }
@@ -329,7 +319,7 @@ anpl <- function(dataset,
                                      MoreArgs = more_args, mc.cores = num_cores)
 
   # Verify dimensions
-  stopifnot(all(dim(theta_transpose) == c(dataset$n_cov + 1, n_bootstrap)))
+  stopifnot(all(dim(theta_transpose) == c(ncol(dataset$x) + 1, n_bootstrap)))
 
   return(t(theta_transpose))
 }
@@ -341,6 +331,7 @@ anpl_single <- function(i,
                         threshold,
                         progress_bar = NULL) {
 
+  dataset_n <- length(dataset$y)
     if (concentration != 0) {
       gamma_i  <- gamma[i, ]
 
@@ -349,7 +340,7 @@ anpl_single <- function(i,
       # s_i is s^{(i)} is the "model vs data weight" in algorithm 2, page 12
       s_i <- stats::rbeta(n = 1,
                          shape1 = concentration,
-                         shape2 = dataset$n)
+                         shape2 = dataset_n)
       # TODO(Simon, MMorin): maybe make s_i deterministic,
       # which only works for algorithm 1, otherwise in algorithm 2
       # the epsilon is just 1/concentration.
@@ -359,7 +350,7 @@ anpl_single <- function(i,
       # TODO(mmorin): understand how vrem = c/(c+n) in the paper
       # maps to this code
       w_raw_model <- stick_breaking(concentration = concentration,
-                                    min_stick_breaks = dataset$n,
+                                    min_stick_breaks = dataset_n,
                                     threshold = threshold)
       w_model <- w_raw_model * s_i
       n_centering_model_samples <- length(w_model)
@@ -370,10 +361,10 @@ anpl_single <- function(i,
       # each row represents a set of prior samples for a particular gamma
       # element.
       # TODO(mmorin): what if n_centering_model_samples is not a multiple
-      # of dataset$n?
+      # of dataset_n?
       # TODO(mmorin): replace this stacking with a Kronecker product
       x_prior <- matrix(rep(t(dataset$x),
-                            n_centering_model_samples / dataset$n),
+                            n_centering_model_samples / dataset_n),
                         ncol = ncol(dataset$x),
                         byrow = TRUE)
 
@@ -386,21 +377,21 @@ anpl_single <- function(i,
                                size = 1, prob = probs)
 
       # Compute Dirichlet weights
-      wgt_mean <- c(rep(1, dataset$n),
+      wgt_mean <- c(rep(1, dataset_n),
                     rep(concentration / n_centering_model_samples,
                         n_centering_model_samples))
-      wgts <- stats::rgamma(n = dataset$n + n_centering_model_samples,
+      wgts <- stats::rgamma(n = dataset_n + n_centering_model_samples,
                             shape = wgt_mean,
-                            rate = rep(1, dataset$n +
+                            rate = rep(1, dataset_n +
                                             n_centering_model_samples))
       x_all <- rbind(dataset$x, x_prior)
       y_all <- c(dataset$y, y_prior)
     } else {
       # No prior samples. Compute Dirichlet weights
-      wgt_mean <- rep(1, dataset$n)
-      wgts <- stats::rgamma(n = dataset$n,
+      wgt_mean <- rep(1, dataset_n)
+      wgts <- stats::rgamma(n = dataset_n,
                             shape = wgt_mean,
-                            rate = rep(1, dataset$n))
+                            rate = rep(1, dataset_n))
       x_all <- dataset$x
       y_all <- dataset$y
     }
