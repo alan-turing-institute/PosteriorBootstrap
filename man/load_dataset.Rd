@@ -4,11 +4,7 @@
 \alias{load_dataset}
 \title{Function to load dataset. Won't be necessary in the package}
 \usage{
-load_dataset(dataset_input_list = list(name = "toy", n = 200))
-}
-\arguments{
-\item{dataset_input_list}{A list with a name and, in the case of "toy", a
-number of samples}
+load_dataset()
 }
 \value{
 A dataset in the right format
