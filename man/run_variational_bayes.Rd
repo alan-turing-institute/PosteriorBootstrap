@@ -9,9 +9,9 @@ run_variational_bayes(x, y, output_samples, beta_sd,
   verbose = FALSE)
 }
 \arguments{
-\item{x}{The features of the model}
+\item{x}{The features of the data for the model}
 
-\item{y}{The outcomes of the model}
+\item{y}{The outcomes of the data for the model}
 
 \item{output_samples}{The number of output samples to draw}
 
@@ -31,5 +31,6 @@ Matrix of size `output_samples`x`dim(x)[2]` drawn from the RStan
   model applied to `y` and `x`
 }
 \description{
-\code{run_variational_bayes} returns samples of the parameters estimated with `rstan`
+\code{run_variational_bayes} returns samples of the parameters estimated with
+`rstan` on the data provided in the arguments.
 }
