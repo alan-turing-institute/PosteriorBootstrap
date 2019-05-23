@@ -106,7 +106,7 @@ get_german_credit_dataset <- function(scale = TRUE, add_intercept = TRUE) {
 #' @param iter The maximum number of iterations for Rstan to run
 #' @param seed A seed to start the Rstan sampling
 #' @param verbose Whether to print output from RStan
-#' @return Matrix of size `output_samples`x`dim(x)[2]` drawn from the RStan
+#' @return Matrix of size `output_samples`x`ncol(x)` drawn from the RStan
 #'   model applied to `y` and `x`
 #'
 #' @importFrom Rcpp cpp_object_initializer
@@ -116,7 +116,7 @@ run_variational_bayes <- function(x, y, output_samples, beta_sd,
                                   iter = 10000, seed = 123, verbose = FALSE) {
 
   # Check inputs
-  if (length(y) != dim(x)[1]) {
+  if (length(y) != nrow(x)) {
     stop("The length of y must be the same as the first dimension of x")
   }
   if (!all(y %in% c(0, 1))) {
@@ -124,7 +124,7 @@ run_variational_bayes <- function(x, y, output_samples, beta_sd,
   }
 
   n_input <- length(y)
-  p <- dim(x)[2]
+  p <- ncol(x)
 
   train_dat <- list(n = n_input, p = p, x = x, y = y, beta_sd = beta_sd)
 
@@ -236,7 +236,7 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
       stop(paste0("The number of columns in the posterior sample must be the ",
                   "same as the number of covariates"))
     }
-    if (dim(posterior_sample)[1] < n_bootstrap) {
+    if (nrow(posterior_sample) < n_bootstrap) {
       stop(paste0("The posterior sample must have a number of rows no smaller ",
                   "than n_bootstrap"))
     }
