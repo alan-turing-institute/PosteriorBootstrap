@@ -57,7 +57,7 @@ get_german_credit_file <- function() {
 #' Function to load the dataset that ships with the package.
 #'
 #' @param scale Whether to scale the features to have mean 0 and variance 1.
-#' 
+#'
 #' @return A dataset in the right format
 #'
 #' @examples
@@ -92,8 +92,7 @@ get_german_credit_dataset <- function(scale = TRUE) {
   dataset$n_cov <- dim(raw_dataset)[2] - 1  # Doesn't include an intercept
   dataset$x <- x
 
-  # Convert y to +/- 1 format
-  dataset$y <- 2 * y - 1
+  dataset$y <- y
 
   # Return the dataset object.
   return(dataset)
@@ -125,6 +124,9 @@ run_variational_bayes <- function(x, y, output_samples, beta_sd,
   # Check inputs
   if (length(y) != dim(x)[1]) {
     stop("The length of y must be the same as the first dimension of x")
+  }
+  if (!all(y %in% c(0, 1))) {
+    stop("The values of y must be in (0, 1)")
   }
 
   n_input <- length(y)
@@ -242,6 +244,9 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
   }
   if (concentration < 0) {
     stop("Concentration needs to be positive")
+  }
+  if (!all(dataset$y %in% c(0, 1))) {
+    stop("The values of y must all be in (0, 1)")
   }
 }
  
@@ -389,8 +394,7 @@ anpl_single <- function(i,
                             rate = rep(1, dataset$n +
                                             n_centering_model_samples))
       x_all <- rbind(dataset$x, x_prior)
-      # TODO(mmorin): stop this juggling of y-values between {-1, 1} and {0, 1}
-      y_all <- c(0.5 + 0.5 * dataset$y, y_prior)
+      y_all <- c(dataset$y, y_prior)
     } else {
       # No prior samples. Compute Dirichlet weights
       wgt_mean <- rep(1, dataset$n)
@@ -398,7 +402,7 @@ anpl_single <- function(i,
                             shape = wgt_mean,
                             rate = rep(1, dataset$n))
       x_all <- dataset$x
-      y_all <- 0.5 + 0.5 * dataset$y
+      y_all <- dataset$y
     }
     stopifnot(all(y_all %in% c(0, 1)))
     # Parameter is computed via weighted glm fit.  We use quasibinomial family
