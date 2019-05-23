@@ -11,6 +11,7 @@ requireNamespace("utils", quietly = TRUE)
 k_extdata <- "extdata"
 k_package <- "PosteriorBootstrap"
 k_german_credit <- "statlog-german-credit.dat"
+k_german_credit_url <- "http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data-numeric"
 k_rstan_model <- "bayes_logit.stan"
 
 data_file <- function(name) {
@@ -53,6 +54,9 @@ get_german_credit_file <- function() {
 #'
 #' @param scale Whether to scale the features to have mean 0 and variance 1.
 #' @param add_intercept Whether to add an intercept as the first feature.
+#' @param download_destination Provide a filepath if you want to download the
+#'   dataset from source. Note that although the original dataset has 20
+#'   features (some of them qualitative), the numeric dataset has 24 features.
 #'
 #' @return A list with fields \code{x} for features and \code{y} for outcomes.
 #'
@@ -62,8 +66,15 @@ get_german_credit_file <- function() {
 #' head(german$x)
 #'
 #' @export
-get_german_credit_dataset <- function(scale = TRUE, add_intercept = TRUE) {
-  filepath <- get_german_credit_file()
+get_german_credit_dataset <- function(scale = TRUE, add_intercept = TRUE,
+                                      download_destination = NULL) {
+
+  if (is.null(download_destination)) {
+    filepath <- get_german_credit_file()    
+  } else {
+    utils::download.file(k_german_credit_url, download_destination)
+    filepath <- download_destination
+  }
   raw_dataset <- as.matrix(utils::read.table(filepath))
   colnames(raw_dataset) <- NULL
 
