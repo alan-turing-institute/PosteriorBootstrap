@@ -43,7 +43,7 @@ We require our package and the `rstan` package for variational Bayes. Note that,
 for technical reasons, the `rstan` package needs to be loaded and attached, so
 we use `library(rstan)`.
 
-```{r, echo = FALSE}
+```{r echo = T, results = 'hide'}
 requireNamespace("PosteriorBootstrap", quietly = TRUE)
 library(rstan)
 ```
@@ -102,7 +102,7 @@ stat_density_2d1 <- function(data = NULL,
 
 We define a shorthand function that appends all samples to a dataframe and is ready for plotting.
 
-```{r, echo = FALSE}
+```{r}
 append_to_plot <- function(plot_df, sample, method,
                            concentration, x_index, y_index) {
   new_plot_df <- rbind(plot_df, tibble::tibble(x = sample[, x_index],
@@ -122,7 +122,7 @@ variational Bayes, and Adaptive Non-Parametric Learning.
 We tune the settings for the sampling with the number of draws, setting the
 seed, and getting the data:
 
-```{r, echo = FALSE}
+```{r}
 prior_variance <- 100
 n_bootstrap <- 1000
 set.seed(1)
@@ -131,7 +131,7 @@ german <- PosteriorBootstrap::get_german_credit_dataset()
 
 For Bayesian logistic regression, we draw samples for the coefficients using the `PolyaGamma` package:
 
-```{r, echo = FALSE}
+```{r echo = T, results = 'hide'}
 bayes <- PolyaGamma::gibbs_sampler(y = german$y,
                                    X = german$x,
                                    lambda = 1 / prior_variance,
@@ -145,7 +145,7 @@ automatic differentiation variational inference using the `rstan` package. The
 number of samples is `n_bootstrap`,  as these samples serve for the Adaptive
 Non-Parametric Learning algorithm:
 
-```{r, echo = FALSE}
+```{r echo = T, results = 'hide'}
 stan_vb_sample <- PosteriorBootstrap::run_variational_bayes(x = german$x,
                                                             y = german$y,
                                                             output_samples = n_bootstrap,
