@@ -8,7 +8,7 @@ test_that("Rstan variational Bayes model runs", {
   prior_variance <- 100
 
   stan_vb_sample <- run_variational_bayes(x = cbind(1, german$x),
-                                          y = 0.5 * (german$y + 1),
+                                          y = german$y,
                                           output_samples = n_bootstrap,
                                           beta_sd = sqrt(prior_variance),
                                           iter = 10)

@@ -17,12 +17,12 @@ test_that("German statlog data have all expected fields", {
 test_that("German statlog data fields are consistent", {
   german <- get_german_credit_dataset()
   expect_equal(dim(german$x), c(german$n, german$n_cov))
-  expect_true(all(german$y %in% c(-1, 1)))
+  expect_true(all(german$y %in% c(0, 1)))
 })
 
 test_that("German statlog data loads properly", {
   german <- get_german_credit_dataset(scale = FALSE)
-  expect_true(all(german$y[1:5] == c(-1, 1, -1, -1, 1)))
+  expect_true(all(german$y[1:5] == c(0, 1, 0, 0, 1)))
   expect_true(all(german$x[1, 1:5] == c(1, 6, 4, 12, 5)))
   expect_true(all(german$x[2, 1:5] == c(2, 48, 2, 60, 1)))
 })

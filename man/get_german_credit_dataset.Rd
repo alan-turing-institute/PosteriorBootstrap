@@ -6,6 +6,9 @@
 \usage{
 get_german_credit_dataset(scale = TRUE)
 }
+\arguments{
+\item{scale}{Whether to scale the features to have mean 0 and variance 1.}
+}
 \value{
 A dataset in the right format
 }
