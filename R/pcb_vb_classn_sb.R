@@ -149,8 +149,6 @@ run_variational_bayes <- function(x, y, output_samples, beta_sd,
   return(rstan::extract(stan_vb)$beta)
 }
 
-# TODO: robustify -1 and 1, or change the Bayes Logit call
-
 #' Stick-breaking depending on a concentration parameter.
 #'
 #' \code{stick_breaking} returns a vector with the breaks of a stick of length 1
@@ -183,17 +181,21 @@ stick_breaking <- function(concentration = 1,
   # This algorithm regenerates all values, which is a waste
   # but is faster than appending in a for loop, which is slow in R
 
-  # TODO(mmorin): fix this to work around cases where n is not a multiple of 10
-  num_stick_breaks <- min_stick_breaks / 10
+  num_stick_breaks <- min_stick_breaks
   stick_remaining <- 1
-  while (stick_remaining > threshold) {
-    num_stick_breaks <- num_stick_breaks * 10
+  continue <- TRUE
+  while (continue) {
     u_s <- stats::rbeta(n = num_stick_breaks,
                         shape1 = 1, shape2 = concentration)
     c_rem <- c(1, cumprod(1 - u_s))
     # TODO(mmorin): How is the loop guaranteed to finish if this
     # stick_remaining is a brand new value at each iteration?
     stick_remaining <- c_rem[num_stick_breaks + 1]
+    if (stick_remaining <= threshold) {
+      continue <- FALSE
+    } else {
+      num_stick_breaks <- num_stick_breaks * 10
+    }
   }
   stick_breaks <- c_rem[1:num_stick_breaks] * u_s
   stick_breaks <- stick_breaks / sum(stick_breaks)
@@ -312,9 +314,7 @@ anpl <- function(x,
 
   # Get mixing theta
   if (is.null(posterior_sample)) {
-    gamma <- MASS::mvrnorm(n = n_bootstrap,
-                           mu = gamma_mean,
-                           Sigma = gamma_vcov)
+    gamma <- MASS::mvrnorm(n = n_bootstrap, mu = gamma_mean, Sigma = gamma_vcov)
   } else {
     gamma <- posterior_sample
   }
