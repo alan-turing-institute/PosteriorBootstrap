@@ -171,15 +171,17 @@ from variational Bayes, for different values of the concentration
 hyper-parameter:
 
 ```{r}
-concentrations <- c(1, 2, 3)
-anpl_samples <- list()
-for (concentration in concentrations) {
-  anpl_sample <- PosteriorBootstrap::anpl(x = german$x, y = german$y,
-                                          concentration = concentration,
-                                          n_bootstrap = n_bootstrap,
-                                          posterior_sample = stan_vb_sample,
-                                          threshold = 1e-8)
-  anpl_samples[[paste0(concentration)]] <- anpl_sample
+if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
+  concentrations <- c(1, 2, 3)
+  anpl_samples <- list()
+  for (concentration in concentrations) {
+    anpl_sample <- PosteriorBootstrap::anpl(x = german$x, y = german$y,
+                                            concentration = concentration,
+                                            n_bootstrap = n_bootstrap,
+                                            posterior_sample = stan_vb_sample,
+                                            threshold = 1e-8)
+    anpl_samples[[paste0(concentration)]] <- anpl_sample
+  }
 }
 ```
 
@@ -188,27 +190,29 @@ for (concentration in concentrations) {
 We now prepare a dataframe with all the samples ready for plotting:
 
 ```{r}
-# Initialise
-plot_df <- tibble::tibble()
+if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
+  # Initialise
+  plot_df <- tibble::tibble()
 
-# Index of coefficients in the plot
-x_index <- 21
-y_index <- 22
+  # Index of coefficients in the plot
+  x_index <- 21
+  y_index <- 22
 
-# Create a plot data frame with all the samples
-for (concentration in concentrations) {
-  plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[paste0(concentration)]],
-                             method = "MDP-VB",
-                             concentration = concentration,
-                             x_index = x_index, y_index = y_index)
-  plot_df  <- append_to_plot(plot_df, sample = bayes_sample,
-                             method = "Bayes",
-                             concentration = concentration,
-                             x_index = x_index, y_index = y_index)
-  plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
-                             method = "VB_Stan",
-                             concentration = concentration,
-                             x_index = x_index, y_index = y_index)
+  # Create a plot data frame with all the samples
+  for (concentration in concentrations) {
+    plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[paste0(concentration)]],
+                               method = "MDP-VB",
+                               concentration = concentration,
+                               x_index = x_index, y_index = y_index)
+    plot_df  <- append_to_plot(plot_df, sample = bayes_sample,
+                               method = "Bayes",
+                               concentration = concentration,
+                               x_index = x_index, y_index = y_index)
+    plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
+                               method = "VB_Stan",
+                               concentration = concentration,
+                               x_index = x_index, y_index = y_index)
+  }
 }
 ```
 
@@ -217,22 +221,24 @@ for (concentration in concentrations) {
 And now we plot the result of the algorithm:
 
 ```{r, fig.show = "asis"}
-ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
-                data = dplyr::filter(plot_df, plot_df$Method != "Bayes")) +
-  stat_density_2d1(bins = 5) +
-  ggplot2::geom_point(alpha = 0.1, size = 1,
-                      data = dplyr::filter(plot_df,
-                                           plot_df$Method == "Bayes")) +
-  ggplot2::facet_wrap(~concentration, nrow = 1,
-                      scales = "fixed",
-                      labeller = ggplot2::label_bquote(c ~" = "~
-                                                         .(concentration))
-                      ) +
-  ggplot2::theme_grey(base_size = 8) +
-  ggplot2::xlab(bquote(beta[.(x_index)])) +
-  ggplot2::ylab(bquote(beta[.(y_index)])) +
-  ggplot2::theme(legend.position = "none",
-                 plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
+if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
+  ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
+                  data = dplyr::filter(plot_df, plot_df$Method != "Bayes")) +
+    stat_density_2d1(bins = 5) +
+    ggplot2::geom_point(alpha = 0.1, size = 1,
+                        data = dplyr::filter(plot_df,
+                                             plot_df$Method == "Bayes")) +
+    ggplot2::facet_wrap(~concentration, nrow = 1,
+                        scales = "fixed",
+                        labeller = ggplot2::label_bquote(c ~" = "~
+                                                           .(concentration))
+                        ) +
+    ggplot2::theme_grey(base_size = 8) +
+    ggplot2::xlab(bquote(beta[.(x_index)])) +
+    ggplot2::ylab(bquote(beta[.(y_index)])) +
+    ggplot2::theme(legend.position = "none",
+                   plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
+}
 ```
 
 The Non-parametric update effectively corrects the variational Bayes
@@ -273,7 +279,7 @@ the number of bootstrap samples in 100, 1000, and 10,000.
 ```{r}
 speedups  <- data.frame(stringsAsFactors = FALSE)
 max_cores <- 2
-n_bootstrap_array <- c(1e2, 1e3, 1e4)
+n_bootstrap_array <- c(1e2, 2e2, 5e2)
 
 for (n_bootstrap in n_bootstrap_array) {
   one_core_duration <- NULL
