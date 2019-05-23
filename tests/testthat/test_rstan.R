@@ -1,5 +1,5 @@
 context("RStan variational Bayes model")
-library(PosteriorBootstrap)
+library("PosteriorBootstrap")
 
 test_that("Rstan variational Bayes model runs", {
 

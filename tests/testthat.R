@@ -1,4 +1,4 @@
-library(testthat)
-library(PosteriorBootstrap)
+library("testthat")
+library("PosteriorBootstrap")
 
 test_check("PosteriorBootstrap")
