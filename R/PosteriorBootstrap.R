@@ -349,8 +349,8 @@ anpl <- function(x,
     progress_bar <- NULL
   }
 
-  # The parallel `mcmapply` requires the constant arguments to
-  # go as a list in `MoreArgs`
+  # The parallel `mcmapply` requires the constant arguments to go as a list in
+  # `MoreArgs`
   more_args <- list("x" = x,
                     "y" = y,
                     "concentration" = concentration,
@@ -358,8 +358,9 @@ anpl <- function(x,
                     "threshold" = threshold,
                     "progress_bar" = progress_bar)
 
-  # Generate samples in parallel. `mcmapply` returns a matrix where the result
-  # of is flipped, as an additional run goes into a new column and not a new row
+  # Generate samples in parallel and transpose the result. `mcmapply` returns a
+  # matrix where the result is flipped: an additional run goes into a new column
+  # and not a new row.
   theta_transpose <- parallel::mcmapply(anpl_single, 1:n_bootstrap,
                                      MoreArgs = more_args, mc.cores = num_cores)
 
@@ -373,61 +374,7 @@ anpl_single <- function(i, x, y, concentration, gamma, threshold,
                         progress_bar) {
 
   dataset_n <- length(y)
-    if (concentration != 0) {
-      gamma_i  <- gamma[i, ]
-
-      # Get stick-breaking split between data and model
-      # s_i is random around c / (c + n)
-      # s_i is s^{(i)} is the "model vs data weight" in algorithm 2, page 12
-      s_i <- stats::rbeta(n = 1,
-                         shape1 = concentration,
-                         shape2 = dataset_n)
-      # TODO(Simon, MMorin): maybe make s_i deterministic,
-      # which only works for algorithm 1, otherwise in algorithm 2
-      # the epsilon is just 1/concentration.
-
-      # TODO(mmorin): understand why n_centering_model_samples is 1,000
-      # even though concentration is 1
-      # TODO(mmorin): understand how vrem = c/(c+n) in the paper
-      # maps to this code
-      w_raw_model <- stick_breaking(concentration = concentration,
-                                    min_stick_breaks = dataset_n,
-                                    threshold = threshold)
-      w_model <- w_raw_model * s_i
-      n_centering_model_samples <- length(w_model)
-
-      # Create prior samples
-      # Prior means "model"
-      # `x_prior` is a `concentration x n_centering_model_samples` matrix:
-      # each row represents a set of prior samples for a particular gamma
-      # element.
-      # TODO(mmorin): what if n_centering_model_samples is not a multiple
-      # of dataset_n?
-      # TODO(mmorin): replace this stacking with a Kronecker product
-      x_prior <- matrix(rep(t(x),
-                            n_centering_model_samples / dataset_n),
-                        ncol = ncol(x),
-                        byrow = TRUE)
-
-      # Generate classes from features, see page 7 of the paper:
-      # "When generating synthetic samples for the posterior bootstrap, both
-      #  features and classes are needed. Classes are generated, given features,
-      #  according to the probability specified by the logistic distribution."
-      probs <- e1071::sigmoid(x_prior %*% gamma_i)
-      y_prior <- stats::rbinom(n = n_centering_model_samples,
-                               size = 1, prob = probs)
-
-      # Compute Dirichlet weights
-      wgt_mean <- c(rep(1, dataset_n),
-                    rep(concentration / n_centering_model_samples,
-                        n_centering_model_samples))
-      wgts <- stats::rgamma(n = dataset_n + n_centering_model_samples,
-                            shape = wgt_mean,
-                            rate = rep(1, dataset_n +
-                                            n_centering_model_samples))
-      x_all <- rbind(x, x_prior)
-      y_all <- c(y, y_prior)
-    } else {
+    if (0 == concentration) {
       # No prior samples. Compute Dirichlet weights
       wgt_mean <- rep(1, dataset_n)
       wgts <- stats::rgamma(n = dataset_n,
@@ -435,8 +382,61 @@ anpl_single <- function(i, x, y, concentration, gamma, threshold,
                             rate = rep(1, dataset_n))
       x_all <- x
       y_all <- y
+    } else {
+      gamma_i  <- gamma[i, ]
+
+      # Get stick-breaking split between data and model
+      # s_i is random around c / (c + n)
+      # s_i is s^{(i)}, the "model vs data weight" in algorithm 2, page 12
+      s_i <- stats::rbeta(n = 1,
+                         shape1 = concentration,
+                         shape2 = dataset_n)
+
+      # Generate stick-breaking weights. The number of weights,
+      # `n_centering_model_samples` is `10^k * dataset_n` for integer k because
+      # the stick_breaking function is written like that at the moment.
+      
+      w_raw_model <- stick_breaking(concentration = concentration,
+                                    min_stick_breaks = dataset_n,
+                                    threshold = threshold)
+      w_model <- w_raw_model * s_i
+      n_centering_model_samples <- length(w_model)
+
+      # Note: the stick-breaking function serves only to set
+      # n_centering_model_samples, which is probably wrong. See issue 59:
+      # https://github.com/alan-turing-institute/PosteriorBootstrap/issues/59
+
+      # Create prior samples (prior in the code means "model" in the
+      # paper). `x_prior` is a `n_centering_model_samples * ncol(x)` matrix and
+      # contains `x` vertically stacked to reach `n_centering_model_samples`
+      # rows (because the length of the output of stick_breaking() is a multiple
+      # of dataset_n).
+
+      x_prior <- kronecker(rep(1, n_centering_model_samples / dataset_n), x)
+      stopifnot(all(c(n_centering_model_samples, ncol(x)) == dim(x_prior)))
+
+      # Generate classes from features, see page 7 of the paper: "When
+      # generating synthetic samples for the posterior bootstrap, both features
+      # and classes are needed. Classes are generated, given features, according
+      # to the probability specified by the logistic distribution."  e1071 is a
+      # package that provides such a distribution in the sigmoid() function
+      probs <- e1071::sigmoid(x_prior %*% gamma_i)
+      stopifnot(c(1, n_centering_model_samples) == dim(probs))
+      y_prior <- stats::rbinom(n = n_centering_model_samples,
+                               size = 1, prob = probs)
+
+      # Compute Dirichlet weights for the data and the model
+      wgt_mean <- c(rep(1, dataset_n),
+                    rep(concentration / n_centering_model_samples,
+                        n_centering_model_samples))
+      n_total <- dataset_n + n_centering_model_samples
+      wgts <- stats::rgamma(n = n_total, shape = wgt_mean,
+                            rate = rep(1, n_total))
+      x_all <- rbind(x, x_prior)
+      y_all <- c(y, y_prior)
     }
     stopifnot(all(y_all %in% c(0, 1)))
+
     # Parameter is computed via weighted glm fit.  We use quasibinomial family
     # instead of binomial to allow the count parameters to be
     # non-integers. Quasibinomial is the same as binomial except that it removes
