@@ -54,11 +54,17 @@ get_german_credit_file <- function() {
   return(data_file(k_german_credit))
 }
 
-#' Function to load dataset. Won't be necessary in the package
+#' Function to load the dataset that ships with the package.
 #'
 #' @return A dataset in the right format
+#'
+#' @examples
+#' german <- get_german_credit_dataset()
+#' head(german$y)
+#' head(german$x)
+#'
 #' @export
-load_dataset <- function() {
+get_german_credit_dataset <- function() {
   # dataset object is list we will return.
   dataset <- list()
 
