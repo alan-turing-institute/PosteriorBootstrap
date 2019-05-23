@@ -35,18 +35,9 @@ matrix:
 # macOS 10.12 version
 osx_image: xcode9.2
 
-# BayesLogit needs the gfortran compiler
-apt_packages:
-  - gfortran
-
-# Install BayesLogit 0.6 using devtools
-before_install:
-  - Rscript -e 'install.packages("devtools"); require(devtools); install_version("BayesLogit", version = "0.6")'
-
-# Install PolyaGamma using devtools::install_github
+# Install lintr using devtools::install_github
 r_github_packages:
   - jimhester/lintr
-  - kasparmartens/PolyaGamma
 
 r_packages:
   - covr
