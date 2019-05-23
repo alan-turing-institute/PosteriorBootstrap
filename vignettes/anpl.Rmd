@@ -37,7 +37,9 @@ repository](http://archive.ics.uci.edu/ml/datasets/Statlog+%28German+Credit+Data
 and which ships with the package. The outcome is whether an individual has good
 credit rating.
 
-## Setup
+# Setup
+
+## Dependencies
 
 We require our package and the `rstan` package for variational Bayes. Note that,
 for technical reasons, the `rstan` package needs to be loaded and attached, so
@@ -112,6 +114,8 @@ append_to_plot <- function(plot_df, sample, method,
   return(new_plot_df)
 }
 ```
+
+# Adaptive non-parametric learning
 
 ## Sampling
 
@@ -227,7 +231,7 @@ variational methods can provide more accurate posterior approximations to
 Bayesian logistic posteriors, though these too are approximations, that our
 algorithm can correct.
 
-## Parallelisation and performance
+# Parallelisation and performance
 
 Our construction admits a trivially parallelizable sampler once the parametric
 posterior samples have been generated (or if the concentration `c` equals
