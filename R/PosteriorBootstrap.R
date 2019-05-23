@@ -236,7 +236,7 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
 
     if (! all(is.numeric(gamma_mean)) & all(is.numeric(gamma_vcov))) {
       stop(paste0("Invalid input: the mean and variance-covariance ",
-                    "of the centering model need to be numeric"))
+                  "of the centering model need to be numeric"))
     }
 
     if (!(is.numeric(gamma_mean) & is.numeric(gamma_vcov))) {
@@ -284,7 +284,7 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
     stop("The values of y must all be in (0, 1)")
   }
 }
- 
+
 #' Adaptive non-parametric learning function
 #'
 #' \code{anpl} returns samples of the parameter of interest
@@ -362,7 +362,7 @@ anpl <- function(x,
   # matrix where the result is flipped: an additional run goes into a new column
   # and not a new row.
   theta_transpose <- parallel::mcmapply(anpl_single, 1:n_bootstrap,
-                                     MoreArgs = more_args, mc.cores = num_cores)
+                                        MoreArgs = more_args, mc.cores = num_cores)
 
   # Verify dimensions
   stopifnot(all(dim(theta_transpose) == c(ncol(x), n_bootstrap)))
@@ -374,83 +374,83 @@ anpl_single <- function(i, x, y, concentration, gamma, threshold,
                         progress_bar) {
 
   dataset_n <- length(y)
-    if (0 == concentration) {
-      # No prior samples. Compute Dirichlet weights
-      wgt_mean <- rep(1, dataset_n)
-      wgts <- stats::rgamma(n = dataset_n,
-                            shape = wgt_mean,
-                            rate = rep(1, dataset_n))
-      x_all <- x
-      y_all <- y
-    } else {
-      gamma_i  <- gamma[i, ]
+  if (0 == concentration) {
+    # No prior samples. Compute Dirichlet weights
+    wgt_mean <- rep(1, dataset_n)
+    wgts <- stats::rgamma(n = dataset_n,
+                          shape = wgt_mean,
+                          rate = rep(1, dataset_n))
+    x_all <- x
+    y_all <- y
+  } else {
+    gamma_i  <- gamma[i, ]
 
-      # Get stick-breaking split between data and model
-      # s_i is random around c / (c + n)
-      # s_i is s^{(i)}, the "model vs data weight" in algorithm 2, page 12
-      s_i <- stats::rbeta(n = 1,
-                         shape1 = concentration,
-                         shape2 = dataset_n)
+    # Get stick-breaking split between data and model
+    # s_i is random around c / (c + n)
+    # s_i is s^{(i)}, the "model vs data weight" in algorithm 2, page 12
+    s_i <- stats::rbeta(n = 1,
+                        shape1 = concentration,
+                        shape2 = dataset_n)
 
-      # Generate stick-breaking weights. The number of weights,
-      # `n_centering_model_samples` is `10^k * dataset_n` for integer k because
-      # the stick_breaking function is written like that at the moment.
-      
-      w_raw_model <- stick_breaking(concentration = concentration,
-                                    min_stick_breaks = dataset_n,
-                                    threshold = threshold)
-      w_model <- w_raw_model * s_i
-      n_centering_model_samples <- length(w_model)
+    # Generate stick-breaking weights. The number of weights,
+    # `n_centering_model_samples` is `10^k * dataset_n` for integer k because
+    # the stick_breaking function is written like that at the moment.
 
-      # Note: the stick-breaking function serves only to set
-      # n_centering_model_samples, which is probably wrong. See issue 59:
-      # https://github.com/alan-turing-institute/PosteriorBootstrap/issues/59
+    w_raw_model <- stick_breaking(concentration = concentration,
+                                  min_stick_breaks = dataset_n,
+                                  threshold = threshold)
+    w_model <- w_raw_model * s_i
+    n_centering_model_samples <- length(w_model)
 
-      # Create prior samples (prior in the code means "model" in the
-      # paper). `x_prior` is a `n_centering_model_samples * ncol(x)` matrix and
-      # contains `x` vertically stacked to reach `n_centering_model_samples`
-      # rows (because the length of the output of stick_breaking() is a multiple
-      # of dataset_n).
+    # Note: the stick-breaking function serves only to set
+    # n_centering_model_samples, which is probably wrong. See issue 59:
+    # https://github.com/alan-turing-institute/PosteriorBootstrap/issues/59
 
-      x_prior <- kronecker(rep(1, n_centering_model_samples / dataset_n), x)
-      stopifnot(all(c(n_centering_model_samples, ncol(x)) == dim(x_prior)))
+    # Create prior samples (prior in the code means "model" in the
+    # paper). `x_prior` is a `n_centering_model_samples * ncol(x)` matrix and
+    # contains `x` vertically stacked to reach `n_centering_model_samples`
+    # rows (because the length of the output of stick_breaking() is a multiple
+    # of dataset_n).
 
-      # Generate classes from features, see page 7 of the paper: "When
-      # generating synthetic samples for the posterior bootstrap, both features
-      # and classes are needed. Classes are generated, given features, according
-      # to the probability specified by the logistic distribution."  e1071 is a
-      # package that provides such a distribution in the sigmoid() function
-      probs <- e1071::sigmoid(x_prior %*% gamma_i)
-      stopifnot(c(1, n_centering_model_samples) == dim(probs))
-      y_prior <- stats::rbinom(n = n_centering_model_samples,
-                               size = 1, prob = probs)
+    x_prior <- kronecker(rep(1, n_centering_model_samples / dataset_n), x)
+    stopifnot(all(c(n_centering_model_samples, ncol(x)) == dim(x_prior)))
 
-      # Compute Dirichlet weights for the data and the model
-      wgt_mean <- c(rep(1, dataset_n),
-                    rep(concentration / n_centering_model_samples,
-                        n_centering_model_samples))
-      n_total <- dataset_n + n_centering_model_samples
-      wgts <- stats::rgamma(n = n_total, shape = wgt_mean,
-                            rate = rep(1, n_total))
-      x_all <- rbind(x, x_prior)
-      y_all <- c(y, y_prior)
-    }
-    stopifnot(all(y_all %in% c(0, 1)))
+    # Generate classes from features, see page 7 of the paper: "When
+    # generating synthetic samples for the posterior bootstrap, both features
+    # and classes are needed. Classes are generated, given features, according
+    # to the probability specified by the logistic distribution."  e1071 is a
+    # package that provides such a distribution in the sigmoid() function
+    probs <- e1071::sigmoid(x_prior %*% gamma_i)
+    stopifnot(c(1, n_centering_model_samples) == dim(probs))
+    y_prior <- stats::rbinom(n = n_centering_model_samples,
+                             size = 1, prob = probs)
 
-    # Parameter is computed via weighted glm fit.  We use quasibinomial family
-    # instead of binomial to allow the count parameters to be
-    # non-integers. Quasibinomial is the same as binomial except that it removes
-    # the integer check and does not compute AIC. See the answer by the
-    # author (mmorin) on this StackOverflow thread for more details:
-      # https://stackoverflow.com/questions/12953045
-    glm_fit <- stats::glm.fit(x = x_all,
-                              y = y_all,
-                              weights = wgts,
-                              family = stats::quasibinomial(link = "logit"))
+    # Compute Dirichlet weights for the data and the model
+    wgt_mean <- c(rep(1, dataset_n),
+                  rep(concentration / n_centering_model_samples,
+                      n_centering_model_samples))
+    n_total <- dataset_n + n_centering_model_samples
+    wgts <- stats::rgamma(n = n_total, shape = wgt_mean,
+                          rate = rep(1, n_total))
+    x_all <- rbind(x, x_prior)
+    y_all <- c(y, y_prior)
+  }
+  stopifnot(all(y_all %in% c(0, 1)))
+
+  # Parameter is computed via weighted glm fit.  We use quasibinomial family
+  # instead of binomial to allow the count parameters to be
+  # non-integers. Quasibinomial is the same as binomial except that it removes
+  # the integer check and does not compute AIC. See the answer by the
+  # author (mmorin) on this StackOverflow thread for more details:
+  # https://stackoverflow.com/questions/12953045
+  glm_fit <- stats::glm.fit(x = x_all,
+                            y = y_all,
+                            weights = wgts,
+                            family = stats::quasibinomial(link = "logit"))
 
   if (!is.null(progress_bar)) {
     utils::setTxtProgressBar(progress_bar, i)
   }
 
-    return(glm_fit$coefficients)
+  return(glm_fit$coefficients)
 }
