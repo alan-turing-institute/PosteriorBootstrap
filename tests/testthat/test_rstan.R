@@ -12,6 +12,6 @@ test_that("Rstan variational Bayes model runs", {
                                           output_samples = n_bootstrap,
                                           beta_sd = sqrt(prior_variance),
                                           iter = 10)
-  expect_true(dim(stan_vb_sample)[1] == n_bootstrap)
-  expect_true(dim(stan_vb_sample)[2] == dim(german$x)[2] + 1)
+  expect_true(nrow(stan_vb_sample) == n_bootstrap)
+  expect_true(ncol(stan_vb_sample) == ncol(german$x) + 1)
 })
