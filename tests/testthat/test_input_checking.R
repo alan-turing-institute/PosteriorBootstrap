@@ -32,3 +32,10 @@ test_that("German statlog data loads properly", {
   expect_true(num_attributes + 1 == ncol(german$x))
   expect_true(all(german$x[, 1] == 1))
 })
+
+test_that("German statlog data that ships is the same as source", {
+  local <- get_german_credit_dataset(scale = FALSE)
+  remote <- get_german_credit_dataset(scale = FALSE, download_destination = tempfile())
+  expect_true(all(local$x == remote$x))
+  expect_true(all(local$y == remote$y))
+})
