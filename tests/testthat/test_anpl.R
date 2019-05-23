@@ -54,7 +54,7 @@ test_that("Parallelisation works and is faster", {
 
   start <- Sys.time()
   anpl_samples <- do.call(anpl, c(list(num_cores = 1), params))
-  one_core_duration <- as.double((Sys.time() - start), units = "secs")
+  one_core_duration <- as.double(Sys.time() - start, units = "secs")
 
   start <- Sys.time()
   anpl_samples <- do.call(anpl, c(list(num_cores = 2), params))

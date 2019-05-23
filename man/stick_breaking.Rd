@@ -31,6 +31,11 @@ a number of items. This code implements algorithm 2 and the stick-breaking
 function calculates the parameter T in algorithm 1, which is the only
 difference between the two algorithms. The code uses the Beta distribution as
 that distribution is part of the definition of the stick-breaking process.
+The function draws from the beta distribution, e.g. \code{b_1}, \code{b_2},
+\code{b_3}, ..., and computes the stick breaks as \code{b_1},
+\code{(1-b_1)*b_2}, \code{(1-b_1)*(1-b_2)*b_3}, ... . The length remaining in
+the stick at each step is \code{1-b_1}, \code{(1-b_1)* (1-b_2)},
+\code{(1-b_1)*(1-b_2)*(1-b_3)}, ... so the latter converges to zero.
 }
 \examples{
 stick_breaking(1)
