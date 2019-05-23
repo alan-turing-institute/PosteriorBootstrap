@@ -12,7 +12,7 @@ get_german_credit_dataset(scale = TRUE, add_intercept = TRUE)
 \item{add_intercept}{Whether to add an intercept as the first feature.}
 }
 \value{
-A dataset in the right format
+A list with fields \code{x} for features and \code{y} for outcomes.
 }
 \description{
 Function to load the dataset that ships with the package.

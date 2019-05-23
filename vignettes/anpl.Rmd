@@ -160,7 +160,7 @@ hyper-parameter:
 concentrations <- c(1, 2, 3)
 anpl_samples <- list()
 for (concentration in concentrations) {
-  anpl_sample <- PosteriorBootstrap::anpl(dataset = german,
+  anpl_sample <- PosteriorBootstrap::anpl(x = german$x, y = german$y,
                                           concentration = concentration,
                                           n_bootstrap = n_bootstrap,
                                           posterior_sample = stan_vb_sample,

@@ -10,7 +10,8 @@ test_that("Adaptive non-parametric learning with centering model works", {
 
   n_bootstrap <- 10
 
-  anpl_samples <- anpl(dataset = german,
+  anpl_samples <- anpl(x = german$x,
+                       y = german$y,
                        concentration = 1,
                        n_bootstrap = n_bootstrap,
                        gamma_mean = rep(0, n_cov),
@@ -43,7 +44,8 @@ test_that("Parallelisation works and is faster", {
 
   n_bootstrap <- 1000
 
-  params <- list(dataset = german,
+  params <- list(x = german$x,
+                 y = german$y,
                  concentration = 1,
                  n_bootstrap = n_bootstrap,
                  gamma_mean = rep(0, n_cov),
@@ -92,7 +94,8 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
                                           beta_sd = sqrt(prior_variance))
 
   # Use these samples in ANPL with multiple cores
-  anpl_samples <- anpl(dataset = german,
+  anpl_samples <- anpl(x = german$x,
+                       y = german$y,
                        concentration = 1,
                        n_bootstrap = n_bootstrap,
                        posterior_sample = stan_vb_sample,

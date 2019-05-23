@@ -59,7 +59,7 @@ get_german_credit_file <- function() {
 #' @param scale Whether to scale the features to have mean 0 and variance 1.
 #' @param add_intercept Whether to add an intercept as the first feature.
 #'
-#' @return A dataset in the right format
+#' @return A list with fields \code{x} for features and \code{y} for outcomes.
 #'
 #' @examples
 #' german <- get_german_credit_dataset()
@@ -194,7 +194,7 @@ stick_breaking <- function(concentration = 1,
   return(stick_breaks)
 }
 
-check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
+check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
                          gamma_mean, gamma_vcov) {
   if (is.null(posterior_sample)) {
     if (is.null(gamma_mean) | is.null(gamma_vcov)) {
@@ -212,7 +212,7 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
                   "have to be numeric."))
     }
 
-    dim_gamma <- ncol(dataset$x)
+    dim_gamma <- ncol(x)
     if (!(dim_gamma == length(gamma_mean))) {
       stop(paste0("You need to give a vector for the mean of the centering ",
                   "model with size ",
@@ -232,7 +232,7 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
   }
 
   if (!is.null(posterior_sample)) {
-    if (ncol(posterior_sample) != ncol(dataset$x)) {
+    if (ncol(posterior_sample) != ncol(x)) {
       stop(paste0("The number of columns in the posterior sample must be the ",
                   "same as the number of covariates"))
     }
@@ -248,7 +248,7 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
   if (concentration < 0) {
     stop("Concentration needs to be positive")
   }
-  if (!all(dataset$y %in% c(0, 1))) {
+  if (!all(y %in% c(0, 1))) {
     stop("The values of y must all be in (0, 1)")
   }
 }
@@ -263,8 +263,8 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
 #' regression to find the randomized parameter of interest. For examples, see
 #' the vignette.
 #'
-#' @param dataset The dataset with classes and features (in a specific format
-#'   that will be changed)
+#' @param x The features of the data.
+#' @param y The outcomes of the data (either \code{0} or \code{1}).
 #' @param concentration The parameter \code{c} in the paper (page 3, formula 3),
 #' @param n_bootstrap The number of bootstrap samples required.
 #' @param posterior_sample The function can take samples from the posterior to
@@ -288,7 +288,8 @@ check_inputs <- function(dataset, concentration, n_bootstrap, posterior_sample,
 #' @return A matrix of bootstrap samples for the parameter of interest
 #'
 #' @export
-anpl <- function(dataset,
+anpl <- function(x,
+                 y,
                  concentration,
                  n_bootstrap = 100,
                  posterior_sample = NULL,
@@ -299,7 +300,7 @@ anpl <- function(dataset,
                  show_progress = FALSE) {
 
   # Check inputs
-  check_inputs(dataset = dataset, concentration = concentration,
+  check_inputs(x = x, y = y, concentration = concentration,
                n_bootstrap = n_bootstrap, posterior_sample = posterior_sample,
                gamma_mean = gamma_mean, gamma_vcov = gamma_vcov)
 
@@ -320,7 +321,8 @@ anpl <- function(dataset,
 
   # The parallel `mcmapply` requires the constant arguments to
   # go as a list in `MoreArgs`
-  more_args <- list("dataset" = dataset,
+  more_args <- list("x" = x,
+                    "y" = y,
                     "concentration" = concentration,
                     "gamma" = gamma,
                     "threshold" = threshold,
@@ -332,19 +334,15 @@ anpl <- function(dataset,
                                      MoreArgs = more_args, mc.cores = num_cores)
 
   # Verify dimensions
-  stopifnot(all(dim(theta_transpose) == c(ncol(dataset$x), n_bootstrap)))
+  stopifnot(all(dim(theta_transpose) == c(ncol(x), n_bootstrap)))
 
   return(t(theta_transpose))
 }
 
-anpl_single <- function(i,
-                        dataset,
-                        concentration,
-                        gamma,
-                        threshold,
-                        progress_bar = NULL) {
+anpl_single <- function(i, x, y, concentration, gamma, threshold,
+                        progress_bar) {
 
-  dataset_n <- length(dataset$y)
+  dataset_n <- length(y)
     if (concentration != 0) {
       gamma_i  <- gamma[i, ]
 
@@ -376,9 +374,9 @@ anpl_single <- function(i,
       # TODO(mmorin): what if n_centering_model_samples is not a multiple
       # of dataset_n?
       # TODO(mmorin): replace this stacking with a Kronecker product
-      x_prior <- matrix(rep(t(dataset$x),
+      x_prior <- matrix(rep(t(x),
                             n_centering_model_samples / dataset_n),
-                        ncol = ncol(dataset$x),
+                        ncol = ncol(x),
                         byrow = TRUE)
 
       # Generate classes from features, see page 7 of the paper:
@@ -397,16 +395,16 @@ anpl_single <- function(i,
                             shape = wgt_mean,
                             rate = rep(1, dataset_n +
                                             n_centering_model_samples))
-      x_all <- rbind(dataset$x, x_prior)
-      y_all <- c(dataset$y, y_prior)
+      x_all <- rbind(x, x_prior)
+      y_all <- c(y, y_prior)
     } else {
       # No prior samples. Compute Dirichlet weights
       wgt_mean <- rep(1, dataset_n)
       wgts <- stats::rgamma(n = dataset_n,
                             shape = wgt_mean,
                             rate = rep(1, dataset_n))
-      x_all <- dataset$x
-      y_all <- dataset$y
+      x_all <- x
+      y_all <- y
     }
     stopifnot(all(y_all %in% c(0, 1)))
     # Parameter is computed via weighted glm fit.  We use quasibinomial family
