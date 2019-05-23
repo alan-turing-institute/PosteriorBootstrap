@@ -450,7 +450,7 @@ anpl_single <- function(i, x, y, concentration, gamma, threshold,
     # to the probability specified by the logistic distribution."  e1071 is a
     # package that provides such a distribution in the sigmoid() function
     probs <- e1071::sigmoid(x_prior %*% gamma_i)
-    stopifnot(c(1, n_centering_model_samples) == dim(probs))
+    stopifnot(all(c(n_centering_model_samples, 1) == dim(probs)))
     y_prior <- stats::rbinom(n = n_centering_model_samples,
                              size = 1, prob = probs)
 
