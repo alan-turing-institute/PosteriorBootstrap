@@ -27,7 +27,7 @@ ships with the package and models Bayesian logistic regression}
 \item{verbose}{Whether to print output from RStan}
 }
 \value{
-Matrix of size `output_samples`x`dim(x)[2]` drawn from the RStan
+Matrix of size `output_samples`x`ncol(x)` drawn from the RStan
   model applied to `y` and `x`
 }
 \description{
