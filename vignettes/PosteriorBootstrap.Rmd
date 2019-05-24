@@ -171,7 +171,7 @@ hyper-parameter:
 
 ```{r}
 if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
-  concentrations <- c(1, 1000)
+  concentrations <- c(1, 500)
   anpl_samples <- list()
   for (concentration in concentrations) {
     anpl_sample <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
@@ -279,7 +279,7 @@ cores](https://stackoverflow.com/questions/41307178/error-processing-vignette-fa
 but see the [GitHub
 README](https://github.com/alan-turing-institute/PosteriorBootstrap/blob/master/README.md)
 for a plot with 8 cores.  We compute the duration for one or two cores and for
-the number of bootstrap samples in 100, 1000, and 10,000.
+several values of bootstrap samples.
 
 ```{r}
 speedups  <- data.frame(stringsAsFactors = FALSE)
