@@ -40,4 +40,3 @@ test_that("German Statlog data that ships is the same as source", {
   expect_true(all(local$x == remote$x))
   expect_true(all(local$y == remote$y))
 })
-
