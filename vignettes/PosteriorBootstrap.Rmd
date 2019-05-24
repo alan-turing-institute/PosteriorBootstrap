@@ -242,10 +242,15 @@ if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
 ```
 
 The Non-parametric update effectively corrects the variational Bayes
-approximation for small values of the concentration `c`. Of course, local
-variational methods can provide more accurate posterior approximations to
-Bayesian logistic posteriors, though these too are approximations, that our
-algorithm can correct.
+approximation for small values of the concentration `c`. As we increase the
+concentration parameter, the samples drawn with our method move closer to those
+from the variational Bayes approximation, showing that the concentration
+parameter is an effective sample size tuning of the weight to give to the data
+compared to the approximate model.
+
+Of course, local variational methods can provide more accurate posterior
+approximations to Bayesian logistic posteriors, though these too are
+approximations, that our algorithm can correct.
 
 # Parallelisation and performance
 
