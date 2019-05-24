@@ -26,7 +26,7 @@ number of covariates and a number of rows equal or larger than the
 of the posterior sample).}
 
 \item{gamma_mean}{In case \code{posterior_sample} is NULL, the mean for the
-centering model (equation 9, page 4)}
+centering model (equation 9, page 4).}
 
 \item{gamma_vcov}{In case \code{posterior_sample} is NULL, the
 variance-covariance of the centering model for gamma (equation 9, page 4).}
@@ -42,10 +42,10 @@ algorithm. See \code{mc.cores} in \link[parallel]{mclapply} for details.}
 a progress bar.}
 }
 \value{
-A matrix of bootstrap samples for the parameter of interest
+A matrix of bootstrap samples for the parameter of interest.
 }
 \description{
-\code{anpl} returns samples of the parameter of interest
+\code{anpl} returns samples of the parameter of interest.
 }
 \details{
 This function implements the non-parametric-learning algorithm, which is

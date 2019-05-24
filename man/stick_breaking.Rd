@@ -16,12 +16,14 @@ which is an effective sample size.}
 \item{threshold}{The threshold of stick remaining below which the function
 stops looking for more stick-breaks. It corresponds to epsilon in the
 paper, at the bottom of page 5 and in algorithm 2 in page 12.}
+
+\item{seed}{A seed to start the sampling.}
 }
 \value{
 A vector of stick-breaks summing to one.
 }
 \description{
-\code{stick_breaking} returns a vector with the breaks of a stick of length 1
+\code{stick_breaking} returns a vector with the breaks of a stick of length 1.
 }
 \details{
 This function implements the stick-breaking process for non-parametric
