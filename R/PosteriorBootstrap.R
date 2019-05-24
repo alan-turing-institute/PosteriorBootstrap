@@ -3,6 +3,8 @@
 # `draw_logit_samples`), and internal functions (`check_inputs` and and
 # `draw_logit_single`)
 
+# Package documentation --------------------------------------------------------
+
 #' PosteriorBootstrap: A package with a parallel approach for adaptive
 #' non-parametric learning
 #'
@@ -31,9 +33,12 @@ requireNamespace("utils", quietly = TRUE)
   packageStartupMessage(msg)
 }
 
+# Stick-breaking function ------------------------------------------------------
+
 #' Draw stick-breaks depending on a concentration parameter.
 #'
-#' \code{draw_stick_breaks} returns a vector with the breaks of a stick of length 1.
+#' \code{draw_stick_breaks} returns a vector with the breaks of a stick of
+#' length 1.
 #'
 #' This function implements the stick-breaking process for non-parametric
 #' learning described in section 2 of the supplementary material. The name
@@ -119,6 +124,8 @@ draw_stick_breaks <- function(concentration = 1,
   return(stick_breaks)
 }
 
+# Input checking for draw_logit_samples ----------------------------------------
+
 check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
                          gamma_mean, gamma_vcov) {
   if (is.null(posterior_sample)) {
@@ -172,6 +179,8 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
     stop("The values of y must all be in (0, 1)")
   }
 }
+
+# Draw logit samples -----------------------------------------------------------
 
 #' Draw adaptive non-parametric learning samples for logistic regression.
 #'
@@ -261,6 +270,8 @@ draw_logit_samples <- function(x,
 
   return(t(theta_transpose))
 }
+
+# Parallelised draw of a logit sample ------------------------------------------
 
 draw_logit_single <- function(i, x, y, concentration, gamma, threshold,
                               progress_bar) {
