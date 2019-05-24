@@ -5,8 +5,7 @@
 
 # Package documentation --------------------------------------------------------
 
-#' PosteriorBootstrap: A package with a parallel approach for adaptive
-#' non-parametric learning
+#' A package with a parallel approach for adaptive non-parametric learning
 #'
 #' The foo package provides two categories of functions. The first category
 #' returns or loads the system files that ship with the package: get_stan_file,
@@ -35,7 +34,7 @@ requireNamespace("utils", quietly = TRUE)
 
 # Stick-breaking function ------------------------------------------------------
 
-#' Draw stick-breaks depending on a concentration parameter.
+#' Draw stick-breaks depending on a concentration parameter
 #'
 #' \code{draw_stick_breaks} returns a vector with the breaks of a stick of
 #' length 1.
@@ -182,7 +181,7 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
 
 # Draw logit samples -----------------------------------------------------------
 
-#' Draw adaptive non-parametric learning samples for logistic regression.
+#' Draw adaptive non-parametric learning samples for logistic regression
 #'
 #' \code{draw_logit_samples} returns samples of the parameter of interest in a
 #' logistic regression.
