@@ -35,6 +35,10 @@ install_github("https://github.com/alan-turing-institute/PosteriorBootstrap/")
 The provided vignette illustrates the use of the package on a logistic
 regression model fit to the Statlog German Credit dataset.
 
+## Issues and bug reports
+
+The user discussion and development of strace take place on [Github issues](https://github.com/alan-turing-institute/PosteriorBootstrap/issues).
+
 ## Parallelisation
 
 The calculation of the expected speedup depends on the number of bootstrap
