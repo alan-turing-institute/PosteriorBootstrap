@@ -21,4 +21,3 @@ data_file <- function(name) {
 get_stan_file <- function() {
   return(data_file(k_stan_model))
 }
-

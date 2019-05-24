@@ -75,4 +75,3 @@ get_german_credit_dataset <- function(scale = TRUE, add_constant_term = TRUE,
   # Return the list object
   return(list(x = x, y = y))
 }
-
