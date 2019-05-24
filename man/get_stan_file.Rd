@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_loader.R
 \name{get_stan_file}
 \alias{get_stan_file}
-\title{Stan file with Bayesian Logistic Regression.}
+\title{Get the Stan file with Bayesian Logistic Regression}
 \usage{
 get_stan_file()
 }
@@ -11,7 +11,7 @@ An RStan file with the model for variational Bayes that ships with
   this package (extension \code{.stan}).
 }
 \description{
-Stan file with Bayesian Logistic Regression.
+Get the Stan file with Bayesian Logistic Regression
 }
 \examples{
 f <- get_stan_file()

@@ -2,7 +2,7 @@
 % Please edit documentation in R/german_credit_loader.R
 \name{get_german_credit_file}
 \alias{get_german_credit_file}
-\title{File with the German Statlog credit dataset.}
+\title{Get the file with the German Statlog credit dataset}
 \usage{
 get_german_credit_file()
 }
