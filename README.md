@@ -26,8 +26,8 @@ logistic regression.
 You can install from Github with `devtools`:
 
 ```r
-library("devtools")
-install_github("https://github.com/alan-turing-institute/PosteriorBootstrap/")
+requireNamespace("devtools", quietly = TRUE)
+devtools::install_github("https://github.com/alan-turing-institute/PosteriorBootstrap/")
 ```
 
 ## Example usage

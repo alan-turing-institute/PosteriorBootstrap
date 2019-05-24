@@ -1,6 +1,7 @@
 context("Adaptive non-parametric learning function")
-library("parallel")
-library("PosteriorBootstrap")
+
+# Rstan needs to be loaded and attached, not just loaded. See 
+# https://stackoverflow.com/questions/56262828/
 library("rstan")
 
 test_that("Adaptive non-parametric learning avoids bad inputs", {
@@ -19,7 +20,7 @@ test_that("Adaptive non-parametric learning avoids bad inputs", {
   expect_error(anpl(x = x, y = y, concentration = 1,
                     gamma_mean = "string", gamma_vcov = gamma_vcov))
   expect_error(anpl(x = x, y = y, concentration = 1,
-                    gamma_mean = gamma_mean,, gamma_vcov = "string"))
+                    gamma_mean = gamma_mean, gamma_vcov = "string"))
 
   # Both gamma_mean and gamma_vcov need the right dimensions
   expect_error(anpl(x = x, y = y, concentration = 1,
@@ -31,7 +32,7 @@ test_that("Adaptive non-parametric learning avoids bad inputs", {
   n_bootstrap <- 1000
   posterior_sample1 <- matrix(0, ncol = n_cov - 1, nrow = n_bootstrap)
   posterior_sample2 <- matrix(0, ncol = n_cov, nrow = n_bootstrap - 1)
-  expoect_error(anpl(x = x, y = y, concentration = 1, n_boostrap = n_bootstrap,
+  expect_error(anpl(x = x, y = y, concentration = 1, n_boostrap = n_bootstrap,
                      posterior_sample = posterior_sample1))
   expect_error(anpl(x = x, y = y, concentration = 1, n_boostrap = n_bootstrap,
                     posterior_sample = posterior_sample2))
@@ -41,7 +42,7 @@ test_that("Adaptive non-parametric learning avoids bad inputs", {
   expect_error(anpl(x = x, y = y, concentration = -1))
 
   # Outcome values in (0, 1)
-  y[1] = -1
+  y[1] <- -1
   expect_error(anpl(x = x, y = y, concentration = 1))
 })
 
@@ -132,13 +133,16 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
   n_bootstrap <- 100
 
   # Get posterior samples
-  prior_variance <- 100
-  stan_vb_sample <- run_variational_bayes(x = german$x,
-                                          y = german$y,
-                                          output_samples = n_bootstrap,
-                                          beta_sd = sqrt(prior_variance))
+  seed <- 123
+  prior_sd <- 10
+  train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x,
+                    y = german$y, beta_sd = prior_sd)
+  stan_model <- rstan::stan_model(file = get_stan_file())
+  stan_vb <- rstan::vb(object = stan_model, data = train_dat, seed = seed,
+                       output_samples = n_bootstrap)
+  stan_vb_sample <- rstan::extract(stan_vb)$beta
 
-  # Use these samples in ANPL with multiple cores
+  # Use these samples in ANPL
   anpl_samples <- anpl(x = german$x,
                        y = german$y,
                        concentration = 1,
@@ -159,7 +163,7 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
   expect_true(ok22, "The average coefficient for column 22 is as expected")
 })
 
-test_that("Adaptive non-parametric learning communicates progress bar", {  
+test_that("Adaptive non-parametric learning communicates progress bar", {
   german <- get_german_credit_dataset()
   n_cov <- ncol(german$x)
   n_bootstrap <- 10
