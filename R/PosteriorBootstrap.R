@@ -238,9 +238,9 @@ stick_breaking <- function(concentration = 1,
     beta_draws <- stats::rbeta(n = num_stick_breaks,
                                shape1 = 1, shape2 = concentration)
 
-    # Calculate stick remaining at each index. The result is a vector of size
-    # `num_stick_breaks + 1` with the running cumulative product, or the stick
-    # remaining at each index.
+    # Calculate stick remaining at each index, starting at 1. The result is a
+    # vector of size `num_stick_breaks + 1` with the running cumulative product,
+    # i.e. the amount stick remaining at each index.
     stick_remaining <- c(1, cumprod(1 - beta_draws))
 
     if (stick_remaining[length(stick_remaining)] <= threshold) {
@@ -252,9 +252,10 @@ stick_breaking <- function(concentration = 1,
     }
   }
 
-  # The stick breaks are the beta_draws multiplied by the stick remaining,
-  # which starts at 1.
-  stick_breaks <- stick_remaining[1:num_stick_breaks] * beta_draws
+  # The stick breaks are difference from one value of stick_remaining to the
+  # next
+  stick_breaks <- stick_remaining[1:num_stick_breaks] -
+    stick_remaining[2:(num_stick_breaks + 1)]
 
   # Divide by the sum to remove the unallocated stick due to the threshold
   # and so it adds up to one
