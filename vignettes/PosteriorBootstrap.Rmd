@@ -169,7 +169,7 @@ We now run the Adaptive Non-Parametric Learning algorithm, using the samples
 from variational Bayes, for different values of the concentration
 hyper-parameter:
 
-```{r, echo = TRUE, results = 'hide'}
+```{r, echo = TRUE}
 if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
   concentrations <- c(1, 1000)
   anpl_samples <- list()

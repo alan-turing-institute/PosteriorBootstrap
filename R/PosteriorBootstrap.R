@@ -233,7 +233,9 @@ draw_logit_samples <- function(x,
   }
 
   if (show_progress) {
-    progress_bar <- utils::txtProgressBar(min = 0, max = n_bootstrap, style = 3)
+    # Style = 3 gives ugly results in the vignette, where output is required to
+    # keep the Travis build alive.
+    progress_bar <- utils::txtProgressBar(min = 0, max = n_bootstrap, style = 1)
   } else {
     progress_bar <- NULL
   }
