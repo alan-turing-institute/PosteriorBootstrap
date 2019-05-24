@@ -1,5 +1,5 @@
 Package: PosteriorBootstrap
-Title: What the Package Does (One Line, Title Case)
+Title: Non-Parametric Statistical Sampling Using a Parallelised Monte Carlo Scheme
 Version: 0.0.1
 Authors@R:
     person(given = "Simon",
@@ -14,7 +14,15 @@ Authors@R:
            family = "Robinson",
            role = c("aut", "cre"),
            email = "james.em.robinson@gmail.com")
-Description: What the package does (one paragraph).
+Description: This package implements a non-parametric statistical model using a
+    parallelised Monte Carlo sampling scheme. The method implemented in this
+    package allows non-parameteric inference to be regularized for small sample
+    sizes, while also being more accurate than approximations such as
+    variational Bayes. The `concentration` parameter is an effective sample size
+    parameter, determining the faith we have in the model versus the data. When
+    the concentration is low, the samples are close to the exact Bayesian
+    logistic regression method; when the concentration is high, the samples are
+    close to the simplified variational Bayes logistic regression.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
