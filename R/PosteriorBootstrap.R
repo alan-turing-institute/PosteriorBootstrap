@@ -268,9 +268,11 @@ draw_logit_samples <- function(x,
   # Generate samples in parallel and transpose the result. `mcmapply` returns a
   # matrix where the result is flipped: an additional run goes into a new column
   # and not a new row.
+  print("Entering parallel")
   theta_transpose <- parallel::mcmapply(draw_logit_single, 1:n_bootstrap,
                                         MoreArgs = more_args,
                                         mc.cores = num_cores)
+  print("Exiting parallel")
 
   # Verify dimensions
   stopifnot(all(dim(theta_transpose) == c(ncol(x), n_bootstrap)))
@@ -283,6 +285,7 @@ draw_logit_samples <- function(x,
 draw_logit_single <- function(i, x, y, concentration, gamma, threshold,
                               progress_bar) {
 
+  print(paste0("Drawing ", i))
   dataset_n <- length(y)
 
   # Compute Dirichlet weights for the data using Gamma draws, see

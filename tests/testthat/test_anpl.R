@@ -114,7 +114,9 @@ test_that("Adaptive non-parametric learning with centering model works", {
 
 test_that("Multiple processors are available", {
   skip_on_cran()
+  print("Entering parallel")
   num_cores <- parallel::detectCores(logical = FALSE)
+  print("Exiting parallel")
   print(paste0("Physical cores available: ", num_cores))
   expect_true(num_cores >= 2, "Multiple processors are available")
 })
