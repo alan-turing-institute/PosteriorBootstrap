@@ -391,7 +391,8 @@ anpl <- function(x,
   # matrix where the result is flipped: an additional run goes into a new column
   # and not a new row.
   theta_transpose <- parallel::mcmapply(anpl_single, 1:n_bootstrap,
-                                        MoreArgs = more_args, mc.cores = num_cores)
+                                        MoreArgs = more_args,
+                                        mc.cores = num_cores)
 
   # Verify dimensions
   stopifnot(all(dim(theta_transpose) == c(ncol(x), n_bootstrap)))
