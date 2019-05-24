@@ -26,59 +26,6 @@ requireNamespace("utils", quietly = TRUE)
   packageStartupMessage(msg)
 }
 
-
-
-#' Run variational Bayes.
-#'
-#' \code{run_variational_bayes} returns samples of the parameters estimated with
-#' `rstan` on the data provided in the arguments.
-#'
-#' @param x The features of the data for the model.
-#' @param y The outcomes of the data for the model.
-#' @param output_samples The number of output samples to draw.
-#' @param beta_sd The standard deviation of the prior on the parameters.
-#' @param stan_file A custom Stan file, if different from the default which
-#'   ships with the package and models Bayesian logistic regression.
-#' @param iter The maximum number of iterations for Rstan to run.
-#' @param seed A seed to start the Rstan sampling.
-#' @param verbose Whether to print output from RStan.
-#' @return Matrix of size `output_samples`x`ncol(x)` drawn from the Stan model
-#'   applied to `y` and `x`.
-#'
-#' @importFrom Rcpp cpp_object_initializer
-#' @export
-run_variational_bayes <- function(x, y, output_samples, beta_sd,
-                                  stan_file = get_stan_file(),
-                                  iter = 10000, seed = 123, verbose = FALSE) {
-
-  # Check inputs
-  if (length(y) != nrow(x)) {
-    stop("The length of y must be the same as the first dimension of x")
-  }
-  if (!all(y %in% c(0, 1))) {
-    stop("The values of y must be in (0, 1)")
-  }
-
-  n_input <- length(y)
-  p <- ncol(x)
-
-  train_dat <- list(n = n_input, p = p, x = x, y = y, beta_sd = beta_sd)
-
-  stan_model <- rstan::stan_model(file = stan_file)
-
-  params <- list(object = stan_model, data = train_dat, seed = seed,
-                 output_samples = output_samples, iter = iter)
-  if (verbose) {
-    stan_vb <- do.call(rstan::vb, params)
-  } else {
-    log <- utils::capture.output(
-      stan_vb <- do.call(rstan::vb, params)
-    )
-  }
-
-  return(rstan::extract(stan_vb)$beta)
-}
-
 #' Stick-breaking depending on a concentration parameter.
 #'
 #' \code{stick_breaking} returns a vector with the breaks of a stick of length 1.
