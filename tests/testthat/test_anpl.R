@@ -79,7 +79,7 @@ test_that("Parallelisation works and is faster", {
     expected_speedup <- 1.4
   }
   expect_true(speedup > expected_speedup,
-              "Largest parallelization speedup is larger than 70%")
+              "Parallelization speedup is as expected")
 })
 
 test_that("Adaptive non-parametric learning with posterior samples works", {

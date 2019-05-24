@@ -33,7 +33,7 @@ approximate approaches such as variational Bayes.
 
 Here, we demonstrate the approach on a variational Bayes classifier.
 
-We demonstrate this in practice through a VB logistic regression model fit to
+We demonstrate this in practice through a variational Bayes logistic regression model fit to
 the Statlog German Credit dataset, containing 1000 observations and 25
 covariates (including intercept), from the [UCI ML
 repository](http://archive.ics.uci.edu/ml/datasets/Statlog+%28German+Credit+Data%29)
@@ -149,7 +149,7 @@ train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x, y = ge
 stan_file <- PosteriorBootstrap::get_stan_file()
 bayes_log_reg <- rstan::stan(stan_file, data = train_dat, seed = seed,
                       iter = n_bootstrap * 2, chains = 1)
-bayes_sample <- rstan::extract(bayes_log_reg)$beta
+stan_bayes_sample <- rstan::extract(bayes_log_reg)$beta
 ```
 
 For variational Bayes, we obtain a mean-field variational Bayes sample using
@@ -181,14 +181,14 @@ if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
                                             posterior_sample = stan_vb_sample,
                                             threshold = 1e-8,
                                             show_progress = TRUE)
-    anpl_samples[[paste0(concentration)]] <- anpl_sample
+    anpl_samples[[toString(concentration)]] <- anpl_sample
   }
 }
 ```
 
 ## Preparing the plot
 
-We now prepare a dataframe with all the samples ready for plotting:
+We now prepare a dataframe with all the samples ready for plotting. 
 
 ```{r}
 if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
@@ -201,16 +201,16 @@ if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
 
   # Create a plot data frame with all the samples
   for (concentration in concentrations) {
-    plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[paste0(concentration)]],
-                               method = "MDP-VB",
+    plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[toString(concentration)]],
+                               method = "PosteriorBootstrap-ANPL",
                                concentration = concentration,
                                x_index = x_index, y_index = y_index)
-    plot_df  <- append_to_plot(plot_df, sample = bayes_sample,
-                               method = "Bayes",
+    plot_df  <- append_to_plot(plot_df, sample = stan_bayes_sample,
+                               method = "Bayes-Stan",
                                concentration = concentration,
                                x_index = x_index, y_index = y_index)
     plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
-                               method = "VB_Stan",
+                               method = "VB-Stan",
                                concentration = concentration,
                                x_index = x_index, y_index = y_index)
   }
@@ -224,11 +224,11 @@ And now we plot the result of the algorithm:
 ```{r, fig.show = "asis"}
 if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
   ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
-                  data = dplyr::filter(plot_df, plot_df$Method != "Bayes")) +
+                  data = dplyr::filter(plot_df, plot_df$Method != "Bayes-Stan")) +
     stat_density_2d1(bins = 5) +
     ggplot2::geom_point(alpha = 0.1, size = 1,
                         data = dplyr::filter(plot_df,
-                                             plot_df$Method == "Bayes")) +
+                                             plot_df$Method == "Bayes-Stan")) +
     ggplot2::facet_wrap(~concentration, nrow = 1,
                         scales = "fixed",
                         labeller = ggplot2::label_bquote(c ~" = "~

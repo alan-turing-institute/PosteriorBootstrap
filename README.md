@@ -3,8 +3,37 @@ PosteriorBootstrap
 [![codecov](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap/branch/master/graph/badge.svg)](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap)
 ==================
 
-## `gfortran`
-To install the `gfortran` dependency on OSX, I used the [`.dmg` from here](https://github.com/fxcoudert/gfortran-for-macOS/releases) which installs into `/usr/local/gfortran/`.
+# PosteriorBootstrap
+
+Bayesian learning is built on an assumption that the model space contains a true
+reflection of the data generating mechanism. This assumption is problematic,
+particularly in complex data environments. By using a Bayesian nonparametric
+approach to learning, we no longer have to assume that the model is true.
+
+This package implements a nonparametric statistical model using a parallelised
+Monte Carlo sampling scheme. The method implemented in this package allows
+nonparameteric inference to be regularized for small sample sizes, while also
+being more accurate than approximations such as variational Bayes.
+
+The `concentration` parameter is an effective sample size parameter, determining
+the faith we have in the model versus the data. When the concentration is low,
+the samples are close to the exact Bayesian logistic regression method; when the
+concentration is high, the samples are close to the simplified variational Bayes
+logistic regression.
+
+## Installation
+
+You can install from Github with `devtools`:
+
+```r
+library("devtools")
+install_github("https://github.com/alan-turing-institute/PosteriorBootstrap/")
+```
+
+## Example usage
+
+The provided vignette illustrates the use of the package on a logistic
+regression model fit to the Statlog German Credit dataset.
 
 ## Parallelisation
 
@@ -12,8 +41,6 @@ The calculation of the expected speedup depends on the number of bootstrap
 samples and the number of processors. It also depends on the system: it is
 larger on macOS than on Linux, with some variation depending on the version of
 R.
-
-### Ahmdal's law
 
 Fixing the number of samples corresponds to [Ahmdal's
 law](https://en.wikipedia.org/wiki/Ahmdal's_Law), or the speedup in the task as
@@ -40,19 +67,5 @@ this plot:
 The proportion of the code that can be parallelised is high, and higher the
 large the bootstrap samples, and always below 1. For large samples with
 `n_bootstrap = 10,000`, one estimate of proportion is close to 100%.
-
-### Speedup as a function of `n_bootstrap`
-
-On a macOS machine, I ran `n_boostrap` from 10 to 1000 by steps of 100, and 3
-tries for each value, and timed the duration of the code, then ran a linear
-regression
-
-$$ t \approx a + b * n_boostrap $$
-
-for 1 or 2 cores separately. I found an overhead of around 0.13 seconds
-(intercept $a$) for both 1 and 2 cores. Each draw takes 0.01186 seconds on one
-core and 0.006357 on two cores (slope $b$). The maximum speedup is 1.86, which
-is Amdahl's law for 2 processors, i.e. 92% of the code is parallelisable (= 2 *
-(1.85 - 1) / 1.85, for s = 2 and S_latency = 1.85).
 
 
