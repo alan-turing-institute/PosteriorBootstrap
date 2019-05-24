@@ -81,7 +81,7 @@ get_german_credit_file <- function() {
 #' Load and pre-process the dataset that ships with the package.
 #'
 #' @param scale Whether to scale the features to have mean 0 and variance 1.
-#' @param add_intercept Whether to add an intercept as the first feature.
+#' @param add_constant_term Whether to add a constant term as the first feature.
 #' @param download_destination Provide a filepath if you want to download the
 #'   dataset from source. Note that although the original dataset has 20
 #'   features (some of them qualitative), the numeric dataset has 24 features.
@@ -94,7 +94,7 @@ get_german_credit_file <- function() {
 #' head(german$x)
 #'
 #' @export
-get_german_credit_dataset <- function(scale = TRUE, add_intercept = TRUE,
+get_german_credit_dataset <- function(scale = TRUE, add_constant_term = TRUE,
                                       download_destination = NULL) {
 
   if (is.null(download_destination)) {
@@ -118,7 +118,7 @@ get_german_credit_dataset <- function(scale = TRUE, add_intercept = TRUE,
   if (scale) {
     x <- scale(x)
   }
-  if (add_intercept) {
+  if (add_constant_term) {
     x <- cbind(1, x)
   }
 
@@ -232,7 +232,9 @@ stick_breaking <- function(concentration = 1,
     beta_draws <- stats::rbeta(n = num_stick_breaks,
                                shape1 = 1, shape2 = concentration)
 
-    # Calculate stick remaining at each index.
+    # Calculate stick remaining at each index. The result is a vector of size
+    # `num_stick_breaks + 1` with the running cumulative product, or the stick
+    # remaining at each index.
     stick_remaining <- c(1, cumprod(1 - beta_draws))
 
     if (stick_remaining[length(stick_remaining)] <= threshold) {
