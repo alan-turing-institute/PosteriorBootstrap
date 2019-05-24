@@ -5,7 +5,7 @@
 \title{Stick-breaking depending on a concentration parameter.}
 \usage{
 stick_breaking(concentration = 1, min_stick_breaks = 100,
-  threshold = 1e-08)
+  threshold = 1e-08, seed = NULL)
 }
 \arguments{
 \item{concentration}{The parameter \code{c} in the paper (page 3, formula 3),

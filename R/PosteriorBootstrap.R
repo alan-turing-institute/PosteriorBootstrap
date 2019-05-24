@@ -20,128 +20,30 @@ requireNamespace("rstan", quietly = TRUE)
 requireNamespace("stats", quietly = TRUE)
 requireNamespace("utils", quietly = TRUE)
 
-k_extdata <- "extdata"
-k_package <- "PosteriorBootstrap"
-k_german_credit <- "statlog-german-credit.dat"
-k_german_credit_url <- paste0("http://archive.ics.uci.edu/ml/",
-                              "machine-learning-databases/statlog/",
-                              "german/german.data-numeric")
-k_rstan_model <- "bayes_logit.stan"
-
 .onAttach <- function(libname, pkgname) {
   msg <- paste0("Welcome to PosteriorBootstrap, a parallel approach for ",
                 "adaptive non-parametric learning")
   packageStartupMessage(msg)
 }
 
-data_file <- function(name) {
-  return(system.file(k_extdata, name, package = k_package))
-}
 
-#' Stan file with Bayesian Logistic Regression.
-#'
-#' @return An RStan file with the model for variational Bayes that ships with
-#'   this package (extension \code{.stan}).
-#'
-#' @examples
-#' f <- get_stan_file()
-#' \dontrun{
-#' file.show(f)
-#' }
-#'
-#' @export
-get_stan_file <- function() {
-  return(data_file(k_rstan_model))
-}
-
-#' File with the German Statlog credit dataset.
-#'
-#' The file contains a local copy of the German Statlog credit dataset with
-#' 1,000 observations and 24 features. The data page is at:
-#' https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data) and the
-#' original files at:
-#' http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/ We
-#' use the file `german.data-numeric`, which has 24 covariates instead of the 20
-#' in the original data (as some are qualitative).
-#'
-#' @return A file with the plain-text raw data for the German Statlog credit
-#'   that ships with this package (extension \code{.dat}).
-#'
-#' @examples
-#' f <- get_german_credit_file()
-#' \dontrun{
-#' file.show(f)
-#' }
-#'
-#' @export
-get_german_credit_file <- function() {
-  return(data_file(k_german_credit))
-}
-
-#' Load and pre-process the dataset that ships with the package.
-#'
-#' @param scale Whether to scale the features to have mean 0 and variance 1.
-#' @param add_constant_term Whether to add a constant term as the first feature.
-#' @param download_destination Provide a filepath if you want to download the
-#'   dataset from source. Note that although the original dataset has 20
-#'   features (some of them qualitative), the numeric dataset has 24 features.
-#'
-#' @return A list with fields \code{x} for features and \code{y} for outcomes.
-#'
-#' @examples
-#' german <- get_german_credit_dataset()
-#' head(german$y)
-#' head(german$x)
-#'
-#' @export
-get_german_credit_dataset <- function(scale = TRUE, add_constant_term = TRUE,
-                                      download_destination = NULL) {
-
-  if (is.null(download_destination)) {
-    filepath <- get_german_credit_file()
-  } else {
-    utils::download.file(k_german_credit_url, download_destination)
-    filepath <- download_destination
-  }
-  raw_dataset <- as.matrix(utils::read.table(filepath))
-  colnames(raw_dataset) <- NULL
-
-  x <- raw_dataset[, 1:(ncol(raw_dataset) - 1)]
-  y <- raw_dataset[, ncol(raw_dataset)]
-
-  # German statlog dataset outcomes are (1, 2), so
-  # subtract 1 here to make them (0, 1)
-  y <- y - 1
-  stopifnot(all(y %in% c(0, 1)))
-
-  # Standardise features to have mean 0 and variance 1
-  if (scale) {
-    x <- scale(x)
-  }
-  if (add_constant_term) {
-    x <- cbind(1, x)
-  }
-
-  # Return the list object
-  return(list(x = x, y = y))
-}
 
 #' Run variational Bayes.
 #'
 #' \code{run_variational_bayes} returns samples of the parameters estimated with
 #' `rstan` on the data provided in the arguments.
 #'
-#' @param x The features of the data for the model
-#' @param y The outcomes of the data for the model
-#' @param output_samples The number of output samples to draw
-#' @param beta_sd The standard deviation of the prior on the parameters
+#' @param x The features of the data for the model.
+#' @param y The outcomes of the data for the model.
+#' @param output_samples The number of output samples to draw.
+#' @param beta_sd The standard deviation of the prior on the parameters.
 #' @param stan_file A custom Stan file, if different from the default which
-#'   ships with the package and models Bayesian logistic regression
-#' @param iter The maximum number of iterations for Rstan to run
-#' @param seed A seed to start the Rstan sampling
-#' @param verbose Whether to print output from RStan
-#' @return Matrix of size `output_samples`x`ncol(x)` drawn from the RStan
-#'   model applied to `y` and `x`
+#'   ships with the package and models Bayesian logistic regression.
+#' @param iter The maximum number of iterations for Rstan to run.
+#' @param seed A seed to start the Rstan sampling.
+#' @param verbose Whether to print output from RStan.
+#' @return Matrix of size `output_samples`x`ncol(x)` drawn from the Stan model
+#'   applied to `y` and `x`.
 #'
 #' @importFrom Rcpp cpp_object_initializer
 #' @export
@@ -179,7 +81,7 @@ run_variational_bayes <- function(x, y, output_samples, beta_sd,
 
 #' Stick-breaking depending on a concentration parameter.
 #'
-#' \code{stick_breaking} returns a vector with the breaks of a stick of length 1
+#' \code{stick_breaking} returns a vector with the breaks of a stick of length 1.
 #'
 #' This function implements the stick-breaking process for non-parametric
 #' learning described in section 2 of the supplementary material. The name
@@ -200,6 +102,7 @@ run_variational_bayes <- function(x, y, output_samples, beta_sd,
 #' @param threshold The threshold of stick remaining below which the function
 #'   stops looking for more stick-breaks. It corresponds to epsilon in the
 #'   paper, at the bottom of page 5 and in algorithm 2 in page 12.
+#' @param seed A seed to start the sampling.
 #' @return A vector of stick-breaks summing to one.
 #' @examples
 #' stick_breaking(1)
@@ -325,7 +228,7 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
 
 #' Adaptive non-parametric learning function.
 #'
-#' \code{anpl} returns samples of the parameter of interest
+#' \code{anpl} returns samples of the parameter of interest.
 #'
 #' This function implements the non-parametric-learning algorithm, which is
 #' algorithm 2 in page 12 in the paper. It uses a mixture of Dirichlet processes
@@ -345,7 +248,7 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
 #'   `n_bootrstap` (as the algorithm draws a new sample based on a single draw
 #'   of the posterior sample).
 #' @param gamma_mean In case \code{posterior_sample} is NULL, the mean for the
-#'   centering model (equation 9, page 4)
+#'   centering model (equation 9, page 4).
 #' @param gamma_vcov In case \code{posterior_sample} is NULL, the
 #'   variance-covariance of the centering model for gamma (equation 9, page 4).
 #' @param threshold The threshold of stick remaining below which the function
@@ -355,7 +258,7 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
 #'   algorithm. See \code{mc.cores} in \link[parallel]{mclapply} for details.
 #' @param show_progress Boolean whether to show the progress of the algorithm in
 #'   a progress bar.
-#' @return A matrix of bootstrap samples for the parameter of interest
+#' @return A matrix of bootstrap samples for the parameter of interest.
 #'
 #' @export
 anpl <- function(x,
