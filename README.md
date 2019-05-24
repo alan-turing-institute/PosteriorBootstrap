@@ -7,12 +7,12 @@ PosteriorBootstrap
 
 Bayesian learning is built on an assumption that the model space contains a true
 reflection of the data generating mechanism. This assumption is problematic,
-particularly in complex data environments. By using a Bayesian nonparametric
+particularly in complex data environments. By using a Bayesian non-parametric
 approach to learning, we no longer have to assume that the model is true.
 
-This package implements a nonparametric statistical model using a parallelised
+This package implements a non-parametric statistical model using a parallelised
 Monte Carlo sampling scheme. The method implemented in this package allows
-nonparameteric inference to be regularized for small sample sizes, while also
+non-parameteric inference to be regularized for small sample sizes, while also
 being more accurate than approximations such as variational Bayes.
 
 The `concentration` parameter is an effective sample size parameter, determining
