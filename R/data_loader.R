@@ -11,7 +11,7 @@ get_file <- function(name) {
   return(system.file(k_extdata, name, package = k_package))
 }
 
-#' Stan file with Bayesian Logistic Regression.
+#' Get the Stan file with Bayesian Logistic Regression
 #'
 #' @return An RStan file with the model for variational Bayes that ships with
 #'   this package (extension \code{.stan}).

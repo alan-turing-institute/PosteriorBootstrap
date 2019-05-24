@@ -6,7 +6,7 @@ k_german_credit_url <- paste0("http://archive.ics.uci.edu/ml/",
                               "machine-learning-databases/statlog/",
                               "german/german.data-numeric")
 
-#' File with the German Statlog credit dataset.
+#' Get the file with the German Statlog credit dataset
 #'
 #' The file contains a local copy of the German Statlog credit dataset with
 #' 1,000 observations and 24 features. The data page is at:
@@ -31,7 +31,7 @@ get_german_credit_file <- function() {
   return(get_file(k_german_credit))
 }
 
-#' Load and pre-process the dataset that ships with the package.
+#' Load and pre-process the dataset that ships with the package
 #'
 #' @param scale Whether to scale the features to have mean 0 and variance 1.
 #' @param add_constant_term Whether to add a constant term as the first feature.
