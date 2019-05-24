@@ -48,7 +48,7 @@ We require our package and the `rstan` package for variational Bayes. Note that,
 for technical reasons (see [StackOverflow issue](https://stackoverflow.com/questions/56262828/function-passes-test-inside-the-package-and-fails-from-vignette-due-to-cpp-obje)), the `rstan` package needs to be loaded and attached, so
 we use `library("rstan")`.
 
-```{r echo = T, results = 'hide'}
+```{r echo = TRUE, results = 'hide'}
 requireNamespace("PosteriorBootstrap", quietly = TRUE)
 
 requireNamespace("dplyr", quietly = TRUE)
@@ -144,7 +144,7 @@ german <- PosteriorBootstrap::get_german_credit_dataset()
 For Bayesian logistic regression, we draw samples using the `rstan` package and
 the Bayesian logistic regression model that ships with this package:
 
-```{r echo = T}
+```{r echo = TRUE}
 train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x, y = german$y, beta_sd = prior_sd)
 stan_file <- PosteriorBootstrap::get_stan_file()
 bayes_log_reg <- rstan::stan(stan_file, data = train_dat, seed = seed,
@@ -158,7 +158,7 @@ the same logistic regression model as above. The
 number of samples is `n_bootstrap`,  as these samples serve for the Adaptive
 Non-Parametric Learning algorithm:
 
-```{r echo = T}
+```{r echo = TRUE}
 stan_model <- rstan::stan_model(file = stan_file)
 stan_vb <- rstan::vb(object = stan_model, data = train_dat, seed = seed,
                  output_samples = n_bootstrap)
@@ -169,9 +169,9 @@ We now run the Adaptive Non-Parametric Learning algorithm, using the samples
 from variational Bayes, for different values of the concentration
 hyper-parameter:
 
-```{r}
+```{r, echo = TRUE, results = 'hide'}
 if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
-  concentrations <- c(1, 500)
+  concentrations <- c(1, 1000)
   anpl_samples <- list()
   for (concentration in concentrations) {
     anpl_sample <- PosteriorBootstrap::anpl(x = german$x, y = german$y,
