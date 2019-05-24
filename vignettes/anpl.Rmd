@@ -174,12 +174,12 @@ if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
   concentrations <- c(1, 1000)
   anpl_samples <- list()
   for (concentration in concentrations) {
-    anpl_sample <- PosteriorBootstrap::anpl(x = german$x, y = german$y,
-                                            concentration = concentration,
-                                            n_bootstrap = n_bootstrap,
-                                            posterior_sample = stan_vb_sample,
-                                            threshold = 1e-8,
-                                            show_progress = TRUE)
+    anpl_sample <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
+                                                          concentration = concentration,
+                                                          n_bootstrap = n_bootstrap,
+                                                          posterior_sample = stan_vb_sample,
+                                                          threshold = 1e-8,
+                                                          show_progress = TRUE)
     anpl_samples[[toString(concentration)]] <- anpl_sample
   }
 }
@@ -286,13 +286,13 @@ for (n_bootstrap in n_bootstrap_array) {
   for (num_cores in seq(1, max_cores)) {
     
     start <- Sys.time()
-    anpl_samples <- PosteriorBootstrap::anpl(x = german$x, y = german$y,
-                                             concentration = 1,
-                                             n_bootstrap = n_bootstrap,
-                                             gamma_mean = rep(0, ncol(german$x)),
-                                             gamma_vcov = diag(1, ncol(german$x)),
-                                             threshold = 1e-8,
-                                             num_cores = num_cores)
+    anpl_samples <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
+                                                           concentration = 1,
+                                                           n_bootstrap = n_bootstrap,
+                                                           gamma_mean = rep(0, ncol(german$x)),
+                                                           gamma_vcov = diag(1, ncol(german$x)),
+                                                           threshold = 1e-8,
+                                                           num_cores = num_cores)
     lap <- as.double((Sys.time() - start), units = "secs")
 	if (1 == num_cores) {
 	  one_core_duration <- lap
