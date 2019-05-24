@@ -1,0 +1,13 @@
+.libPaths(c("~/R/x86_64-pc-linux-gnu-library/3.4", .libPaths()))
+
+library("devtools")
+setwd("PosteriorBootstrap")
+devtools::document()
+#devtools::check()
+devtools::build()
+#devtools::test()
+devtools::install(reload = T, quick = T)
+#devtools::build_vignettes()
+#print(getwd())
+#library("PosteriorBootstrap")
+source('azure-parallel/speedup.R')
