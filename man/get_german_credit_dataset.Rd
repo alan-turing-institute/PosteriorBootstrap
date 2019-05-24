@@ -2,7 +2,7 @@
 % Please edit documentation in R/german_credit_loader.R
 \name{get_german_credit_dataset}
 \alias{get_german_credit_dataset}
-\title{Load and pre-process the dataset that ships with the package.}
+\title{Load and pre-process the dataset that ships with the package}
 \usage{
 get_german_credit_dataset(scale = TRUE, add_constant_term = TRUE,
   download_destination = NULL)
@@ -20,7 +20,7 @@ features (some of them qualitative), the numeric dataset has 24 features.}
 A list with fields \code{x} for features and \code{y} for outcomes.
 }
 \description{
-Load and pre-process the dataset that ships with the package.
+Load and pre-process the dataset that ships with the package
 }
 \examples{
 german <- get_german_credit_dataset()
