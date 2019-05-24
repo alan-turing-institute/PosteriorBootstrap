@@ -24,8 +24,8 @@ k_german_credit_url <- paste0("http://archive.ics.uci.edu/ml/",
 #'
 #' @export
 get_german_credit_file <- function() {
-  # This call uses the `data_file` function from `R/data_loader.R`
-  return(data_file(k_german_credit))
+  # This call uses the `get_file` function from `R/data_loader.R`
+  return(get_file(k_german_credit))
 }
 
 #' Load and pre-process the dataset that ships with the package.

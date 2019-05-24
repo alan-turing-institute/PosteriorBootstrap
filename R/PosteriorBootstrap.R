@@ -4,8 +4,8 @@
 #' The foo package provides two categories of functions. The first category
 #' returns or loads the system files that ship with the package: get_stan_file,
 #' get_german_credit_file, get_german_credit_dataset. The second category
-#' performs statistical sampling: stick_breaking and anpl (for
-#' "adaptive non-parametric learning").
+#' performs statistical sampling: draw_stick_breaks and draw_logit_samples (for
+#' adaptive non-parametric learning of the logistic regression model).
 #'
 #' Please see the vignette for sample usage and performance metrics.
 #'
@@ -26,9 +26,9 @@ requireNamespace("utils", quietly = TRUE)
   packageStartupMessage(msg)
 }
 
-#' Stick-breaking depending on a concentration parameter.
+#' Draw stick-breaks depending on a concentration parameter.
 #'
-#' \code{stick_breaking} returns a vector with the breaks of a stick of length 1.
+#' \code{draw_stick_breaks} returns a vector with the breaks of a stick of length 1.
 #'
 #' This function implements the stick-breaking process for non-parametric
 #' learning described in section 2 of the supplementary material. The name
@@ -52,15 +52,15 @@ requireNamespace("utils", quietly = TRUE)
 #' @param seed A seed to start the sampling.
 #' @return A vector of stick-breaks summing to one.
 #' @examples
-#' stick_breaking(1)
-#' stick_breaking(1, min_stick_breaks = 10)
-#' stick_breaking(1, min_stick_breaks = 10, threshold = 1e-8)
+#' draw_stick_breaks(1)
+#' draw_stick_breaks(1, min_stick_breaks = 10)
+#' draw_stick_breaks(1, min_stick_breaks = 10, threshold = 1e-8)
 #'
 #' @export
-stick_breaking <- function(concentration = 1,
-                           min_stick_breaks = 100,
-                           threshold = 1e-8,
-                           seed = NULL) {
+draw_stick_breaks <- function(concentration = 1,
+                              min_stick_breaks = 100,
+                              threshold = 1e-8,
+                              seed = NULL) {
 
   # This algorithm regenerates all values, which is a waste but is faster than
   # appending in a for loop, which is slow in R.  The loop is often unnecessary,
@@ -168,9 +168,10 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
   }
 }
 
-#' Adaptive non-parametric learning function.
+#' Draw adaptive non-parametric learning samples for logistic regression.
 #'
-#' \code{anpl} returns samples of the parameter of interest.
+#' \code{draw_logit_samples} returns samples of the parameter of interest in a
+#' logistic regression.
 #'
 #' This function implements the non-parametric-learning algorithm, which is
 #' algorithm 2 in page 12 in the paper. It uses a mixture of Dirichlet processes
@@ -203,16 +204,16 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
 #' @return A matrix of bootstrap samples for the parameter of interest.
 #'
 #' @export
-anpl <- function(x,
-                 y,
-                 concentration,
-                 n_bootstrap = 100,
-                 posterior_sample = NULL,
-                 gamma_mean = NULL,
-                 gamma_vcov = NULL,
-                 threshold = 1e-8,
-                 num_cores = 1,
-                 show_progress = FALSE) {
+draw_logit_samples <- function(x,
+                               y,
+                               concentration,
+                               n_bootstrap = 100,
+                               posterior_sample = NULL,
+                               gamma_mean = NULL,
+                               gamma_vcov = NULL,
+                               threshold = 1e-8,
+                               num_cores = 1,
+                               show_progress = FALSE) {
 
   # Check inputs
   check_inputs(x = x, y = y, concentration = concentration,
@@ -244,7 +245,7 @@ anpl <- function(x,
   # Generate samples in parallel and transpose the result. `mcmapply` returns a
   # matrix where the result is flipped: an additional run goes into a new column
   # and not a new row.
-  theta_transpose <- parallel::mcmapply(anpl_single, 1:n_bootstrap,
+  theta_transpose <- parallel::mcmapply(draw_logit_single, 1:n_bootstrap,
                                         MoreArgs = more_args,
                                         mc.cores = num_cores)
 
@@ -254,8 +255,8 @@ anpl <- function(x,
   return(t(theta_transpose))
 }
 
-anpl_single <- function(i, x, y, concentration, gamma, threshold,
-                        progress_bar) {
+draw_logit_single <- function(i, x, y, concentration, gamma, threshold,
+                              progress_bar) {
 
   dataset_n <- length(y)
   if (0 == concentration) {
@@ -269,7 +270,7 @@ anpl_single <- function(i, x, y, concentration, gamma, threshold,
   } else {
     gamma_i  <- gamma[i, ]
 
-    # Get stick-breaking split between data and model
+    # Draw split between data and model
     # s_i is random around c / (c + n)
     # s_i is s^{(i)}, the "model vs data weight" in algorithm 2, page 12
     s_i <- stats::rbeta(n = 1,
@@ -278,11 +279,11 @@ anpl_single <- function(i, x, y, concentration, gamma, threshold,
 
     # Generate stick-breaking weights. The number of weights,
     # `n_centering_model_samples` is `10^k * dataset_n` for integer k because
-    # the stick_breaking function is written like that at the moment.
+    # the draw_stick_breaks function is written like that at the moment.
 
-    w_raw_model <- stick_breaking(concentration = concentration,
-                                  min_stick_breaks = dataset_n,
-                                  threshold = threshold)
+    w_raw_model <- draw_stick_breaks(concentration = concentration,
+                                     min_stick_breaks = dataset_n,
+                                     threshold = threshold)
     w_model <- w_raw_model * s_i
     n_centering_model_samples <- length(w_model)
 
@@ -292,9 +293,9 @@ anpl_single <- function(i, x, y, concentration, gamma, threshold,
 
     # Create prior samples (prior in the code means "model" in the
     # paper). `x_prior` is a `n_centering_model_samples * ncol(x)` matrix and
-    # contains `x` vertically stacked to reach `n_centering_model_samples`
-    # rows (because the length of the output of stick_breaking() is a multiple
-    # of dataset_n).
+    # contains `x` vertically stacked to reach `n_centering_model_samples` rows
+    # (because the length of the output of draw_stick_breaks() is a multiple of
+    # dataset_n).
 
     x_prior <- kronecker(rep(1, n_centering_model_samples / dataset_n), x)
     stopifnot(all(c(n_centering_model_samples, ncol(x)) == dim(x_prior)))

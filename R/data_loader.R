@@ -2,7 +2,7 @@ k_extdata <- "extdata"
 k_package <- "PosteriorBootstrap"
 k_stan_model <- "bayes_logit.stan"
 
-data_file <- function(name) {
+get_file <- function(name) {
   return(system.file(k_extdata, name, package = k_package))
 }
 
@@ -19,5 +19,5 @@ data_file <- function(name) {
 #'
 #' @export
 get_stan_file <- function() {
-  return(data_file(k_stan_model))
+  return(get_file(k_stan_model))
 }

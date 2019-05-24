@@ -13,37 +13,45 @@ test_that("Adaptive non-parametric learning avoids bad inputs", {
   gamma_vcov <- diag(1, n_cov)
 
   # Both gamma_mean and gamma_vcov need to be present
-  expect_error(anpl(x = x, y = y, concentration = 1, gamma_mean = gamma_mean))
-  expect_error(anpl(x = x, y = y, concentration = 1, gamma_vcov = gamma_vcov))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
+                                  gamma_mean = gamma_mean))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
+                                  gamma_vcov = gamma_vcov))
 
   # Both gamma_mean and gamma_vcov need to be numeric
-  expect_error(anpl(x = x, y = y, concentration = 1,
-                    gamma_mean = "string", gamma_vcov = gamma_vcov))
-  expect_error(anpl(x = x, y = y, concentration = 1,
-                    gamma_mean = gamma_mean, gamma_vcov = "string"))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
+                                  gamma_mean = "string",
+                                  gamma_vcov = gamma_vcov))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
+                                  gamma_mean = gamma_mean,
+                                  gamma_vcov = "string"))
 
   # Both gamma_mean and gamma_vcov need the right dimensions
-  expect_error(anpl(x = x, y = y, concentration = 1,
-                    gamma_mean = rep(0, n_cov - 1), gamma_vcov = gamma_vcov))
-  expect_error(anpl(x = x, y = y, concentration = 1,
-                    gamma_mean = gamma_mean, gamma_vcov = diag(1, n_cov - 1)))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
+                                  gamma_mean = rep(0, n_cov - 1),
+                                  gamma_vcov = gamma_vcov))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
+                                  gamma_mean = gamma_mean,
+                                  gamma_vcov = diag(1, n_cov - 1)))
 
   # The posterior sample needs to have the right dimensions
   n_bootstrap <- 1000
   posterior_sample1 <- matrix(0, ncol = n_cov - 1, nrow = n_bootstrap)
   posterior_sample2 <- matrix(0, ncol = n_cov, nrow = n_bootstrap - 1)
-  expect_error(anpl(x = x, y = y, concentration = 1, n_boostrap = n_bootstrap,
-                     posterior_sample = posterior_sample1))
-  expect_error(anpl(x = x, y = y, concentration = 1, n_boostrap = n_bootstrap,
-                    posterior_sample = posterior_sample2))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
+                                  n_boostrap = n_bootstrap,
+                                  posterior_sample = posterior_sample1))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
+                                  n_boostrap = n_bootstrap,
+                                  posterior_sample = posterior_sample2))
 
   # Concentration
-  expect_error(anpl(x = x, y = y, concentration = "string"))
-  expect_error(anpl(x = x, y = y, concentration = -1))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = "string"))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = -1))
 
   # Outcome values in (0, 1)
   y[1] <- -1
-  expect_error(anpl(x = x, y = y, concentration = 1))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1))
 })
 
 test_that("Adaptive non-parametric learning with centering model works", {
@@ -54,13 +62,13 @@ test_that("Adaptive non-parametric learning with centering model works", {
   n_bootstrap <- 10
 
   for (concentration in c(0, 1)) {
-    anpl_samples <- anpl(x = german$x,
-                         y = german$y,
-                         concentration = 1,
-                         n_bootstrap = n_bootstrap,
-                         gamma_mean = rep(0, n_cov),
-                         gamma_vcov = diag(1, n_cov),
-                         threshold = 1e-8)
+    anpl_samples <- draw_logit_samples(x = german$x,
+                                       y = german$y,
+                                       concentration = 1,
+                                       n_bootstrap = n_bootstrap,
+                                       gamma_mean = rep(0, n_cov),
+                                       gamma_vcov = diag(1, n_cov),
+                                       threshold = 1e-8)
 
     expect_true(is.numeric(anpl_samples))
     expect_equal(dim(anpl_samples), c(n_bootstrap, n_cov))
@@ -98,18 +106,15 @@ test_that("Parallelisation works and is faster", {
                  gamma_vcov = diag(1, n_cov),
                  threshold = 1e-8)
 
-  start <- Sys.time()
-  anpl_samples <- do.call(anpl, c(list(num_cores = 1), params))
-  one_core_duration <- as.double(Sys.time() - start, units = "secs")
+  durations <- list()
+  for (i in c(1, 2)) {
+    start <- Sys.time()
+    anpl_samples <- do.call(draw_logit_samples, c(list(num_cores = i), params))
+    durations[[i]] <- as.double(Sys.time() - start, units = "secs")
+    print(sprintf("Duration with %1.0f core(s): %4.4f s", i, durations[[i]]))
+  }
 
-  start <- Sys.time()
-  anpl_samples <- do.call(anpl, c(list(num_cores = 2), params))
-  two_cores_duration <- as.double(Sys.time() - start, units = "secs")
-
-  speedup <- one_core_duration / two_cores_duration
-
-  print(sprintf("Duration with 1 core: %4.4f s", one_core_duration))
-  print(sprintf("Duration with 2 cores: %4.4f s", two_cores_duration))
+  speedup <- durations[[1]] / durations[[2]]
   print(sprintf("Speedup: %3.2f (1 = same duration)", speedup))
 
   # From tests on macOS on a local machine and Linux on a virtual machine, the
@@ -138,17 +143,19 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
   train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x,
                     y = german$y, beta_sd = prior_sd)
   stan_model <- rstan::stan_model(file = get_stan_file())
-  stan_vb <- rstan::vb(object = stan_model, data = train_dat, seed = seed,
-                       output_samples = n_bootstrap)
+  utils::capture.output(  # Suppress output
+    stan_vb <- rstan::vb(object = stan_model, data = train_dat, seed = seed,
+                         output_samples = n_bootstrap)
+  )
   stan_vb_sample <- rstan::extract(stan_vb)$beta
 
   # Use these samples in ANPL
-  anpl_samples <- anpl(x = german$x,
-                       y = german$y,
-                       concentration = 1,
-                       n_bootstrap = n_bootstrap,
-                       posterior_sample = stan_vb_sample,
-                       threshold = 1e-8)
+  anpl_samples <- draw_logit_samples(x = german$x,
+                                     y = german$y,
+                                     concentration = 1,
+                                     n_bootstrap = n_bootstrap,
+                                     posterior_sample = stan_vb_sample,
+                                     threshold = 1e-8)
 
   # Once we got a problem with coefficients way off because of misuse of
   # `mcmapply` (as if it were a list instead of a matrix). So we added a test
@@ -167,11 +174,11 @@ test_that("Adaptive non-parametric learning communicates progress bar", {
   german <- get_german_credit_dataset()
   n_cov <- ncol(german$x)
   n_bootstrap <- 10
-  expect_output(anpl_samples <- anpl(x = german$x,
-                                     y = german$y,
-                                     concentration = 1,
-                                     n_bootstrap = n_bootstrap,
-                                     gamma_mean = rep(0, n_cov),
-                                     gamma_vcov = diag(1, n_cov),
-                                     show_progress = TRUE), "=")
+  expect_output(anpl_samples <- draw_logit_samples(x = german$x,
+                                                   y = german$y,
+                                                   concentration = 1,
+                                                   n_bootstrap = n_bootstrap,
+                                                   gamma_mean = rep(0, n_cov),
+                                                   gamma_vcov = diag(1, n_cov),
+                                                   show_progress = TRUE), "=")
 })
