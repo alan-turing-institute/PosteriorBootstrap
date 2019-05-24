@@ -1,3 +1,8 @@
+# This file contains constants and functions relating to data that ships with
+# the package: `get_file` and `get_stan_file` for the Stan model of Bayesian
+# logistic regression. Note that functions relating to the dataset that ships
+# with the package are in their own file (`german_data_loader.R`).
+
 k_extdata <- "extdata"
 k_package <- "PosteriorBootstrap"
 k_stan_model <- "bayes_logit.stan"
