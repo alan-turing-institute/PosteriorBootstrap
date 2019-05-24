@@ -3,6 +3,48 @@ library("parallel")
 library("PosteriorBootstrap")
 library("rstan")
 
+test_that("Adaptive non-parametric learning avoids bad inputs", {
+  german <- get_german_credit_dataset()
+  x <- german$x
+  y <- german$y
+  n_cov <- ncol(german$x)
+  gamma_mean <- rep(0, n_cov)
+  gamma_vcov <- diag(1, n_cov)
+
+  # Both gamma_mean and gamma_vcov need to be present
+  expect_error(anpl(x = x, y = y, concentration = 1, gamma_mean = gamma_mean))
+  expect_error(anpl(x = x, y = y, concentration = 1, gamma_vcov = gamma_vcov))
+
+  # Both gamma_mean and gamma_vcov need to be numeric
+  expect_error(anpl(x = x, y = y, concentration = 1,
+                    gamma_mean = "string", gamma_vcov = gamma_vcov))
+  expect_error(anpl(x = x, y = y, concentration = 1,
+                    gamma_mean = gamma_mean,, gamma_vcov = "string"))
+
+  # Both gamma_mean and gamma_vcov need the right dimensions
+  expect_error(anpl(x = x, y = y, concentration = 1,
+                    gamma_mean = rep(0, n_cov - 1), gamma_vcov = gamma_vcov))
+  expect_error(anpl(x = x, y = y, concentration = 1,
+                    gamma_mean = gamma_mean, gamma_vcov = diag(1, n_cov - 1)))
+
+  # The posterior sample needs to have the right dimensions
+  n_bootstrap <- 1000
+  posterior_sample1 <- matrix(0, ncol = n_cov - 1, nrow = n_bootstrap)
+  posterior_sample2 <- matrix(0, ncol = n_cov, nrow = n_bootstrap - 1)
+  expoect_error(anpl(x = x, y = y, concentration = 1, n_boostrap = n_bootstrap,
+                     posterior_sample = posterior_sample1))
+  expect_error(anpl(x = x, y = y, concentration = 1, n_boostrap = n_bootstrap,
+                    posterior_sample = posterior_sample2))
+
+  # Concentration
+  expect_error(anpl(x = x, y = y, concentration = "string"))
+  expect_error(anpl(x = x, y = y, concentration = -1))
+
+  # Outcome values in (0, 1)
+  y[1] = -1
+  expect_error(anpl(x = x, y = y, concentration = 1))
+})
+
 test_that("Adaptive non-parametric learning with centering model works", {
 
   german <- get_german_credit_dataset()
@@ -10,25 +52,26 @@ test_that("Adaptive non-parametric learning with centering model works", {
 
   n_bootstrap <- 10
 
-  anpl_samples <- anpl(x = german$x,
-                       y = german$y,
-                       concentration = 1,
-                       n_bootstrap = n_bootstrap,
-                       gamma_mean = rep(0, n_cov),
-                       gamma_vcov = diag(1, n_cov),
-                       threshold = 1e-8)
+  for (concentration in c(0, 1)) {
+    anpl_samples <- anpl(x = german$x,
+                         y = german$y,
+                         concentration = 1,
+                         n_bootstrap = n_bootstrap,
+                         gamma_mean = rep(0, n_cov),
+                         gamma_vcov = diag(1, n_cov),
+                         threshold = 1e-8)
 
-  expect_true(is.numeric(anpl_samples))
-  expect_equal(dim(anpl_samples), c(n_bootstrap, n_cov))
+    expect_true(is.numeric(anpl_samples))
+    expect_equal(dim(anpl_samples), c(n_bootstrap, n_cov))
 
-  # The following two tests relate to using the result of `mcmapply`. If it's
-  # used as a list (like the result of `mclapply`) instead of a matrix, either
-  # the columns or the rows will all be the same.
-  expect_true(all(diag(var(anpl_samples)) > 0),
-              "Row values in ANPL samples are different")
-  expect_true(all(diag(var(t(anpl_samples))) > 0),
-              "Column values in ANPL samples are different")
-
+    # The following two tests relate to using the result of `mcmapply`. If it's
+    # used as a list (like the result of `mclapply`) instead of a matrix, either
+    # the columns or the rows will all be the same.
+    expect_true(all(diag(var(anpl_samples)) > 0),
+                "Row values in ANPL samples are different")
+    expect_true(all(diag(var(t(anpl_samples))) > 0),
+                "Column values in ANPL samples are different")
+  }
 })
 
 test_that("Multiple processors are available", {
@@ -114,4 +157,17 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
   ok22 <- (col_means[22] >= -0.3) && (col_means[22] <= 0)
   expect_true(ok21, "The average coefficient for column 21 is as expected")
   expect_true(ok22, "The average coefficient for column 22 is as expected")
+})
+
+test_that("Adaptive non-parametric learning communicates progress bar", {  
+  german <- get_german_credit_dataset()
+  n_cov <- ncol(german$x)
+  n_bootstrap <- 10
+  expect_output(anpl_samples <- anpl(x = german$x,
+                                     y = german$y,
+                                     concentration = 1,
+                                     n_bootstrap = n_bootstrap,
+                                     gamma_mean = rep(0, n_cov),
+                                     gamma_vcov = diag(1, n_cov),
+                                     show_progress = TRUE), "=")
 })
