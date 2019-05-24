@@ -1,6 +1,4 @@
 context("German Statlog credit dataset")
-library("PosteriorBootstrap")
-
 
 test_that("German Statlog data outcomes are in {1, 2}", {
   raw_dataset <- as.matrix(utils::read.table(get_german_credit_file()))
