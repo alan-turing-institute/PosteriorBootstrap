@@ -209,7 +209,8 @@ run_variational_bayes <- function(x, y, output_samples, beta_sd,
 #' @export
 stick_breaking <- function(concentration = 1,
                            min_stick_breaks = 100,
-                           threshold = 1e-8) {
+                           threshold = 1e-8,
+                           seed = NULL) {
 
   # This algorithm regenerates all values, which is a waste but is faster than
   # appending in a for loop, which is slow in R.  The loop is often unnecessary,
@@ -224,6 +225,11 @@ stick_breaking <- function(concentration = 1,
   # of the `stick_remaining` array is a product of numbers between 0 and 1, so
   # increasing the number of values in that product drives it to zero (even if
   # we draw new values each time).
+
+  # Set the seed, if any
+  if (!is.null(seed)) {
+    set.seed(seed)
+  }
 
   num_stick_breaks <- min_stick_breaks
   while (TRUE) {
