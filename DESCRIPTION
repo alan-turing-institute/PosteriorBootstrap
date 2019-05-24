@@ -1,5 +1,5 @@
 Package: PosteriorBootstrap
-Title: Non-Parametric Statistical Sampling Using a Parallelised Monte Carlo Scheme
+Title: Non-Parametric Sampling With Parallel Monte Carlo
 Version: 0.0.1
 Authors@R:
     person(given = "Simon",
