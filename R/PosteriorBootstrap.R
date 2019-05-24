@@ -1,3 +1,8 @@
+# This file contains the package documentation and the main functions of the
+# package: a welcome message, exported functions (`draw_stick_breaks` and
+# `draw_logit_samples`), and internal functions (`check_inputs` and and
+# `draw_logit_single`)
+
 #' PosteriorBootstrap: A package with a parallel approach for adaptive
 #' non-parametric learning
 #'

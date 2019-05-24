@@ -1,3 +1,6 @@
+# This file contains constants and functions relating to the dataset that ships
+# with the package: `get_german_credit_file` and `get_german_credit_dataset`.
+
 k_german_credit <- "statlog-german-credit.dat"
 k_german_credit_url <- paste0("http://archive.ics.uci.edu/ml/",
                               "machine-learning-databases/statlog/",
