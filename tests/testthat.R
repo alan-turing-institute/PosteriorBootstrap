@@ -1,1 +1,1 @@
-test_check("PosteriorBootstrap")
+testthat::test_check("PosteriorBootstrap")
