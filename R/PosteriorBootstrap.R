@@ -172,8 +172,8 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
                   "must be the same as the number of covariates"))
     }
     if (nrow(posterior_sample) < n_bootstrap) {
-      stop(paste0("The posterior sample must have a number of rows ",
-                  "no smaller than n_bootstrap"))
+      stop(paste0("The posterior sample must have a number of ",
+                  "rows no smaller than n_bootstrap"))
     }
   }
 
