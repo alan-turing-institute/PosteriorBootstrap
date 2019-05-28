@@ -323,6 +323,9 @@ draw_logit_single <- function(i, x, y, concentration, gamma, threshold,
     # (because the length of the output of draw_stick_breaks() is a multiple of
     # dataset_n).
 
+    # Note that this Kronecker product is well-defined because the minimum number of
+    # stick breaks is `dataset_n`, so the left matrix is at least `diag(1)`.
+
     x_prior <- kronecker(rep(1, n_centering_model_samples / dataset_n), x)
     stopifnot(all(c(n_centering_model_samples, ncol(x)) == dim(x_prior)))
 
