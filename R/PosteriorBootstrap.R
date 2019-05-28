@@ -127,29 +127,38 @@ draw_stick_breaks <- function(concentration = 1,
 
 check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
                          gamma_mean, gamma_vcov) {
+
+  # The error messages are reflowed to be copy-pasted into the tests at
+  # test_anpl.R
   if (is.null(posterior_sample)) {
-    if (is.null(gamma_mean) | is.null(gamma_vcov)) {
-      stop(paste0("If you don't provide a posterior sample, ",
-                  "you must provide a centering model"))
+    if (is.null(gamma_mean)) {
+      stop(paste0("If you don't provide a posterior sample, you ",
+                  "must provide a mean for the centering model"))
     }
+    if (is.null(gamma_vcov)) {
+      stop(paste0("If you don't provide a posterior sample, you ",
+                               "must provide a variance-covariance for the ",
+                               "centering model"))
+      }
 
     if (!(all(is.numeric(gamma_mean)) & all(is.numeric(gamma_vcov)))) {
-      stop(paste0("Invalid input: the mean and variance-covariance ",
-                  "of the centering model need to be numeric"))
+      stop(paste0("Invalid input: the mean and variance-",
+                  "covariance of the centering model need ",
+                  "to be numeric"))
     }
 
     dim_gamma <- ncol(x)
     if (!(dim_gamma == length(gamma_mean))) {
-      stop(paste0("You need to give a vector for the mean of the centering ",
-                  "model with size ",
+      stop(paste0("You need to give a vector for the mean ",
+                  "of the centering model with size ",
                   dim_gamma,
                   " (for the number of covariates) and instead you gave ",
                   length(gamma_mean),
                   "."))
     }
     if (!all(c(dim_gamma, dim_gamma) == dim(gamma_vcov))) {
-      stop(paste0("You need to give a matrix for the variance-covariance ",
-                  "matrix of the centering model: ",
+      stop(paste0("You need to give a matrix for the variance-",
+                  "covariance matrix of the centering model: ",
                   dim_gamma, "*", dim_gamma,
                   " (for the number of covariates) and instead you gave ",
                   dim(gamma_vcov),
@@ -159,12 +168,12 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
 
   if (!is.null(posterior_sample)) {
     if (ncol(posterior_sample) != ncol(x)) {
-      stop(paste0("The number of columns in the posterior sample must be the ",
-                  "same as the number of covariates"))
+      stop(paste0("The number of columns in the posterior sample ",
+                  "must be the same as the number of covariates"))
     }
     if (nrow(posterior_sample) < n_bootstrap) {
-      stop(paste0("The posterior sample must have a number of rows no smaller ",
-                  "than n_bootstrap"))
+      stop(paste0("The posterior sample must have a number of rows ",
+                  "no smaller than n_bootstrap"))
     }
   }
 
@@ -172,7 +181,7 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
     stop("Concentration needs to be numeric")
   }
   if (concentration < 0) {
-    stop("Concentration needs to be positive")
+    stop("Concentration needs to be positive or zero")
   }
   if (!all(y %in% c(0, 1))) {
     stop("The values of y must all be in (0, 1)")
