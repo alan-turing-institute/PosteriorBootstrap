@@ -61,8 +61,8 @@ test_that("Adaptive non-parametric learning avoids bad inputs", {
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
                                   n_bootstrap = n_bootstrap,
                                   posterior_sample = posterior_sample2),
-               regexp = paste0("The posterior sample must have a number of rows ",
-                               "no smaller than n_bootstrap")
+               regexp = paste0("The posterior sample must have a number of ",
+                               "rows no smaller than n_bootstrap")
                )
 
   # Concentration

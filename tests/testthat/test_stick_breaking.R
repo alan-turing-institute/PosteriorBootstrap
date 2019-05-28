@@ -16,4 +16,3 @@ test_that("Stick-breaking output has a multiple size of input", {
     expect_equal(0, length(weights) %% min_stick_breaks)
   }
 })
-
