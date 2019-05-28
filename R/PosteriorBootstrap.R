@@ -216,6 +216,9 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
 #'   centering model (equation 9, page 4).
 #' @param gamma_vcov In case \code{posterior_sample} is NULL, the
 #'   variance-covariance of the centering model for gamma (equation 9, page 4).
+#' @param num_pseudo_observations The number of pseudo-data observations to
+#'   augment the original data. If not a multiple of the number of observations,
+#'   it will be rounded up.
 #' @param threshold The threshold of stick remaining below which the function
 #'   stops looking for more stick-breaks. It correspondes to epsilon in the
 #'   paper, at the bottom of page 5 and in algorithm 2 in page 12.
@@ -233,6 +236,7 @@ draw_logit_samples <- function(x,
                                posterior_sample = NULL,
                                gamma_mean = NULL,
                                gamma_vcov = NULL,
+                               num_pseudo_observations = 1000,
                                threshold = 1e-8,
                                num_cores = 1,
                                show_progress = FALSE) {
@@ -257,6 +261,12 @@ draw_logit_samples <- function(x,
     progress_bar <- NULL
   }
 
+  # Find the right number of centering model samples, a multiple of the original
+  # observations
+  dataset_n <- length(y)
+  n_centering_model_samples <- ((num_pseudo_observations + dataset_n - 1) %/%
+                                  dataset_n) * dataset_n
+
   # The parallel `mcmapply` requires the constant arguments to go as a list in
   # `MoreArgs`
   more_args <- list("x" = x,
@@ -264,7 +274,8 @@ draw_logit_samples <- function(x,
                     "concentration" = concentration,
                     "gamma" = gamma,
                     "threshold" = threshold,
-                    "progress_bar" = progress_bar)
+                    "progress_bar" = progress_bar,
+                    "n_centering_model_samples" = n_centering_model_samples)
 
   # Generate samples in parallel and transpose the result. `mcmapply` returns a
   # matrix where the result is flipped: an additional run goes into a new column
@@ -282,7 +293,7 @@ draw_logit_samples <- function(x,
 # Parallelised draw of a logit sample ------------------------------------------
 
 draw_logit_single <- function(i, x, y, concentration, gamma, threshold,
-                              progress_bar) {
+                              progress_bar, n_centering_model_samples) {
 
   dataset_n <- length(y)
   if (0 == concentration) {
@@ -303,26 +314,12 @@ draw_logit_single <- function(i, x, y, concentration, gamma, threshold,
                         shape1 = concentration,
                         shape2 = dataset_n)
 
-    # Generate stick-breaking weights. The number of weights,
-    # `n_centering_model_samples` is `10^k * dataset_n` for integer k because
-    # the draw_stick_breaks function is written like that at the moment.
-
-    w_raw_model <- draw_stick_breaks(concentration = concentration,
-                                     min_stick_breaks = dataset_n,
-                                     threshold = threshold)
-    w_model <- w_raw_model * s_i
-    n_centering_model_samples <- length(w_model)
-
-    # Note: the stick-breaking function serves only to set
-    # n_centering_model_samples, which is probably wrong. See issue 59:
-    # https://github.com/alan-turing-institute/PosteriorBootstrap/issues/59
-
     # Create prior samples (prior in the code means "model" in the
     # paper). `x_prior` is a `n_centering_model_samples * ncol(x)` matrix and
     # contains `x` vertically stacked to reach `n_centering_model_samples` rows
     # (because the length of the output of draw_stick_breaks() is a multiple of
     # dataset_n).
-
+    stopifnot(0 == n_centering_model_samples %% dataset_n)
     x_prior <- kronecker(rep(1, n_centering_model_samples / dataset_n), x)
     stopifnot(all(c(n_centering_model_samples, ncol(x)) == dim(x_prior)))
 
