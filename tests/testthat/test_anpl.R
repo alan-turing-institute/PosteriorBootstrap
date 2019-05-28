@@ -14,44 +14,73 @@ test_that("Adaptive non-parametric learning avoids bad inputs", {
 
   # Both gamma_mean and gamma_vcov need to be present
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
-                                  gamma_mean = gamma_mean))
+                                  gamma_vcov = gamma_vcov),
+               regexp = paste0("If you don't provide a posterior sample, you ",
+                               "must provide a mean for the centering model"))
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
-                                  gamma_vcov = gamma_vcov))
+                                  gamma_mean = gamma_mean),
+               regexp = paste0("If you don't provide a posterior sample, you ",
+                               "must provide a variance-covariance for the ",
+                               "centering model"))
 
   # Both gamma_mean and gamma_vcov need to be numeric
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
                                   gamma_mean = "string",
-                                  gamma_vcov = gamma_vcov))
+                                  gamma_vcov = gamma_vcov),
+               regexp = paste0("Invalid input: the mean and variance-",
+                               "covariance of the centering model need ",
+                               "to be numeric"))
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
                                   gamma_mean = gamma_mean,
-                                  gamma_vcov = "string"))
+                                  gamma_vcov = "string"),
+               regexp = paste0("Invalid input: the mean and variance-",
+                               "covariance of the centering model need ",
+                               "to be numeric"))
 
   # Both gamma_mean and gamma_vcov need the right dimensions
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
                                   gamma_mean = rep(0, n_cov - 1),
-                                  gamma_vcov = gamma_vcov))
+                                  gamma_vcov = gamma_vcov),
+               regexp = paste0("You need to give a vector for the mean ",
+                  "of the centering model with size "))
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
                                   gamma_mean = gamma_mean,
-                                  gamma_vcov = diag(1, n_cov - 1)))
+                                  gamma_vcov = diag(1, n_cov - 1)),
+               regexp = paste0("You need to give a matrix for the variance-",
+                               "covariance matrix of the centering model: "))
 
   # The posterior sample needs to have the right dimensions
   n_bootstrap <- 1000
   posterior_sample1 <- matrix(0, ncol = n_cov - 1, nrow = n_bootstrap)
   posterior_sample2 <- matrix(0, ncol = n_cov, nrow = n_bootstrap - 1)
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
-                                  n_boostrap = n_bootstrap,
-                                  posterior_sample = posterior_sample1))
+                                  n_bootstrap = n_bootstrap,
+                                  posterior_sample = posterior_sample1),
+               regexp = paste0("The number of columns in the posterior sample ",
+                               "must be the same as the number of covariates"))
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
-                                  n_boostrap = n_bootstrap,
-                                  posterior_sample = posterior_sample2))
+                                  n_bootstrap = n_bootstrap,
+                                  posterior_sample = posterior_sample2),
+               regexp = paste0("The posterior sample must have a number of rows ",
+                               "no smaller than n_bootstrap")
+               )
 
   # Concentration
-  expect_error(draw_logit_samples(x = x, y = y, concentration = "string"))
-  expect_error(draw_logit_samples(x = x, y = y, concentration = -1))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = "string",
+                                  gamma_mean = gamma_mean,
+                                  gamma_vcov = gamma_vcov),
+               regexp = "Concentration needs to be numeric")
+  expect_error(draw_logit_samples(x = x, y = y, concentration = -1,
+                                  gamma_mean = gamma_mean,
+                                  gamma_vcov = gamma_vcov),
+               regexp = "Concentration needs to be positive or zero")
 
   # Outcome values in (0, 1)
   y[1] <- -1
-  expect_error(draw_logit_samples(x = x, y = y, concentration = 1))
+  expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
+                                   gamma_mean = gamma_mean,
+                                   gamma_vcov = gamma_vcov),
+               regexp = "The values of y must all be in \\(0, 1\\)")
 })
 
 test_that("Adaptive non-parametric learning with centering model works", {
@@ -64,7 +93,7 @@ test_that("Adaptive non-parametric learning with centering model works", {
   for (concentration in c(0, 1)) {
     anpl_samples <- draw_logit_samples(x = german$x,
                                        y = german$y,
-                                       concentration = 1,
+                                       concentration = concentration,
                                        n_bootstrap = n_bootstrap,
                                        gamma_mean = rep(0, n_cov),
                                        gamma_vcov = diag(1, n_cov),

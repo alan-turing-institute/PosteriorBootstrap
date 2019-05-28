@@ -1,8 +1,10 @@
 context("Stick-breaking function")
 
 test_that("Stick-breaking function adds up to one", {
-  weights <- draw_stick_breaks()
-  expect_equal(sum(weights), 1)
+  for (seed in c(NULL, 1)) {
+    weights <- draw_stick_breaks(seed = seed)
+    expect_equal(sum(weights), 1)
+  }
 })
 
 test_that("Stick-breaking output has a multiple size of input", {
@@ -14,3 +16,4 @@ test_that("Stick-breaking output has a multiple size of input", {
     expect_equal(0, length(weights) %% min_stick_breaks)
   }
 })
+
