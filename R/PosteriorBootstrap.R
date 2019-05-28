@@ -261,8 +261,9 @@ draw_logit_samples <- function(x,
     progress_bar <- NULL
   }
 
-  # Find the right number of centering model samples, a multiple of the original
-  # observations
+  # Find the right number of centering model samples, a multiple of the number
+  # of original observations, starting at that number. This calculation takes
+  # care of the case where `num_pseudo_observations < dataset_n`.
   dataset_n <- length(y)
   n_centering_model_samples <- ((num_pseudo_observations + dataset_n - 1) %/%
                                   dataset_n) * dataset_n

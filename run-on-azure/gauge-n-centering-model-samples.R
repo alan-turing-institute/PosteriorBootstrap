@@ -81,7 +81,9 @@ stan_vb_sample <- rstan::extract(stan_vb)$beta
 x_index <- 21
 y_index <- 22
 
-n_pseudo_values <- c(1e2, 5e2, 1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6)
+# Start at 1,000, since that is the minimum number of stick-breaks in the original code,
+# and work up on a logarithmic scale
+n_pseudo_values <- c(1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6)
 concentrations <- c(1, 1e3, 2e4)
 durations <- data.frame(stringsAsFactors = FALSE)
 
