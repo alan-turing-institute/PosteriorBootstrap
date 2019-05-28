@@ -98,7 +98,8 @@ for (concentration in concentrations) {
                                                         posterior_sample = stan_vb_sample,
                                                         threshold = 1e-8,
                                                         num_pseudo_observations = num_pseudo_observations,
-                                                        show_progress = TRUE)
+                                                        show_progress = TRUE,
+                                                        num_cores = 1)
   duration <- as.double(Sys.time() - start, units = "secs")
   durations <- rbind(durations, c(num_pseudo_observations, concentration, lap))
 
