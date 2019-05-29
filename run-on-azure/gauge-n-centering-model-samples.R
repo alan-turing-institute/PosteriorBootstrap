@@ -68,14 +68,26 @@ german <- PosteriorBootstrap::get_german_credit_dataset()
 
 train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x, y = german$y, beta_sd = prior_sd)
 stan_file <- PosteriorBootstrap::get_stan_file()
+
+start <- Sys.time()
 bayes_log_reg <- rstan::stan(stan_file, data = train_dat, seed = seed,
                              iter = n_bootstrap * 2, chains = 1)
 stan_bayes_sample <- rstan::extract(bayes_log_reg)$beta
+duration <- as.double(Sys.time() - start, units = "secs")
+durations <- data.frame("Method" = "Bayes",
+                        num_pseudo_observations = -1,
+                        concentration = -1,
+                        duration = duration,
+                        stringsAsFactors = FALSE)
 
 stan_model <- rstan::stan_model(file = stan_file)
+start <- Sys.time()
 stan_vb <- rstan::vb(object = stan_model, data = train_dat, seed = seed,
                      output_samples = n_bootstrap)
 stan_vb_sample <- rstan::extract(stan_vb)$beta
+duration <- as.double(Sys.time() - start, units = "secs")
+durations <- rbind(durations, c("VB", -1, -1, duration))
+
 
 # Index of coefficients in the plot
 x_index <- 21
@@ -85,8 +97,6 @@ y_index <- 22
 # and work up on a logarithmic scale
 n_pseudo_values <- c(1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6)
 concentrations <- c(1, 1e3, 2e4)
-durations <- data.frame(stringsAsFactors = FALSE)
-
 
 for (num_pseudo_observations in n_pseudo_values) {
   print(paste0("Number of pseudo-observations: ", num_pseudo_observations))
@@ -103,10 +113,12 @@ for (num_pseudo_observations in n_pseudo_values) {
                                                           show_progress = TRUE,
                                                           num_cores = 1)
     duration <- as.double(Sys.time() - start, units = "secs")
-    durations <- rbind(durations, c(num_pseudo_observations, concentration, duration))
+    durations <- rbind(durations, c("ANPL", num_pseudo_observations, concentration, duration))
+    print("")
+    print(durations)
 
     write.csv(durations, file = "durations.csv", quote = FALSE,
-              row.names = FALSE, col.names = TRUE)
+              row.names = FALSE)
 
     anpl_samples[[toString(concentration)]] <- anpl_sample
   }
@@ -131,8 +143,7 @@ for (num_pseudo_observations in n_pseudo_values) {
                                x_index = x_index, y_index = y_index)
   }
 
-  pdf(paste0("vb (num_pseudo = ", num_pseudo_observations, ".pdf"))
-  ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
+  gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
                   data = dplyr::filter(plot_df, plot_df$Method != "Bayes-Stan")) +
     stat_density_2d1(bins = 5) +
     ggplot2::geom_point(alpha = 0.1, size = 1,
@@ -148,10 +159,15 @@ for (num_pseudo_observations in n_pseudo_values) {
       ggplot2::ylab(bquote(beta[.(y_index)])) +
       ggplot2::theme(legend.position = "none",
                      plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
-  dev.off()
+  ggsave(paste0("vb (num_pseudo = ", num_pseudo_observations, ").pdf"),
+         plot = gplot2,
+         width = 14,
+         height = 5,
+         units = 'cm')
+	
 }
 
-names(durations) <- c("Num_pseudo_observations", "concentration", "duration")
+names(durations) <- c("Method", "Num_pseudo_observations", "concentration", "duration")
 
 write.csv(durations, file = "durations.csv", quote = FALSE,
           row.names = FALSE, col.names = TRUE)
