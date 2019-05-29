@@ -1,7 +1,7 @@
 PRIVATE_KEY="~/.ssh/azure"
 PRIVATE_KEY_FLAG="-i $PRIVATE_KEY"
 
-new=true
+new=false
 
 if $new; then
 
@@ -25,7 +25,7 @@ if $new; then
     sleep 60
 else
     # Set the IP address manually
-    IP=
+    IP=40.114.245.222
 fi
 
 # Copy local files
@@ -35,11 +35,15 @@ scp ${PRIVATE_KEY_FLAG} -r ./* ${USER}@${IP}:PosteriorBootstrap/
 # Add compilation flags to compile Rstan
 ssh ${PRIVATE_KEY_FLAG} ${USER}@${IP} "rm -r .R; mkdir .R && mv PosteriorBootstrap/run-on-azure/Makevars .R/"
 
+# If it's a new machine, install R packages required
+if $new; then
+    ssh ${PRIVATE_KEY_FLAG} ${USER}@${IP} Rscript PosteriorBootstrap/run-on-azure/setup.R
+fi
 
 # This is the command that hangs the machine when run in parallel ----------------------------
 
 # Run either this command to see the hang with minimal output:
-ssh ${PRIVATE_KEY_FLAG} ${USER}@${IP} Rscript PosteriorBootstrap/run-on-azure/build_and_compute.R
+#ssh ${PRIVATE_KEY_FLAG} ${USER}@${IP} Rscript PosteriorBootstrap/run-on-azure/build_and_compute.R
 
 # or this command to see the output of strace
 #ssh ${PRIVATE_KEY_FLAG} ${USER}@${IP} strace -Ff -tt Rscript PosteriorBootstrap/azure-parallel/build_and_compute.R 2>&1 | tee strace-R.log

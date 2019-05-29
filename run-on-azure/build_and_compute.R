@@ -2,9 +2,9 @@
 
 setwd("PosteriorBootstrap")
 
-devtools::install_deps(dependencies = TRUE)
+#devtools::install_deps(dependencies = TRUE)
 devtools::document()
-devtools::check()
+#devtools::check()
 devtools::build()
 #devtools::test()
 devtools::install(reload = T, quick = T)

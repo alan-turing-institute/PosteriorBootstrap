@@ -89,68 +89,69 @@ durations <- data.frame(stringsAsFactors = FALSE)
 
 
 for (num_pseudo_observations in n_pseudo_values) {
-anpl_samples <- list()
-for (concentration in concentrations) {
-  start <- Sys.time()
-  anpl_sample <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
-                                                        concentration = concentration,
-                                                        n_bootstrap = n_bootstrap,
-                                                        posterior_sample = stan_vb_sample,
-                                                        threshold = 1e-8,
-                                                        num_pseudo_observations = num_pseudo_observations,
-                                                        show_progress = TRUE,
-                                                        num_cores = 1)
-  duration <- as.double(Sys.time() - start, units = "secs")
-  durations <- rbind(durations, c(num_pseudo_observations, concentration, lap))
+  print(paste0("Number of pseudo-observations: ", num_pseudo_observations))
+  anpl_samples <- list()
+  for (concentration in concentrations) {
+    print(paste0("Concentration:", concentration))
+    start <- Sys.time()
+    anpl_sample <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
+                                                          concentration = concentration,
+                                                          n_bootstrap = n_bootstrap,
+                                                          posterior_sample = stan_vb_sample,
+                                                          threshold = 1e-8,
+                                                          num_pseudo_observations = num_pseudo_observations,
+                                                          show_progress = TRUE,
+                                                          num_cores = 1)
+    duration <- as.double(Sys.time() - start, units = "secs")
+    durations <- rbind(durations, c(num_pseudo_observations, concentration, duration))
 
-  write.csv(durations, file = "durations.csv", quote = FALSE,
-          row.names = FALSE, col.names = TRUE)
+    write.csv(durations, file = "durations.csv", quote = FALSE,
+              row.names = FALSE, col.names = TRUE)
 
-  anpl_samples[[toString(concentration)]] <- anpl_sample
+    anpl_samples[[toString(concentration)]] <- anpl_sample
+  }
+
+
+  # Initialise
+  plot_df <- tibble::tibble()
+
+  # Create a plot data frame with all the samples
+  for (concentration in concentrations) {
+    plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[toString(concentration)]],
+                               method = "PosteriorBootstrap-ANPL",
+                               concentration = concentration,
+                               x_index = x_index, y_index = y_index)
+    plot_df  <- append_to_plot(plot_df, sample = stan_bayes_sample,
+                               method = "Bayes-Stan",
+                               concentration = concentration,
+                               x_index = x_index, y_index = y_index)
+    plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
+                               method = "VB-Stan",
+                               concentration = concentration,
+                               x_index = x_index, y_index = y_index)
+  }
+
+  pdf(paste0("vb (num_pseudo = ", num_pseudo_observations, ".pdf"))
+  ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
+                  data = dplyr::filter(plot_df, plot_df$Method != "Bayes-Stan")) +
+    stat_density_2d1(bins = 5) +
+    ggplot2::geom_point(alpha = 0.1, size = 1,
+                        data = dplyr::filter(plot_df,
+                                             plot_df$Method == "Bayes-Stan")) +
+      ggplot2::facet_wrap(~concentration, nrow = 1,
+                          scales = "fixed",
+                          labeller = ggplot2::label_bquote(c ~" = "~
+                                                             .(concentration))
+                          ) +
+      ggplot2::theme_grey(base_size = 8) +
+      ggplot2::xlab(bquote(beta[.(x_index)])) +
+      ggplot2::ylab(bquote(beta[.(y_index)])) +
+      ggplot2::theme(legend.position = "none",
+                     plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
+  dev.off()
 }
 
-
-# Initialise
-plot_df <- tibble::tibble()
-
-# Create a plot data frame with all the samples
-for (concentration in concentrations) {
-  plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[toString(concentration)]],
-                             method = "PosteriorBootstrap-ANPL",
-                             concentration = concentration,
-                             x_index = x_index, y_index = y_index)
-  plot_df  <- append_to_plot(plot_df, sample = stan_bayes_sample,
-                             method = "Bayes-Stan",
-                             concentration = concentration,
-                             x_index = x_index, y_index = y_index)
-  plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
-                             method = "VB-Stan",
-                             concentration = concentration,
-                             x_index = x_index, y_index = y_index)
-}
-
-pdf(paste0("vb (num_pseudo = ", num_pseudo_observations, ".pdf"))
-ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
-                data = dplyr::filter(plot_df, plot_df$Method != "Bayes-Stan")) +
-  stat_density_2d1(bins = 5) +
-  ggplot2::geom_point(alpha = 0.1, size = 1,
-                      data = dplyr::filter(plot_df,
-                                           plot_df$Method == "Bayes-Stan")) +
-    ggplot2::facet_wrap(~concentration, nrow = 1,
-                        scales = "fixed",
-                        labeller = ggplot2::label_bquote(c ~" = "~
-                                                           .(concentration))
-                        ) +
-    ggplot2::theme_grey(base_size = 8) +
-    ggplot2::xlab(bquote(beta[.(x_index)])) +
-    ggplot2::ylab(bquote(beta[.(y_index)])) +
-    ggplot2::theme(legend.position = "none",
-                   plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
-}
-dev.off()
-}
-
-names(duration) <- c("Num_pseudo_observations", "concentration", "lap")
+names(durations) <- c("Num_pseudo_observations", "concentration", "duration")
 
 write.csv(durations, file = "durations.csv", quote = FALSE,
           row.names = FALSE, col.names = TRUE)
