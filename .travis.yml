@@ -32,9 +32,6 @@ matrix:
       r: release
       env: LINTR_COMMENT_BOT=true
 
-# macOS 10.12 version
-osx_image: xcode9.2
-
 # The lintr R package is slightly behind its Github version but it is fine for
 # now. If we have lintr problems in the future, revert to
 # ```
