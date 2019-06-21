@@ -71,12 +71,11 @@ draw_stick_breaks <- function(concentration = 1,
                               threshold = 1e-8,
                               seed = NULL) {
 
-  # This algorithm regenerates all values, which is a waste but is faster than
-  # appending in a for loop, which is slow in R.  The loop is often unnecessary,
-  # as the function is called with min_stick_breaks equal to the the number of
-  # rows in the dataset, which is 1,000, and it only goes once through the
-  # loop. This algorithm also uses some shortcuts in array multiplication to get
-  # the right numbers.
+  # This algorithm generates a set of stick-breaks and then checks whether the
+  # remainder is under the required threshold. If it is, then the stick breaks
+  # are returned, otherwise the number of breaks is increased and a new set of
+  # breaks is generated. Although it may seem wasteful to regenerate the values,
+  # this is nevertheless faster than appending values to an existing array.
 
   # The array `stick_remaining` holds the remainder of the stick if we stopped
   # at that index: 1, 1-beta_draws[1], (1-beta_draws[1])*(1-beta_draws[2]), ...
@@ -105,13 +104,15 @@ draw_stick_breaks <- function(concentration = 1,
     if (stick_remaining[length(stick_remaining)] <= threshold) {
       break
     } else {
-      # Increase the number of stick breaks to go below the threshold.
-      # The magic number 10 here is arbitrary.
-      num_stick_breaks <- num_stick_breaks * 10
+      # Increase the number of stick breaks to go below the threshold.  The
+      # magic number 2 here is arbitrary. A larger number can speed up the
+      # running time of this loop but increases the number of samples in the
+      # estimation and can thus increase the total running time of the code.
+      num_stick_breaks <- num_stick_breaks * 2
     }
   }
 
-  # The stick breaks are difference from one value of stick_remaining to the
+  # The stick breaks are the difference from one value of stick_remaining to the
   # next
   stick_breaks <- stick_remaining[1:num_stick_breaks] -
     stick_remaining[2:(num_stick_breaks + 1)]
@@ -128,8 +129,7 @@ draw_stick_breaks <- function(concentration = 1,
 check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
                          gamma_mean, gamma_vcov) {
 
-  # The error messages are reflowed to be copy-pasted into the tests at
-  # test_anpl.R
+  # The error messages here are directly copied from test_anpl.R
   if (is.null(posterior_sample)) {
     if (is.null(gamma_mean)) {
       stop(paste0("If you don't provide a posterior sample, you ",
@@ -250,8 +250,7 @@ draw_logit_samples <- function(x,
   }
 
   if (show_progress) {
-    # Style = 3 gives ugly results in the vignette, where output is required to
-    # keep the Travis build alive.
+    # This progress bar serves to keep the Travis build alive.
     progress_bar <- utils::txtProgressBar(min = 0, max = n_bootstrap, style = 1)
   } else {
     progress_bar <- NULL
@@ -285,12 +284,21 @@ draw_logit_single <- function(i, x, y, concentration, gamma, threshold,
                               progress_bar) {
 
   dataset_n <- length(y)
+
+  # Compute Dirichlet weights for the data using Gamma draws, see
+  # https://en.wikipedia.org/wiki/Dirichlet_distribution#Gamma_distribution
+  w_raw_data <- stats::rgamma(n = dataset_n,
+                              shape = rep(1, dataset_n),
+                              rate = rep(1, dataset_n))
+  w_data <- w_raw_data / sum(w_raw_data)
+
   if (0 == concentration) {
-    # No prior samples. Compute Dirichlet weights
-    wgt_mean <- rep(1, dataset_n)
-    wgts <- stats::rgamma(n = dataset_n,
-                          shape = wgt_mean,
-                          rate = rep(1, dataset_n))
+    # In the paper, the model versus data weight (s_i) is Beta(concentration,
+    # dataset_n). In the case concentration = 0, the Beta distribution tends to
+    # a degenerate distribution at 0, which corresponds to no weight on the
+    # model, which means that this sample draw uses only the data.
+
+    wgts <- w_data
     x_all <- x
     y_all <- y
   } else {
@@ -304,18 +312,19 @@ draw_logit_single <- function(i, x, y, concentration, gamma, threshold,
                         shape2 = dataset_n)
 
     # Generate stick-breaking weights. The number of weights,
-    # `n_centering_model_samples` is `10^k * dataset_n` for integer k because
+    # `n_centering_model_samples` is `2^k * dataset_n` for integer k because
     # the draw_stick_breaks function is written like that at the moment.
+    #
+    # The threshold is not exactly as in the paper but it matters little since
+    # the `draw_stick_breaks` function increases size by factors of 2 so it
+    # doesn't stop when the threshold is exactly exceeded anyway .
 
-    w_raw_model <- draw_stick_breaks(concentration = concentration,
-                                     min_stick_breaks = dataset_n,
-                                     threshold = threshold)
-    w_model <- w_raw_model * s_i
+    w_model <- draw_stick_breaks(concentration = concentration,
+                                 min_stick_breaks = dataset_n,
+                                 threshold = threshold)
     n_centering_model_samples <- length(w_model)
 
-    # Note: the stick-breaking function serves only to set
-    # n_centering_model_samples, which is probably wrong. See issue 59:
-    # https://github.com/alan-turing-institute/PosteriorBootstrap/issues/59
+    wgts <- c(w_data * (1 - s_i), w_model * s_i)
 
     # Create prior samples (prior in the code means "model" in the
     # paper). `x_prior` is a `n_centering_model_samples * ncol(x)` matrix and
@@ -340,13 +349,6 @@ draw_logit_single <- function(i, x, y, concentration, gamma, threshold,
     y_prior <- stats::rbinom(n = n_centering_model_samples,
                              size = 1, prob = probs)
 
-    # Compute Dirichlet weights for the data and the model
-    wgt_mean <- c(rep(1, dataset_n),
-                  rep(concentration / n_centering_model_samples,
-                      n_centering_model_samples))
-    n_total <- dataset_n + n_centering_model_samples
-    wgts <- stats::rgamma(n = n_total, shape = wgt_mean,
-                          rate = rep(1, n_total))
     x_all <- rbind(x, x_prior)
     y_all <- c(y, y_prior)
   }
