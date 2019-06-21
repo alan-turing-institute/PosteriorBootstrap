@@ -1,18 +1,45 @@
-PRIVATE_KEY="~/.ssh/azure"
-PRIVATE_KEY_FLAG="-i $PRIVATE_KEY"
+KEY="~/.ssh/azure"
 
-new=false
+#!/bin/bash
+for i in "$@"
+do
+    case $i in
+	-k=*|--key=*)
+	    KEY="${i#*=}"
+
+	    ;;
+	-i=*|--ip=*)
+	    IP="${i#*=}"
+	    ;;
+	*)
+            # unknown option
+	    ;;
+    esac
+done
+
+if [ -z "$IP" ]; then
+    NEW=true
+else
+    NEW=false
+fi
+
+echo KEY = ${KEY}
+echo IP = ${IP}
+echo NEW = ${NEW}
+
+KEY_FLAG="-i $KEY"
+echo KEYFLAG = ${KEY_FLAG}
 
 if $new; then
 
     # Create new virtual machine
     az_cmd="az vm create
-       --resource-group PosteriorBootstrap
+       --resource-group PB
        --name VM
        --image microsoft-dsvm:linux-data-science-vm-ubuntu:linuxdsvmubuntu:19.04.00
        --size Standard_F16s_v2
        --admin-username ${USER}
-       --ssh-key-value ${PRIVATE_KEY}.pub"
+       --ssh-key-value ${KEY}.pub"
 
     # Parse the result to get the IP address
     result=$($az_cmd)
