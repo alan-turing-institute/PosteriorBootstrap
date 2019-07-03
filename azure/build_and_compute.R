@@ -1,0 +1,12 @@
+.libPaths(c("~/R/", .libPaths()))
+
+library("devtools")
+setwd("PosteriorBootstrap")
+devtools::document()
+#devtools::check()
+devtools::build()
+#devtools::test()
+devtools::install(reload = T, quick = T)
+#devtools::build_vignettes()
+source('azure/speedup.R')
+source('azure/Figure2.R')
