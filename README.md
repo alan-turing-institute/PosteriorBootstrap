@@ -55,21 +55,50 @@ the duration of the task with one core divided by the duration of the task with
 
 ![Parallelisation speedup](Speedup.png)
 
-I inverted Ahmdal's law to compute the proportion of the execution time that is
-parallelisable from the speedup as:
+Inverting Ahmdal's law gives the proportion of the execution time that is
+parallelisable from the speedup 
 
 $$ p = \frac{\frac{1}{S_{latency}}} - 1}{\frac{1}{s} - 1} $$
 
 where $S_{latency}$ is the theoretical speedup of the whole task in Ahmdal's law
 and the observed speedup here, and $s$ is the speedup of the part of the task
 that can be parallelised, and thus equal to the number of
-processors. Calculating this value for the durations from 1 to 8 cores, I got
+processors. Calculating this value for the durations from 1 to 64 cores gives
 this plot:
 
 ![Parallelisation proportion](Proportion.png)
 
 The proportion of the code that can be parallelised is high, and higher the
 large the bootstrap samples, and always below 1. For large samples with
-`n_bootstrap = 10,000`, one estimate of proportion is close to 100%.
+`n_bootstrap = 10,000`, the values are close to 100%.
 
+
+## Reproducing the parallelisation results
+
+To run the results in this section automatically, you'll need a [Microsoft Azure
+subscription](http://azure.microsoft.com/en-gb/) (one of the [free
+subscriptions](http://azure.microsoft.com/en-gb/free/) for example) and the
+[Azure Command-Line
+interface](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest)
+and run the following on a shell with current directory at the root of the
+repository for deploying on a new machine:
+
+```bash
+azure/deploy.sh -g=<name of resource group> -k=<path to your private key>
+```
+
+or, to deploy on an existing machine:
+
+```bash
+azure/deploy.sh -i=<IP address> -k=<path to your private key>
+```
+
+The path to your private key defaults to `~/.ssh/azure` if you do not specify
+it, and the public key is that path with the suffix `.pub`.
+
+If you need to generate a private-public key pair, run:
+
+```bash
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/azure
+```
 
