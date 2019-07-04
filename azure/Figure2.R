@@ -131,4 +131,4 @@ gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method
                    plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
 
 
-ggplot2::ggsave("Figure2.png", plot = gplot2, width = 8, height = 5.5, units = 'in', dpi = 72)
+ggplot2::ggsave("Figure2.png", plot = gplot2, width = 14, height = 5, units = 'cm', dpi = 300)
