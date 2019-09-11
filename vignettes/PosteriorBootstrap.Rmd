@@ -131,6 +131,8 @@ We assign an independent normal prior with standard deviation 10 to each covaria
 generate 1000 posterior samples for each method: Bayesian logistic regression,
 variational Bayes, and Adaptive Non-Parametric Learning.
 
+**Note**: variational Bayes in RStan is still experimental. We have had situations in the past where the same code with the same versions produces very different results. [This thread on StackOverflow](https://stackoverflow.com/questions/57186920/rstan-gives-different-results-in-exact-and-variational-bayes-modes) mentions this problem. In this code, variational Bayes provides the samples for our method, so the results may vary in the future because of the results from variational Bayes in RStan. Whether variational Bayes gives the expected answers or not, our approach will always give an answer that is in-between the results from variational Bayes and Bayesian logistic regression.
+
 We tune the settings for the sampling with the number of draws, setting the
 seed, and getting the data:
 
