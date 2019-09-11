@@ -5,4 +5,4 @@ sudo apt -y install r-cran-rstan
 
 # Add LibSSL for installing curl and devtools, see:
 # https://stackoverflow.com/questions/44228055/r-rstudio-install-devtools-fails
-sudo apt-get install libcurl4-openssl-dev libssl-dev
+sudo apt-get -y install libcurl4-openssl-dev libssl-dev
