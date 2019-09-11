@@ -67,8 +67,6 @@ prior_sd <- 10
 n_bootstrap <- 1000
 german <- PosteriorBootstrap::get_german_credit_dataset(scale = TRUE)
 
-german$x[22] <- german$x[22] - 1
-
 train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x, y = german$y, beta_sd = prior_sd)
 stan_file <- PosteriorBootstrap::get_stan_file()
 bayes_log_reg <- rstan::stan(stan_file, data = train_dat, seed = seed,
@@ -81,16 +79,16 @@ stan_vb <- rstan::vb(object = stan_model, data = train_dat, seed = seed,
 stan_vb_sample <- rstan::extract(stan_vb)$beta
 
 concentrations <- c(1, 1000, 20000)
-# anpl_samples <- list()
-# for (concentration in concentrations) {
-#   anpl_sample <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
-#                                                         concentration = concentration,
-#                                                         n_bootstrap = n_bootstrap,
-#                                                         posterior_sample = stan_vb_sample,
-#                                                         threshold = 1e-8,
-#                                                         show_progress = TRUE)
-#   anpl_samples[[toString(concentration)]] <- anpl_sample
-# }
+anpl_samples <- list()
+for (concentration in concentrations) {
+  anpl_sample <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
+                                                        concentration = concentration,
+                                                        n_bootstrap = n_bootstrap,
+                                                        posterior_sample = stan_vb_sample,
+                                                        threshold = 1e-8,
+                                                        show_progress = TRUE)
+  anpl_samples[[toString(concentration)]] <- anpl_sample
+}
 
 # Initialise
 plot_df <- tibble::tibble()
@@ -101,10 +99,10 @@ y_index <- 22
 
 # Create a plot data frame with all the samples
 for (concentration in concentrations) {
-  # plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[toString(concentration)]],
-  #                            method = "PosteriorBootstrap-ANPL",
-  #                            concentration = concentration,
-  #                            x_index = x_index, y_index = y_index)
+  plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[toString(concentration)]],
+                             method = "PosteriorBootstrap-ANPL",
+                             concentration = concentration,
+                             x_index = x_index, y_index = y_index)
   plot_df  <- append_to_plot(plot_df, sample = stan_bayes_sample,
                              method = "Bayes-Stan",
                              concentration = concentration,
@@ -115,7 +113,7 @@ for (concentration in concentrations) {
                              x_index = x_index, y_index = y_index)
 }
 
-ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
+gplot2 <- ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
                   data = dplyr::filter(plot_df, plot_df$Method != "Bayes-Stan")) +
     stat_density_2d1(bins = 5) +
     ggplot2::geom_point(alpha = 0.1, size = 1,
@@ -133,4 +131,4 @@ ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
                    plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
 
 
-#ggplot2::ggsave("Figure2.png", plot = gplot2, width = 14, height = 5, units = 'cm', dpi = 300)
+ggplot2::ggsave("Figure2.png", plot = gplot2, width = 14, height = 5, units = 'cm', dpi = 300)
