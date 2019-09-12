@@ -30,22 +30,29 @@ requireNamespace("devtools", quietly = TRUE)
 devtools::install_github("https://github.com/alan-turing-institute/PosteriorBootstrap/")
 ```
 
-## Example usage
+## Example usage and graphical result from the paper
 
-The provided vignette illustrates the use of the package on a logistic
-regression model fit to the Statlog German Credit dataset and reproduces Figure
-2, page 8, from Lyddon, Walker, and Holmes (2018), "Nonparametric learning from
-Bayesian models with randomized objective functions" (32nd Conference on Neural
-Information Processing Systems (NIPS 2018), Montréal, Canada). The figure below
-shows the advantage of the package: one can tune the proximity of the sampling
-method to exact inference (Bayesian logistic regression) with low `c` (`c = 1`),
-to approximate inference (variational inference) with high `c` (`c = 20,000`),
-or anywhere in between. As mentioned in page 3 of the paper, the concentration
-parameter `c` is an effective sample size, governing the trust we have in the
-parametric model.
+Please see the provided vignette (at
+[`vignettes/PosteriorBootstrap.Rmd`](https://github.com/alan-turing-institute/PosteriorBootstrap/blob/master/vignettes/PosteriorBootstrap.Rmd))
+for an example usage of the package to fit a logistic regression model to the
+Statlog German Credit dataset.
+
+The vignette reproduces Figure 2, page 8, from Lyddon, Walker, and Holmes
+(2018), "Nonparametric learning from Bayesian models with randomized objective
+functions" (32nd Conference on Neural Information Processing Systems, Montréal,
+Canada). The vignette is limited to a concentration parameter of `c = 500` and
+the figure below reproduces the one from the paper with the same concentration
+parameters.
 
 ![Figure 2 from the paper, showing the tuning of the sampling close to exact
 inference or variational inference](Figure2.png)
+
+The figure above shows the advantage of the package: one can tune the proximity
+of the sampling method to exact inference (Bayesian logistic regression) with a
+low `c` or to approximate inference (variational inference) with high `c`, or
+anywhere in between. As mentioned in page 3 of the paper, the concentration
+parameter `c` is an effective sample size, governing the trust we have in the
+parametric model.
 
 ## Issues and bug reports
 
