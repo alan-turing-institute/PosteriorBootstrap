@@ -73,14 +73,24 @@ large the bootstrap samples, and always below 1. For large samples with
 `n_bootstrap = 10,000`, the values are close to 100%.
 
 
-## Reproducing the parallelisation results
+## Reproducing the results on Azure
 
 To run the results in this section automatically, you'll need a [Microsoft Azure
 subscription](http://azure.microsoft.com/en-gb/) (one of the [free
 subscriptions](http://azure.microsoft.com/en-gb/free/) for example) and the
 [Azure Command-Line
-interface](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest)
-and run the following on a shell with current directory at the root of the
+Interface (CLI)](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest). You
+will need to login to your Azure account with the Azure CLI:
+
+```bash
+az login
+```
+
+then follow the instructions. You will need to create a resource group on
+[portal.azure.com](https://portal.azure.com/) and make note of the name of the
+resource group. The default name of the resource group is `PB` for PosteriorBootstrap.
+
+Then run the following on a shell with current directory at the root of the
 repository for deploying on a new machine:
 
 ```bash
@@ -90,7 +100,7 @@ azure/deploy.sh -g=<name of resource group> -k=<path to your private key>
 or, to deploy on an existing machine:
 
 ```bash
-azure/deploy.sh -i=<IP address> -k=<path to your private key>
+azure/deploy.sh -i=<IP address> -g=<name of resource group> -k=<path to your private key>
 ```
 
 The path to your private key defaults to `~/.ssh/azure` if you do not specify
