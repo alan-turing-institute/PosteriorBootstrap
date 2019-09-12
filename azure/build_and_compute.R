@@ -3,7 +3,6 @@
 library("devtools")
 setwd("PosteriorBootstrap")
 devtools::document()
-devtools::check()
 devtools::build()
 devtools::test()
 devtools::install(reload = T, quick = T)
