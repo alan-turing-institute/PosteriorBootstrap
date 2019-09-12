@@ -35,6 +35,7 @@ Imports:
     Rcpp (>= 1.0.1),
     rstan (>= 2.18.2),
     utils (>= 3.4.3),
+    StanHeaders (>= 2.18.1),
     tibble (>= 2.1.1)
 Suggests:
     knitr (>= 1.21),
