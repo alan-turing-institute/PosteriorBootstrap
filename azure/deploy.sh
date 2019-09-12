@@ -1,5 +1,6 @@
-KEY="~/.ssh/azure"
-RG=PB
+# Default values
+KEY="~/.ssh/azure"  # Location of private key
+RG=PB  # Name of resource group
 
 #!/bin/bash
 for i in "$@"
@@ -36,7 +37,9 @@ echo KEY_FLAG = ${KEY_FLAG}
 
 if $NEW; then
 
-    # Create new virtual machine
+    # Create new virtual machine. Standard_D64_v3 has 64 cores for assessing
+    # Ahmdal's law. See more size at:
+    # https://docs.microsoft.com/en-us/azure/virtual-machines/windows/sizes-general
     az_cmd="az vm create
        --resource-group ${RG}
        --name VM
