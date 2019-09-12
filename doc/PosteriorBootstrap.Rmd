@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Introduction
+
 This vignette shows the code generating figure 2 in Lyddon, Walker & Holmes,
 2018, and also reuses material from that paper.
 
@@ -168,8 +170,8 @@ stan_vb_sample <- rstan::extract(stan_vb)$beta
 ```
 
 We now run the Adaptive Non-Parametric Learning algorithm, using the samples
-from variational Bayes, for different values of the concentration
-hyper-parameter:
+from variational Bayes, for two different values of the concentration
+hyper-parameter. Because our sampling method with `c = 1000` takes longer than the timeout allowed on CRAN, we use only `c = 500` for this vignette, but please see the [GitHub page](https://github.com/alan-turing-institute/PosteriorBootstrap) for the same figure as in the paper (with `c = 1`, `c = 1,000`, and `c = 20,000`).
 
 ```{r}
 if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
@@ -269,18 +271,20 @@ speedup depends on the number of bootstrap samples and the number of
 processors. It also depends on the system: it is larger on macOS than on Linux,
 with some variation depending on the version of R.
 
+Due to limitations in the R workflow,
+[this vignette is limited to one or two
+cores](https://stackoverflow.com/questions/41307178/error-processing-vignette-failed-with-diagnostics-4-simultaneous-processes-spa),
+but see the [GitHub
+page](https://github.com/alan-turing-institute/PosteriorBootstrap/blob/master/README.md)
+for a plot up to 64 cores.
+
 ### Ahmdal's law
 
 Fixing the number of samples corresponds to [Ahmdal's
 law](https://en.wikipedia.org/wiki/Ahmdal's_Law), or the speedup in the task as
 a function of the number of processors. The speedup `S_latency` of `N`
 processors is defined as the duration of the task with one core divided by the
-duration of the task with `N` processors. Due to limitations in the R workflow,
-[we are limited to one or two
-cores](https://stackoverflow.com/questions/41307178/error-processing-vignette-failed-with-diagnostics-4-simultaneous-processes-spa),
-but see the [GitHub
-README](https://github.com/alan-turing-institute/PosteriorBootstrap/blob/master/README.md)
-for a plot with 8 cores.  We compute the duration for one or two cores and for
+duration of the task with `N` processors.  We compute the duration for one or two cores and for
 several values of bootstrap samples.
 
 ```{r}
