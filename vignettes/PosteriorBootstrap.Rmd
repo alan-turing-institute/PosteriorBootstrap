@@ -81,7 +81,7 @@ stat_density_2d1_proto <- ggplot2::ggproto(NULL,
       data$x, data$y, h = h, n = n,
       lims = c(scales$x$dimension(), scales$y$dimension())
     )
-    
+
     # Store in data frame
     df <- data.frame(expand.grid(x = dens$x, y = dens$y), z = as.vector(dens$z))
 
@@ -191,7 +191,7 @@ if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
 
 ## Preparing the plot
 
-We now prepare a dataframe with all the samples ready for plotting. 
+We now prepare a dataframe with all the samples ready for plotting.
 
 ```{r}
 if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
@@ -265,7 +265,7 @@ samples may be parallelisable, above we use a Markov Chain-Monte Carlo algorithm
 from RStan, which is not parallelisable. We emphasise that the part of our
 algorithm that benefits from modern parallel computer architectures happens
 after we have the posterior samples (or if `c=0`).
- 
+
 We now illustrate the paralellisation speedup. The calculation of the expected
 speedup depends on the number of bootstrap samples and the number of
 processors. It also depends on the system: it is larger on macOS than on Linux,
@@ -288,37 +288,39 @@ duration of the task with `N` processors.  We compute the duration for one or tw
 several values of bootstrap samples.
 
 ```{r}
-speedups  <- data.frame(stringsAsFactors = FALSE)
-max_cores <- 2
-n_bootstrap_array <- c(1e2, 2e2, 5e2)
+if (Sys.info()["sysname"] != "Windows") {
+  speedups  <- data.frame(stringsAsFactors = FALSE)
+  max_cores <- parallel::detectCores()
+  n_bootstrap_array <- c(1e2, 2e2, 5e2)
 
-for (n_bootstrap in n_bootstrap_array) {
-  one_core_duration <- NULL
-  for (num_cores in seq(1, max_cores)) {
-    
-    start <- Sys.time()
-    anpl_samples <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
-                                                           concentration = 1,
-                                                           n_bootstrap = n_bootstrap,
-                                                           gamma_mean = rep(0, ncol(german$x)),
-                                                           gamma_vcov = diag(1, ncol(german$x)),
-                                                           threshold = 1e-8,
-                                                           num_cores = num_cores)
-    lap <- as.double((Sys.time() - start), units = "secs")
-	if (1 == num_cores) {
-	  one_core_duration <- lap
+  for (n_bootstrap in n_bootstrap_array) {
+    one_core_duration <- NULL
+    for (num_cores in seq(1, max_cores)) {
+
+      start <- Sys.time()
+      anpl_samples <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
+                                                            concentration = 1,
+                                                            n_bootstrap = n_bootstrap,
+                                                            gamma_mean = rep(0, ncol(german$x)),
+                                                            gamma_vcov = diag(1, ncol(german$x)),
+                                                            threshold = 1e-8,
+                                                            num_cores = num_cores)
+      lap <- as.double((Sys.time() - start), units = "secs")
+    if (1 == num_cores) {
+      one_core_duration <- lap
+      }
+      speedups <- rbind(speedups, c(num_cores, n_bootstrap, one_core_duration / lap))
     }
-    speedups <- rbind(speedups, c(num_cores, n_bootstrap, one_core_duration / lap))
+    names(speedups) <- c("Num_cores", "N_bootstrap", "speedup")
   }
-  names(speedups) <- c("Num_cores", "N_bootstrap", "speedup")
+
+  # Convert n_bootstrap to strings for ggplot2 to arrange them into groups
+  speedups$N_bootstrap <- paste0("N_", speedups$N_bootstrap)
+
+  ggplot2::ggplot(data = speedups,
+                  ggplot2::aes(x = Num_cores, y = speedup)) +
+    ggplot2::geom_line(ggplot2::aes(colour = N_bootstrap))
 }
-
-# Convert n_bootstrap to strings for ggplot2 to arrange them into groups
-speedups$N_bootstrap <- paste0("N_", speedups$N_bootstrap)
-
-ggplot2::ggplot(data = speedups,
-                ggplot2::aes(x = Num_cores, y = speedup)) +
-  ggplot2::geom_line(ggplot2::aes(colour = N_bootstrap))
 ```
 
 We invert Ahmdal's law to compute the proportion of the execution time that is

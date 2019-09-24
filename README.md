@@ -1,4 +1,7 @@
 PosteriorBootstrap
+[![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/AzureML)](http://cran.r-project.org/package=PosteriorBootstrap)
+[![CRAN RStudio mirror downloads](http://cranlogs.r-pkg.org/badges/AzureML)](http://www.r-pkg.org/pkg/PosteriorBootstrap)
 [![Build Status](https://travis-ci.com/alan-turing-institute/PosteriorBootstrap.svg?branch=master)](https://travis-ci.com/alan-turing-institute/PosteriorBootstrap)
 [![codecov](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap/branch/master/graph/badge.svg)](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap)
 ==================
@@ -45,7 +48,7 @@ the figure below reproduces the one from the paper with the same concentration
 parameters.
 
 ![Figure 2 from the paper, showing the tuning of the sampling close to exact
-inference or variational inference](Figure2.png)
+inference or variational inference](man/figures/Figure2.png)
 
 The figure above shows the advantage of the package: one can tune the proximity
 of the sampling method to exact inference (Bayesian logistic regression) with a
@@ -72,10 +75,10 @@ the duration of the task with one core divided by the duration of the task with
 `N` processors. For the number of bootstrap samples in
 100, 1000, and 10,000, the speedup is:
 
-![Parallelisation speedup](Speedup.png)
+![Parallelisation speedup](man/figures/Speedup.png)
 
 Inverting Ahmdal's law gives the proportion of the execution time that is
-parallelisable from the speedup 
+parallelisable from the speedup
 
 $$ p = \frac{\frac{1}{S_{latency}}} - 1}{\frac{1}{s} - 1} $$
 
@@ -85,7 +88,7 @@ that can be parallelised, and thus equal to the number of
 processors. Calculating this value for the durations from 1 to 64 cores gives
 this plot:
 
-![Parallelisation proportion](Proportion.png)
+![Parallelisation proportion](man/figures/Proportion.png)
 
 The proportion of the code that can be parallelised is high, and higher the
 large the bootstrap samples, and always below 1. For large samples with
