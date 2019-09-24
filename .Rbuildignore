@@ -6,7 +6,6 @@
 ^\.travis\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^.*.png
 ^vignettes/\.build\.timestamp$
 ^azure/
 ^cran-comments.md
