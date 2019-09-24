@@ -335,12 +335,14 @@ processors. Calculating this value for the durations from 1 to 8 cores, we obtai
 this plot, where the proportion of the code that can be parallelised is high:
 
 ```{r}
-library("gridExtra")
+if (Sys.info()["sysname"] != "Windows") {
+  library("gridExtra")
 
-# Remove single core speedup, where the proportion is not defined
-speedups <- speedups[1 != speedups$Num_cores, ]
-speedups$proportion <- (1 / speedups$speedup - 1) / (1 / speedups$Num_cores - 1)
+  # Remove single core speedup, where the proportion is not defined
+  speedups <- speedups[1 != speedups$Num_cores, ]
+  speedups$proportion <- (1 / speedups$speedup - 1) / (1 / speedups$Num_cores - 1)
 
-ggplot2::qplot(proportion, data = speedups, fill = N_bootstrap, binwidth = 0.005) +
-  ggplot2::facet_wrap(facets = ~N_bootstrap)
+  ggplot2::qplot(proportion, data = speedups, fill = N_bootstrap, binwidth = 0.005) +
+    ggplot2::facet_wrap(facets = ~N_bootstrap)
+}
 ```
