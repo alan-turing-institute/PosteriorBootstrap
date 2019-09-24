@@ -1,6 +1,6 @@
 context("Adaptive non-parametric learning function")
 
-# Rstan needs to be loaded and attached, not just loaded. See 
+# Rstan needs to be loaded and attached, not just loaded. See
 # https://stackoverflow.com/questions/56262828/
 library("rstan")
 
@@ -172,7 +172,7 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
   train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x,
                     y = german$y, beta_sd = prior_sd)
   stan_model <- rstan::stan_model(file = get_stan_file())
-  utils::capture.output(  # Suppress output
+  suppressWarnings(  # Suppress Pareto k diagnostic warnings
     stan_vb <- rstan::vb(object = stan_model, data = train_dat, seed = seed,
                          output_samples = n_bootstrap)
   )

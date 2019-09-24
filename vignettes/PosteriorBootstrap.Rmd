@@ -288,7 +288,7 @@ duration of the task with `N` processors.  We compute the duration for one or tw
 several values of bootstrap samples.
 
 ```{r}
-if (Sys.info()["sysname"] != "Windows") {
+if ("Windows" != Sys.info()["sysname"] ) {
   speedups  <- data.frame(stringsAsFactors = FALSE)
   max_cores <- parallel::detectCores()
   n_bootstrap_array <- c(1e2, 2e2, 5e2)
@@ -335,7 +335,7 @@ processors. Calculating this value for the durations from 1 to 8 cores, we obtai
 this plot, where the proportion of the code that can be parallelised is high:
 
 ```{r}
-if (Sys.info()["sysname"] != "Windows") {
+if ("Windows" != Sys.info()["sysname"] ) {
   library("gridExtra")
 
   # Remove single core speedup, where the proportion is not defined
