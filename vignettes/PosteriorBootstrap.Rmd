@@ -290,7 +290,7 @@ several values of bootstrap samples.
 ```{r}
 if ("Windows" != Sys.info()["sysname"] ) {
   speedups  <- data.frame(stringsAsFactors = FALSE)
-  max_cores <- parallel::detectCores()
+  max_cores <- 2
   n_bootstrap_array <- c(1e2, 2e2, 5e2)
 
   for (n_bootstrap in n_bootstrap_array) {
