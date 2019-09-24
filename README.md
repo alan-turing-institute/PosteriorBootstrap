@@ -1,12 +1,9 @@
-PosteriorBootstrap
+# PosteriorBootstrap
 [![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/AzureML)](http://cran.r-project.org/package=PosteriorBootstrap)
 [![CRAN RStudio mirror downloads](http://cranlogs.r-pkg.org/badges/AzureML)](http://www.r-pkg.org/pkg/PosteriorBootstrap)
 [![Build Status](https://travis-ci.com/alan-turing-institute/PosteriorBootstrap.svg?branch=master)](https://travis-ci.com/alan-turing-institute/PosteriorBootstrap)
 [![codecov](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap/branch/master/graph/badge.svg)](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap)
-==================
-
-# PosteriorBootstrap
 
 Bayesian learning is built on an assumption that the model space contains a true
 reflection of the data generating mechanism. This assumption is problematic,
