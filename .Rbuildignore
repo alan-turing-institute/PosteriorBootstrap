@@ -9,3 +9,4 @@
 ^.*.png
 ^vignettes/\.build\.timestamp$
 ^azure/
+^cran-comments.md
