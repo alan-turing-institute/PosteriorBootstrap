@@ -179,7 +179,7 @@ hyper-parameter. Because our sampling method with `c = 1000` takes longer than t
 
 ```{r}
 if ("Windows" != Sys.info()["sysname"]) {
-  if ((identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
+  if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
     concentrations <- c(1, 500)
     anpl_samples <- list()
     for (concentration in concentrations) {
