@@ -22,7 +22,10 @@ Description: An implementation of a non-parametric statistical model using a
     parameter, determining the faith we have in the model versus the data. When
     the concentration is low, the samples are close to the exact Bayesian
     logistic regression method; when the concentration is high, the samples are
-    close to the simplified variational Bayes logistic regression.
+    close to the simplified variational Bayes logistic regression. The method is
+    described in full in the paper Lyddon, Walker, and Holmes (2018),
+    "Nonparametric learning from Bayesian models with randomized objective
+    functions" <arXiv:1806.11544 [stat.ML]>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
