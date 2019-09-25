@@ -162,7 +162,7 @@ test_that("Parallelisation works and is faster", {
 
 test_that("Adaptive non-parametric learning with posterior samples works", {
   # On Windows RStan fails with a known error:
-  # "C++14 standard requested but CXX14 is not defined"
+  # C++14 standard requested but CXX14 is not defined
   # The necessary fix is to rebuild RStan, but we cannot do that on remote
   # systems like CRAN or Rhub so we skip the test instead
   skip_on_os(c("windows"))
