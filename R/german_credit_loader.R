@@ -21,9 +21,7 @@ k_german_credit_url <- paste0("http://archive.ics.uci.edu/ml/",
 #'
 #' @examples
 #' f <- get_german_credit_file()
-#' \dontrun{
-#' file.show(f)
-#' }
+#' writeLines(readLines(f, n=5))
 #'
 #' @export
 get_german_credit_file <- function() {
