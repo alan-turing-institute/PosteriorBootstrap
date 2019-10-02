@@ -18,9 +18,7 @@ get_file <- function(name) {
 #'
 #' @examples
 #' f <- get_stan_file()
-#' \dontrun{
-#' file.show(f)
-#' }
+#' writeLines(readLines(f))
 #'
 #' @export
 get_stan_file <- function() {
