@@ -177,7 +177,8 @@ test_that("Adaptive non-parametric learning with posterior samples works", {
   train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x,
                     y = german$y, beta_sd = prior_sd)
   stan_model <- rstan::stan_model(file = get_stan_file())
-  suppressWarnings(  # Suppress Pareto k diagnostic warnings
+  # Suppress Pareto k diagnostic warnings
+  suppressWarnings(
     stan_vb <- rstan::vb(object = stan_model, data = train_dat, seed = seed,
                          output_samples = n_bootstrap)
   )

@@ -26,7 +26,7 @@ requireNamespace("rstan", quietly = TRUE)
 requireNamespace("stats", quietly = TRUE)
 requireNamespace("utils", quietly = TRUE)
 
-.onAttach <- function(libname, pkgname) {
+.onAttach <- function(libname, pkgname) {  # nolint
   msg <- paste0("Welcome to PosteriorBootstrap, a parallel approach for ",
                 "adaptive non-parametric learning")
   packageStartupMessage(msg)
