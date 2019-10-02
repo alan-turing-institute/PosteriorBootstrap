@@ -5,7 +5,7 @@ Authors@R: c(
     person(given = "Simon", family = "Lyddon", role = c("aut"), email = "simon.lyddon@stats.ox.ac.uk"),
     person(given = "Miguel", family = "Morin", role = c("aut"), email = "info@turing.ac.uk"),
     person(given = "James", family = "Robinson", role = c("aut", "cre"), email = "james.em.robinson@gmail.com"),
-    person("The Alan Turing Institute", role=c("cph"))
+    person("The Alan Turing Institute", role=c("cph"), email = "info@turing.ac.uk")
 )
 Description: An implementation of a non-parametric statistical model using a
     parallelised Monte Carlo sampling scheme. The method implemented in this
