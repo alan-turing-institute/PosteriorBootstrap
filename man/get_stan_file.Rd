@@ -15,8 +15,6 @@ Get the Stan file with Bayesian Logistic Regression
 }
 \examples{
 f <- get_stan_file()
-\dontrun{
-file.show(f)
-}
+writeLines(readLines(f))
 
 }

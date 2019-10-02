@@ -23,8 +23,10 @@ A list with fields \code{x} for features and \code{y} for outcomes.
 Load and pre-process the dataset that ships with the package
 }
 \examples{
+\donttest{
 german <- get_german_credit_dataset()
 head(german$y)
 head(german$x)
+}
 
 }

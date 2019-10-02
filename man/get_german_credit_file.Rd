@@ -21,8 +21,6 @@ in the original data (as some are qualitative).
 }
 \examples{
 f <- get_german_credit_file()
-\dontrun{
-file.show(f)
-}
+writeLines(readLines(f, n=5))
 
 }
