@@ -40,9 +40,11 @@ get_german_credit_file <- function() {
 #' @return A list with fields \code{x} for features and \code{y} for outcomes.
 #'
 #' @examples
+#' \donttest{
 #' german <- get_german_credit_dataset()
 #' head(german$y)
 #' head(german$x)
+#' }
 #'
 #' @export
 get_german_credit_dataset <- function(scale = TRUE, add_constant_term = TRUE,
