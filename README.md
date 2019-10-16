@@ -84,10 +84,10 @@ parallelisable from the speedup:
 
 <img src="https://latex.codecogs.com/svg.latex?p=\frac{\frac{1}{S_{latency}}-1}{\frac{1}{s}-1}" title="Parallelisable fraction" />
 
-where `S_latency` is the theoretical speedup of the whole task in Ahmdal's law
-and the observed speedup here, and `s` is the speedup of the part of the task
-that can be parallelised, and thus equal to the number of processors. Calculating
-this value for number of cores ranging from 1 to 64 cores gives this plot:
+where `S_latency` is the execution speedup for the whole task (as defined above), and `s` is the
+speedup for the part of the task that can be parallelised. In this case, `s` is simply equal to the
+number of cores used, so repeatedly measuring `S_latency` for several choices of number of cores
+gives this plot:
 
 ![Parallelisation proportion](man/figures/Proportion.png)
 
