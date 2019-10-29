@@ -26,7 +26,8 @@ addons:
     - llvm
 
 before_install:
-  - if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
+  - |
+    if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       mkdir -p ~/.R
       cat <<- EOF > ~/.R/Makevars
         # The following statements are required to use homebrew clang with openmp support
