@@ -29,7 +29,7 @@ before_install:
   - |
     if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       mkdir -p ~/.R
-      cat <<- EOF > ~/.R/Makevars
+      cat << 'EOF' > ~/.R/Makevars
         # The following statements are required to use homebrew clang with openmp support
         CC=/usr/local/clang4/bin/clang
         CXX=/usr/local/clang4/bin/clang++
