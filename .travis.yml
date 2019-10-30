@@ -27,6 +27,8 @@ addons:
 
 before_install:
   - |
+    ls /usr/local/
+    ls /usr/local/clang*
     if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       mkdir -p ~/.R
       # The following statements are required to use homebrew clang with openmp support
