@@ -22,24 +22,13 @@ r:
 addons:
   homebrew:
     packages:
-    #  - cmake
-    #  - gcc
-    # - libomp
     - llvm
 
 before_install:
   - |
-    brew link --overwrite gcc
-    ls /usr/local/
-    ls /usr/local/clang*
-    echo "$(brew --prefix llvm)/bin"
-    ls "$(brew --prefix llvm)/bin"
     if [ "${TRAVIS_OS_NAME}" == "osx" ]; then
       mkdir -p ~/.R
-      # The following statements are required to use homebrew clang with openmp support
-      # echo "CC=/usr/local/clang4/bin/clang" > ~/.R/Makevars
-      # echo "CXX=/usr/local/clang4/bin/clang++" >> ~/.R/Makevars
-      # echo "LDFLAGS=-L/usr/local/clang4/lib" >> ~/.R/Makevars
+      # Ensure that R will use clang from homebrew llvm (which includes openmp support)
       echo "CC=$(brew --prefix llvm)/bin/clang" > ~/.R/Makevars
       echo "CXX=$(brew --prefix llvm)/bin/clang++" >> ~/.R/Makevars
       echo "LDFLAGS=-L$(brew --prefix llvm)/lib" >> ~/.R/Makevars
@@ -62,13 +51,8 @@ matrix:
       r: release
       env: LINTR_COMMENT_BOT=true
 
-# The lintr R package is slightly behind its Github version but it is fine for
-# now. If we have lintr problems in the future, revert to
-# ```
-# r_github_packages:
-#   - jimhester/lintr
-# ```
-
+# Add R packages from CRAN. If newer versions are needed, r_github_packages
+# can be used instead
 r_packages:
   - covr
   - lintr
