@@ -146,18 +146,11 @@ test_that("Parallelisation works and is faster", {
   speedup <- durations[[1]] / durations[[2]]
   print(sprintf("Speedup: %3.2f (1 = same duration)", speedup))
 
-  # From tests on macOS on a local machine and Linux on a virtual machine, the
-  # speedups for n = 1000 vary between 1.75 and 1.89. So 1.6 seems a reasonable
-  # number on macOS. On Linux, the speedups vary between 1.5 and 1.56, so 1.4
-  # seems a reasonable number for now. In the future, revisit this "magic
-  # number" as needed.
-  if ("Darwin" == Sys.info()["sysname"]) {
-    expected_speedup <- 1.6
-  } else {
-    expected_speedup <- 1.4
-  }
-  expect_true(speedup > expected_speedup,
-              "Parallelization speedup is as expected")
+  # A priori, we do not know exactly what speed up will be available on a
+  # particular system. Testing with OSX gave values between 1.75 and 1.89 while
+  # on Linux the observed values were between 1.50 and 1.56. Given this
+  # uncertainty, we only want the tests to fail if *no speedup* is observed.
+  expect_true(speedup > 1.0, "Parallelization speedup is observed")
 })
 
 test_that("Adaptive non-parametric learning with posterior samples works", {
