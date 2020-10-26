@@ -8,7 +8,10 @@ dist: xenial
 env:
   - LINTR_COMMENT_BOT=false
 
-# Construct the matrix of OS and R versions
+# Disable LaTeX installation which often fails on OSX
+latex: false
+
+# Construct the job matrix of OS and R versions
 os:
   - linux
   - osx
