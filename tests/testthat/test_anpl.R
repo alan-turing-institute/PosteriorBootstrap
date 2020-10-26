@@ -135,10 +135,15 @@ test_that("Parallelisation works and is faster", {
                  gamma_vcov = diag(1, n_cov),
                  threshold = 1e-8)
 
+  print(paste("params: ", params))
+
   durations <- list()
   for (i in c(1, 2)) {
+    print(sprintf("Iteration with %1.0f core(s)", i))
     start <- Sys.time()
+    print(start)
     anpl_samples <- do.call(draw_logit_samples, c(list(num_cores = i), params))
+    print(sprintf("Duration %1.0f", as.double(Sys.time() - start, units = "secs")))
     durations[[i]] <- as.double(Sys.time() - start, units = "secs")
     print(sprintf("Duration with %1.0f core(s): %4.4f s", i, durations[[i]]))
   }
