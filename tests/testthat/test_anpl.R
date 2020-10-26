@@ -125,7 +125,7 @@ test_that("Parallelisation works and is faster", {
   german <- get_german_credit_dataset()
   n_cov <- ncol(german$x)
 
-  n_bootstrap <- 2000
+  n_bootstrap <- 10000
 
   params <- list(x = german$x,
                  y = german$y,
@@ -136,7 +136,7 @@ test_that("Parallelisation works and is faster", {
                  threshold = 1e-8)
 
   durations <- list()
-  for (i in c(1, 2)) {
+  for (i in c(1, parallel::detectCores(logical = FALSE))) {
     start <- Sys.time()
     anpl_samples <- do.call(draw_logit_samples, c(list(num_cores = i), params))
     durations[[i]] <- as.double(Sys.time() - start, units = "secs")
@@ -146,9 +146,9 @@ test_that("Parallelisation works and is faster", {
   speedup <- durations[[1]] / durations[[2]]
   print(sprintf("Speedup: %3.2f (1 = same duration)", speedup))
 
-  # A priori, we do not know exactly what speed up will be available on a
-  # particular system. Testing with OSX gave values between 1.75 and 1.89 while
-  # on Linux the observed values were between 1.50 and 1.56. Given this
+  # A priori, we do not know how much overhead will be added by setting up the
+  # parallelisation step. Currently OSX is giving values between 1.75 and 1.89
+  # while on Linux the observed values were between 1.50 and 1.56. Given this
   # uncertainty, we only want the tests to fail if *no speedup* is observed.
   expect_true(speedup > 1.0, "Parallelization speedup is observed")
 })
