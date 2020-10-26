@@ -1,4 +1,3 @@
-sudo: enabled
 language: r
 warnings_are_errors: true
 
@@ -20,12 +19,11 @@ r:
 
 # Specify any additional packages that might be needed
 addons:
+  apt:
+    update: true
   homebrew:
     packages:
     - llvm
-addons:
-  apt:
-    update: true
 
 before_install:
   - |
@@ -44,13 +42,10 @@ before_install:
 # Travis treats builds with different environment variables as different builds.
 # We therefore remove the one we don't want in order to replace it with the one
 # we do.
-matrix:
+jobs:
   exclude:
     - os: linux
       r: release
-      env: LINTR_COMMENT_BOT=false
-    - os: osx
-      r: devel
       env: LINTR_COMMENT_BOT=false
   include:
     - os: linux
