@@ -23,6 +23,9 @@ addons:
   homebrew:
     packages:
     - llvm
+addons:
+  apt:
+    update: true
 
 before_install:
   - |
@@ -32,6 +35,9 @@ before_install:
       echo "CC=$(brew --prefix llvm)/bin/clang" > ~/.R/Makevars
       echo "CXX=$(brew --prefix llvm)/bin/clang++" >> ~/.R/Makevars
       echo "LDFLAGS=-L$(brew --prefix llvm)/lib" >> ~/.R/Makevars
+    elif [ "${TRAVIS_OS_NAME}" == "linux" ]; then
+      # Ensure that a V8 engine is installed
+      sudo apt-get -y install libv8-dev
     fi
 
 # Explicitly enable the lintr-bot for one build (this avoids duplicate comments).
