@@ -14,7 +14,6 @@ latex: false
 # Construct the job matrix of OS and R versions
 os:
   - linux
-  - osx
 r:
   - oldrel
   - release
@@ -46,8 +45,6 @@ before_install:
 # Travis treats builds with different environment variables as different builds.
 # We therefore remove the one we don't want in order to replace it with the one
 # we do.
-# Note that OSX sometimes has issues with the development version of R so we
-# allow this job to fail without causing a CI failure
 jobs:
   exclude:
     - os: linux
@@ -57,9 +54,6 @@ jobs:
     - os: linux
       r: release
       env: LINTR_COMMENT_BOT=true
-  allow_failures:
-    - os: osx
-      r: devel
 
 # Add R packages from CRAN. If newer versions are needed, r_github_packages
 # can be used instead
