@@ -1,6 +1,6 @@
 Package: PosteriorBootstrap
 Title: Non-Parametric Sampling with Parallel Monte Carlo
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person(given = "Simon", family = "Lyddon", role = c("aut"), email = "simon.lyddon@stats.ox.ac.uk"),
     person(given = "Miguel", family = "Morin", role = c("aut"), email = "info@turing.ac.uk"),
@@ -20,7 +20,6 @@ Description: An implementation of a non-parametric statistical model using a
     functions" <arXiv:1806.11544>.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Imports:
     dplyr (>= 0.7.4),
     e1071 (>= 1.7.1),
@@ -36,8 +35,8 @@ Suggests:
     knitr (>= 1.21),
     lintr (>= 1.0.3),
     rmarkdown (>= 1.11),
+    roxygen2 (>= 6.1.1),
     testthat (>= 2.0.1)
-RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 URL: https://github.com/alan-turing-institute/PosteriorBootstrap/
 BugReports: https://github.com/alan-turing-institute/PosteriorBootstrap/issues

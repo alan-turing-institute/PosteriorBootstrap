@@ -4,8 +4,11 @@
 \alias{get_german_credit_dataset}
 \title{Load and pre-process the dataset that ships with the package}
 \usage{
-get_german_credit_dataset(scale = TRUE, add_constant_term = TRUE,
-  download_destination = NULL)
+get_german_credit_dataset(
+  scale = TRUE,
+  add_constant_term = TRUE,
+  download_destination = NULL
+)
 }
 \arguments{
 \item{scale}{Whether to scale the features to have mean 0 and variance 1.}

@@ -7,11 +7,12 @@
 
 #' A package with a parallel approach for adaptive non-parametric learning
 #'
-#' The foo package provides two categories of functions. The first category
-#' returns or loads the system files that ship with the package: get_stan_file,
-#' get_german_credit_file, get_german_credit_dataset. The second category
-#' performs statistical sampling: draw_stick_breaks and draw_logit_samples (for
-#' adaptive non-parametric learning of the logistic regression model).
+#' The PosteriorBootstrap package provides two categories of functions.
+#' The first category returns or loads the system files that ship with the
+#' package: get_stan_file, get_german_credit_file, get_german_credit_dataset.
+#' The second category performs statistical sampling: draw_stick_breaks and
+#' draw_logit_samples (for adaptive non-parametric learning of the logistic
+#' regression model).
 #'
 #' Please see the vignette for sample usage and performance metrics.
 #'
