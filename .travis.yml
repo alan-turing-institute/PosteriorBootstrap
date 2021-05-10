@@ -1,7 +1,8 @@
 language: r
 warnings_are_errors: true
 
-# Use Xenial whenever running in Linux (ignored for OS X)
+# Use Focal whenever running in Linux (ignored for OS X)
+dist: focal
 
 # Disable lintr-bot comments by default
 env:
@@ -10,12 +11,9 @@ env:
 # Disable LaTeX installation which often fails on OSX
 latex: false
 
-# Construct the job matrix of OS, distribution and R versions
+# Construct the job matrix of OS and R versions
 os:
   - linux
-dist:
-  - focal
-  - xenial
 r:
   - oldrel
   - release

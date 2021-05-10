@@ -1,15 +1,11 @@
 ## Test environments
-* local OS X install, R 3.5.1
-* Ubuntu 16.04 (on travis-ci) R 3.5.3
-* OS X (on travis-ci) R 3.5.3
-* Ubuntu 16.04 (on travis-ci) R 3.6.1
-* OS X (on travis-ci) R 3.6.1
-
+* macOS 10.15.7 (local) R 4.0.5
+* Ubuntu 18.04 (on travis-ci) R 2021-05-09 r80275
+* Ubuntu 18.04 (on travis-ci) R 4.0.2
+* Ubuntu 18.04 (on travis-ci) R 3.6.3
 
 ## devtools::check() results
 There were no ERRORs, WARNINGs or NOTEs.
-
-NB. This is the first submission of this package
 
 ## Downstream dependencies
 There are currently no downstream dependencies for this package
