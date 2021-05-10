@@ -4,9 +4,18 @@
 \alias{draw_logit_samples}
 \title{Draw adaptive non-parametric learning samples for logistic regression}
 \usage{
-draw_logit_samples(x, y, concentration, n_bootstrap = 100,
-  posterior_sample = NULL, gamma_mean = NULL, gamma_vcov = NULL,
-  threshold = 1e-08, num_cores = 1, show_progress = FALSE)
+draw_logit_samples(
+  x,
+  y,
+  concentration,
+  n_bootstrap = 100,
+  posterior_sample = NULL,
+  gamma_mean = NULL,
+  gamma_vcov = NULL,
+  threshold = 1e-08,
+  num_cores = 1,
+  show_progress = FALSE
+)
 }
 \arguments{
 \item{x}{The features of the data.}

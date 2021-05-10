@@ -4,8 +4,12 @@
 \alias{draw_stick_breaks}
 \title{Draw stick-breaks depending on a concentration parameter}
 \usage{
-draw_stick_breaks(concentration = 1, min_stick_breaks = 100,
-  threshold = 1e-08, seed = NULL)
+draw_stick_breaks(
+  concentration = 1,
+  min_stick_breaks = 100,
+  threshold = 1e-08,
+  seed = NULL
+)
 }
 \arguments{
 \item{concentration}{The parameter \code{c} in the paper (page 3, formula 3),
