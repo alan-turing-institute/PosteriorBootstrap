@@ -32,6 +32,10 @@ test_that("German Statlog data loads properly", {
 })
 
 test_that("German Statlog data that ships is the same as source", {
+  # This tests the availability of the remote German credit data server
+  # As failure here is out of our control we do not want it to cause removal from CRAN
+  skip_on_cran()
+
   local <- get_german_credit_dataset(scale = FALSE)
   remote <- get_german_credit_dataset(scale = FALSE,
                                       download_destination = tempfile())
