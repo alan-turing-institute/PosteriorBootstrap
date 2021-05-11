@@ -18,6 +18,7 @@ Description: An implementation of a non-parametric statistical model using a
     described in full in the paper Lyddon, Walker, and Holmes (2018),
     "Nonparametric learning from Bayesian models with randomized objective
     functions" <arXiv:1806.11544>.
+Language: en-GB
 License: MIT + file LICENSE
 Encoding: UTF-8
 Imports:

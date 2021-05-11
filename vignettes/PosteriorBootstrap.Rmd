@@ -268,7 +268,7 @@ approximations, that our algorithm can correct.
 
 # Parallelisation and performance
 
-Our construction admits a trivially parallelizable sampler once the parametric
+Our construction admits a trivially parallelisable sampler once the parametric
 posterior samples have been generated (or if the concentration `c` equals
 0). Note that, although some algorithms to generate the parametric posterior
 samples may be parallelisable, above we use a Markov Chain-Monte Carlo algorithm
