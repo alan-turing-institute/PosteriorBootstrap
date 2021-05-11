@@ -276,7 +276,7 @@ from RStan, which is not parallelisable. We emphasise that the part of our
 algorithm that benefits from modern parallel computer architectures happens
 after we have the posterior samples (or if `c=0`).
 
-We now illustrate the paralellisation speedup. The calculation of the expected
+We now illustrate the parallelisation speedup. The calculation of the expected
 speedup depends on the number of bootstrap samples and the number of
 processors. It also depends on the system: it is larger on macOS than on Linux,
 with some variation depending on the version of R.

@@ -31,7 +31,7 @@ generate non-parametric-learning samples, or it can take NULL and the
 posterior is assumed normal N(\code{gamma_mean}, \code{gamma_vcov}). If
 provided, the posterior sample must have a number of columns equal to the
 number of covariates and a number of rows equal or larger than the
-`n_bootrstap` (as the algorithm draws a new sample based on a single draw
+`n_bootstrap` (as the algorithm draws a new sample based on a single draw
 of the posterior sample).}
 
 \item{gamma_mean}{In case \code{posterior_sample} is NULL, the mean for the
