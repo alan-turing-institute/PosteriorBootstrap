@@ -11,8 +11,6 @@ name: build-package
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
 
@@ -53,9 +51,14 @@ jobs:
         run: devtools::build()
         shell: Rscript {0}
 
-      - name: Archive production artifacts
+      - name: Move tarball
+        run: |
+          mv ${{ github.workspace }}/../*tar.gz ${{ github.workspace }}
+          ls -alh ${{ github.workspace }}
+
+      - name: Archive package tarball
         uses: actions/upload-artifact@main
         with:
-          name: devtools-package
-          path: |
-            $GITHUB_WORKSPACE/PosteriorBootstrap_*.tar.gz
+          name: package-tarball
+          if-no-files-found: error
+          path: ${{ github.workspace }}/*.tar.gz
