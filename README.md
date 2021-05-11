@@ -12,7 +12,7 @@ learning, we no longer have to assume that the model is true.
 
 This package implements a non-parametric statistical model using a parallelised
 Monte Carlo sampling scheme. The method implemented in this package allows
-non-parameteric inference to be regularized for small sample sizes, while also
+non-parametric inference to be regularized for small sample sizes, while also
 being more accurate than approximations such as variational Bayes.
 
 The concentration parameter is an effective sample size parameter, determining
@@ -99,11 +99,11 @@ large the bootstrap samples, and always below 1. For large samples with
 ## Reproducing the results on Azure
 
 To run the results in this section automatically, you'll need a [Microsoft Azure
-subscription](http://azure.microsoft.com/en-gb/) (one of the [free
-subscriptions](http://azure.microsoft.com/en-gb/free/) for example) and the
+subscription](https://azure.microsoft.com/en-gb/) (one of the [free
+subscriptions](https://azure.microsoft.com/en-gb/free/) for example) and the
 [Azure Command-Line
-Interface (CLI)](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest). You
-will need to login to your Azure account with the Azure CLI:
+Interface (CLI)](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-macos?view=azure-cli-latest).
+You will need to login to your Azure account with the Azure CLI:
 
 ```bash
 az login
