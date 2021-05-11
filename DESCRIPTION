@@ -37,6 +37,6 @@ Suggests:
     rmarkdown (>= 1.11),
     roxygen2 (>= 6.1.1),
     testthat (>= 2.0.1)
-VignetteBuilder: knitr
+VignetteBuilder: knitr, rmarkdown
 URL: https://github.com/alan-turing-institute/PosteriorBootstrap/
 BugReports: https://github.com/alan-turing-institute/PosteriorBootstrap/issues
