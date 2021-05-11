@@ -2,8 +2,7 @@
 [![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
 [![CRAN Status](https://www.r-pkg.org/badges/version/PosteriorBootstrap)](https://cran.r-project.org/package=PosteriorBootstrap)
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/PosteriorBootstrap)](https://www.r-pkg.org/pkg/PosteriorBootstrap)
-[![Travis build Status](https://travis-ci.com/alan-turing-institute/PosteriorBootstrap.svg?branch=master)](https://travis-ci.com/alan-turing-institute/PosteriorBootstrap)
-[![R-CMD-check](https://github.com/alan-turing-institute/PosteriorBootstrap/workflows/R-CMD-check/badge.svg)](https://github.com/alan-turing-institute/PosteriorBootstrap/actions)
+[![Package check](https://github.com/alan-turing-institute/PosteriorBootstrap/workflows/check-package/badge.svg)](https://github.com/alan-turing-institute/PosteriorBootstrap/actions)
 [![Codecov test coverage](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap/branch/master/graph/badge.svg)](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap)
 
 Bayesian learning is built on an assumption that the model space contains a true
