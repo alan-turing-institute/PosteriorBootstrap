@@ -7,6 +7,17 @@ k_extdata <- "extdata"
 k_package <- "PosteriorBootstrap"
 k_stan_model <- "bayes_logit.stan"
 
+#' Get a file from extdata by name
+#'
+#' @param name The filename that is requested
+#'
+#' @return The requested file
+#'
+#' @examples
+#' f <- get_file('bayes_logit.stan')
+#' writeLines(readLines(f))
+#'
+#' @export
 get_file <- function(name) {
   return(system.file(k_extdata, name, package = k_package))
 }

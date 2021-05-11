@@ -56,12 +56,15 @@ jobs:
         run: devtools::test()
         shell: Rscript {0}
 
+      - name: Test coverage with covr
+        run: covr::codecov()
+        shell: Rscript {0}
+
+      - name: Install package before linting
+        run: R CMD INSTALL .
+
       - name: Test code style with lintr
         env:
           LINTR_COMMENT_BOT: true
         run: lintr::lint_package()
-        shell: Rscript {0}
-
-      - name: Test coverage with covr
-        run: covr::codecov()
         shell: Rscript {0}
