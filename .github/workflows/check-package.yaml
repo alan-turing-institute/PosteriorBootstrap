@@ -71,10 +71,12 @@ jobs:
           devtools::install_deps(dependencies = TRUE)
         shell: Rscript {0}
 
-      - name: Check
+      - name: Check package
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
-        run: devtools::check()
+        run: |
+          devtools::test()
+          devtools::check()
         shell: Rscript {0}
 
       - name: Upload check results
