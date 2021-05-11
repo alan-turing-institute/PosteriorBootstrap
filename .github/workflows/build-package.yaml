@@ -6,10 +6,10 @@ on:
     branches:
       - master
 
-name: test-coverage
+name: build-package
 
 jobs:
-  test-coverage:
+  build:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -46,9 +46,17 @@ jobs:
         run: |
           install.packages(c("remotes"))
           remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("covr")
+          remotes::install_cran("devtools")
         shell: Rscript {0}
 
-      - name: Test coverage
-        run: covr::codecov()
+      - name: Build package
+        run: devtools::build()
         shell: Rscript {0}
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@main
+        with:
+          name: devtools-package
+          path: |
+            dist
+            !dist/**/*.md
