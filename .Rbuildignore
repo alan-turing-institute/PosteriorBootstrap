@@ -3,7 +3,6 @@
 ^doc$
 ^codecov\.yml$
 ^\.lintr$
-^\.travis\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^vignettes/\.build\.timestamp$
