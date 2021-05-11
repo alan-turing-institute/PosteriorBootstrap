@@ -9,7 +9,7 @@ on:
 name: build-package
 
 jobs:
-  build:
+  build-package:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
