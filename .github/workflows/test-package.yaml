@@ -9,14 +9,34 @@ on:
 name: test-package
 
 jobs:
-  test-coverage:
-    runs-on: ubuntu-latest
+  test-package:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: ubuntu-20.04, r: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: ubuntu-20.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: ubuntu-18.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/bionic/latest"}
+          - {os: macOS-latest, r: 'release'}
+          - {os: windows-latest, r: 'release'}
+
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      RSPM: ${{ matrix.config.rspm }}
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Setup R
         uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: ${{ matrix.config.r }}
 
       - name: Setup Pandoc
         uses: r-lib/actions/setup-pandoc@v1
@@ -50,21 +70,21 @@ jobs:
           devtools::install_dev_deps(dependencies = TRUE)
         shell: Rscript {0}
 
+      - name: Check package with devtools
+        env:
+          _R_CHECK_CRAN_INCOMING_REMOTE_: false
+        run: devtools::check()
+        shell: Rscript {0}
+
       - name: Test package with devtools
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         run: devtools::test()
         shell: Rscript {0}
 
-      - name: Test coverage with covr
-        run: covr::codecov()
-        shell: Rscript {0}
-
-      - name: Install package before linting
-        run: R CMD INSTALL .
-
-      - name: Test code style with lintr
-        env:
-          LINTR_COMMENT_BOT: true
-        run: lintr::lint_package()
-        shell: Rscript {0}
+      - name: Upload check results
+        if: failure()
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{ runner.os }}-r-${{ matrix.config.r }}-results
+          path: check
