@@ -2,6 +2,7 @@
 
 export(draw_logit_samples)
 export(draw_stick_breaks)
+export(get_file)
 export(get_german_credit_dataset)
 export(get_german_credit_file)
 export(get_stan_file)
