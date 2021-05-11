@@ -6,7 +6,7 @@ on:
     branches:
       - master
 
-name: test-coverage
+name: test-package
 
 jobs:
   test-coverage:
@@ -50,6 +50,18 @@ jobs:
           devtools::install_dev_deps(dependencies = TRUE)
         shell: Rscript {0}
 
-      - name: Test coverage
+      - name: Test package with devtools
+        env:
+          _R_CHECK_CRAN_INCOMING_REMOTE_: false
+        run: devtools::test()
+        shell: Rscript {0}
+
+      - name: Test code style with lintr
+        env:
+          LINTR_COMMENT_BOT: true
+        run: lintr::lint_package()
+        shell: Rscript {0}
+
+      - name: Test coverage with covr
         run: covr::codecov()
         shell: Rscript {0}
