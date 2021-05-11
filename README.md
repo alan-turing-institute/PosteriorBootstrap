@@ -4,7 +4,7 @@
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/PosteriorBootstrap)](https://www.r-pkg.org/pkg/PosteriorBootstrap)
 [![Travis build Status](https://travis-ci.com/alan-turing-institute/PosteriorBootstrap.svg?branch=master)](https://travis-ci.com/alan-turing-institute/PosteriorBootstrap)
 [![R-CMD-check](https://github.com/alan-turing-institute/PosteriorBootstrap/workflows/R-CMD-check/badge.svg)](https://github.com/alan-turing-institute/PosteriorBootstrap/actions)
-[![codecov](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap/branch/master/graph/badge.svg)](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap)
+[![Codecov test coverage](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap/branch/master/graph/badge.svg)](https://codecov.io/gh/alan-turing-institute/PosteriorBootstrap)
 
 Bayesian learning is built on an assumption that the model space contains a true
 reflection of the data generating mechanism. This assumption can be problematic
