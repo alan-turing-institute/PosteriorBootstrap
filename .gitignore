@@ -11,6 +11,8 @@ inst/doc
 *-Ex.R
 # Output files from R CMD build
 /*.tar.gz
+# ... but allow the artifacts directory which is used in the build-package action
+!artifacts/*.tar.gz
 # Output files from R CMD check
 /*.Rcheck/
 # RStudio files
