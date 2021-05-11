@@ -1,9 +1,10 @@
 Meta
 inst/doc
+# GitHub actions
+.github/*.html
 # History files
 .Rhistory
 .Rapp.history
-
 # Session Data files
 *.RData
 # Example code in package build process
