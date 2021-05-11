@@ -121,6 +121,7 @@ test_that("Multiple processors are available", {
 
 test_that("Parallelisation works and is faster", {
   skip_on_cran()
+  skip_on_os(c("windows"))
 
   german <- get_german_credit_dataset()
   n_cov <- ncol(german$x)

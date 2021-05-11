@@ -58,5 +58,4 @@ jobs:
         with:
           name: devtools-package
           path: |
-            dist
-            !dist/**/*.md
+            $GITHUB_WORKSPACE/PosteriorBootstrap_*.tar.gz
