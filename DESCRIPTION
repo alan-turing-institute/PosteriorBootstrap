@@ -37,7 +37,9 @@ Suggests:
     roxygen2 (>= 6.1.1),
     testthat (>= 2.0.1),
     rstan (>= 2.18.2),
-    BH
+    BH,
+    RcppEigen,
+    RcppParallel
 VignetteBuilder: knitr, rmarkdown
 URL: https://github.com/alan-turing-institute/PosteriorBootstrap/
 BugReports: https://github.com/alan-turing-institute/PosteriorBootstrap/issues
