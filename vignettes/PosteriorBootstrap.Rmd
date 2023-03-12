@@ -285,7 +285,7 @@ Due to limitations in the R workflow,
 [this vignette is limited to one or two
 cores](https://stackoverflow.com/questions/41307178/error-processing-vignette-failed-with-diagnostics-4-simultaneous-processes-spa),
 but see the [GitHub
-page](https://github.com/alan-turing-institute/PosteriorBootstrap/blob/master/README.md)
+page](https://github.com/alan-turing-institute/PosteriorBootstrap/blob/main/README.md)
 for a plot up to 64 cores.
 
 ### Ahmdal's law
