@@ -15,7 +15,9 @@ inst/doc
 /*.Rcheck/
 # RStudio files
 .Rproj.user/
-# produced vignettes
+# CRAN submission file
+CRAN-SUBMISSION
+# Vignette outputs
 vignettes/*.html
 vignettes/*.pdf
 vignettes/*.R
