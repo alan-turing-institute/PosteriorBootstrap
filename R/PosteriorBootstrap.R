@@ -15,10 +15,7 @@
 #' regression model).
 #'
 #' Please see the vignette for sample usage and performance metrics.
-#'
-#' @docType package
-#' @name PosteriorBootstrap
-NULL
+"_PACKAGE"
 
 requireNamespace("e1071", quietly = TRUE)
 requireNamespace("MASS", quietly = TRUE)
