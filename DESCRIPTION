@@ -1,6 +1,6 @@
 Package: PosteriorBootstrap
 Title: Non-Parametric Sampling with Parallel Monte Carlo
-Version: 0.1.2
+Version: 0.1.3
 Authors@R: c(
     person(given = "Simon", family = "Lyddon", role = c("aut"), email = "simon.lyddon@stats.ox.ac.uk"),
     person(given = "Miguel", family = "Morin", role = c("aut"), email = "info@turing.ac.uk"),
@@ -43,3 +43,4 @@ Suggests:
 VignetteBuilder: knitr, rmarkdown
 URL: https://github.com/alan-turing-institute/PosteriorBootstrap/
 BugReports: https://github.com/alan-turing-institute/PosteriorBootstrap/issues
+RoxygenNote: 7.2.3
