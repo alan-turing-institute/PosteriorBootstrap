@@ -13,8 +13,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.width=7,
-  fig.height=3
+  fig.width = 7,
+  fig.height = 3
 )
 ```
 
@@ -99,16 +99,16 @@ stat_density_2d1 <- function(data = NULL,
                              position = "identity",
                              n = 100,
                              ...) {
-    ggplot2::layer(
-      data = data,
-      stat = stat_density_2d1_proto,
-      geom = geom,
-      position = position,
-      params = list(
-        n = n,
-        ...
-      )
+  ggplot2::layer(
+    data = data,
+    stat = stat_density_2d1_proto,
+    geom = geom,
+    position = position,
+    params = list(
+      n = n,
+      ...
     )
+  )
 }
 ```
 
@@ -150,10 +150,23 @@ the Bayesian logistic regression model that ships with this package:
 
 ```{r}
 if ("Windows" != Sys.info()["sysname"]) {
-  train_dat <- list(n = length(german$y), p = ncol(german$x), x = german$x, y = german$y, beta_sd = prior_sd)
+  train_dat <-
+    list(
+      n = length(german$y),
+      p = ncol(german$x),
+      x = german$x,
+      y = german$y,
+      beta_sd = prior_sd
+    )
   stan_file <- PosteriorBootstrap::get_stan_file()
-  bayes_log_reg <- rstan::stan(stan_file, data = train_dat, seed = seed,
-                        iter = n_bootstrap * 2, chains = 1)
+  bayes_log_reg <-
+    rstan::stan(
+      stan_file,
+      data = train_dat,
+      seed = seed,
+      iter = n_bootstrap * 2,
+      chains = 1
+    )
   stan_bayes_sample <- rstan::extract(bayes_log_reg)$beta
 }
 ```
@@ -168,7 +181,7 @@ Non-Parametric Learning algorithm:
 if ("Windows" != Sys.info()["sysname"]) {
   stan_model <- rstan::stan_model(file = stan_file)
   stan_vb <- rstan::vb(object = stan_model, data = train_dat, seed = seed,
-                  output_samples = n_bootstrap)
+                       output_samples = n_bootstrap)
   stan_vb_sample <- rstan::extract(stan_vb)$beta
 }
 ```
@@ -183,12 +196,16 @@ if ("Windows" != Sys.info()["sysname"]) {
     concentrations <- c(1, 500)
     anpl_samples <- list()
     for (concentration in concentrations) {
-      anpl_sample <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
-                                                            concentration = concentration,
-                                                            n_bootstrap = n_bootstrap,
-                                                            posterior_sample = stan_vb_sample,
-                                                            threshold = 1e-8,
-                                                            show_progress = TRUE)
+      anpl_sample <-
+        PosteriorBootstrap::draw_logit_samples(
+          x = german$x,
+          y = german$y,
+          concentration = concentration,
+          n_bootstrap = n_bootstrap,
+          posterior_sample = stan_vb_sample,
+          threshold = 1e-8,
+          show_progress = TRUE
+        )
       anpl_samples[[toString(concentration)]] <- anpl_sample
     }
   }
@@ -211,18 +228,32 @@ if ("Windows" != Sys.info()["sysname"]) {
 
     # Create a plot data frame with all the samples
     for (concentration in concentrations) {
-      plot_df  <- append_to_plot(plot_df, sample = anpl_samples[[toString(concentration)]],
-                                method = "PosteriorBootstrap-ANPL",
-                                concentration = concentration,
-                                x_index = x_index, y_index = y_index)
-      plot_df  <- append_to_plot(plot_df, sample = stan_bayes_sample,
-                                method = "Bayes-Stan",
-                                concentration = concentration,
-                                x_index = x_index, y_index = y_index)
-      plot_df  <- append_to_plot(plot_df, sample = stan_vb_sample,
-                                method = "VB-Stan",
-                                concentration = concentration,
-                                x_index = x_index, y_index = y_index)
+      plot_df  <-
+        append_to_plot(
+          plot_df,
+          sample = anpl_samples[[toString(concentration)]],
+          method = "PosteriorBootstrap-ANPL",
+          concentration = concentration,
+          x_index = x_index,
+          y_index = y_index
+        )
+      plot_df  <-
+        append_to_plot(
+          plot_df,
+          sample = stan_bayes_sample,
+          method = "Bayes-Stan",
+          concentration = concentration,
+          x_index = x_index,
+          y_index = y_index
+        )
+      plot_df  <- append_to_plot(
+        plot_df,
+        sample = stan_vb_sample,
+        method = "VB-Stan",
+        concentration = concentration,
+        x_index = x_index,
+        y_index = y_index
+      )
     }
   }
 }
@@ -235,22 +266,28 @@ And now we plot the result of the algorithm:
 ```{r, fig.show = "asis"}
 if ("Windows" != Sys.info()["sysname"]) {
   if (identical(Sys.getenv("NOT_CRAN", unset = "true"), "true")) {
-    ggplot2::ggplot(ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
-                    data = dplyr::filter(plot_df, plot_df$Method != "Bayes-Stan")) +
+    ggplot2::ggplot(
+      ggplot2::aes_string(x = "x", y = "y", colour = "Method"),
+      data = dplyr::filter(plot_df, plot_df$Method != "Bayes-Stan")
+    ) +
       stat_density_2d1(bins = 5) +
-      ggplot2::geom_point(alpha = 0.1, size = 1,
-                          data = dplyr::filter(plot_df,
-                                              plot_df$Method == "Bayes-Stan")) +
-      ggplot2::facet_wrap(~concentration, nrow = 1,
-                          scales = "fixed",
-                          labeller = ggplot2::label_bquote(c ~" = "~
-                                                            .(concentration))
-                          ) +
+      ggplot2::geom_point(
+        alpha = 0.1,
+        size = 1,
+        data = dplyr::filter(plot_df,
+                             plot_df$Method == "Bayes-Stan")
+      ) +
+      ggplot2::facet_wrap(
+        ~ concentration,
+        nrow = 1,
+        scales = "fixed",
+        labeller = ggplot2::label_bquote(c ~ " = " ~ .(concentration))
+      ) +
       ggplot2::theme_grey(base_size = 8) +
       ggplot2::xlab(bquote(beta[.(x_index)])) +
       ggplot2::ylab(bquote(beta[.(y_index)])) +
       ggplot2::theme(legend.position = "none",
-                    plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
+                     plot.margin = ggplot2::margin(0, 10, 0, 0, "pt"))
   }
 }
 ```
@@ -298,7 +335,7 @@ duration of the task with `N` processors.  We compute the duration for one or tw
 several values of bootstrap samples.
 
 ```{r}
-if ("Windows" != Sys.info()["sysname"] ) {
+if ("Windows" != Sys.info()["sysname"]) {
   speedups  <- data.frame(stringsAsFactors = FALSE)
   max_cores <- 2
   n_bootstrap_array <- c(1e2, 2e2, 5e2)
@@ -306,20 +343,25 @@ if ("Windows" != Sys.info()["sysname"] ) {
   for (n_bootstrap in n_bootstrap_array) {
     one_core_duration <- NULL
     for (num_cores in seq(1, max_cores)) {
-
       start <- Sys.time()
-      anpl_samples <- PosteriorBootstrap::draw_logit_samples(x = german$x, y = german$y,
-                                                            concentration = 1,
-                                                            n_bootstrap = n_bootstrap,
-                                                            gamma_mean = rep(0, ncol(german$x)),
-                                                            gamma_vcov = diag(1, ncol(german$x)),
-                                                            threshold = 1e-8,
-                                                            num_cores = num_cores)
+      anpl_samples <-
+        PosteriorBootstrap::draw_logit_samples(
+          x = german$x,
+          y = german$y,
+          concentration = 1,
+          n_bootstrap = n_bootstrap,
+          gamma_mean = rep(0, ncol(german$x)),
+          gamma_vcov = diag(1, ncol(german$x)),
+          threshold = 1e-8,
+          num_cores = num_cores
+        )
       lap <- as.double((Sys.time() - start), units = "secs")
-    if (1 == num_cores) {
-      one_core_duration <- lap
+      if (1 == num_cores) {
+        one_core_duration <- lap
       }
-      speedups <- rbind(speedups, c(num_cores, n_bootstrap, one_core_duration / lap))
+      speedups <-
+        rbind(speedups,
+              c(num_cores, n_bootstrap, one_core_duration / lap))
     }
     names(speedups) <- c("Num_cores", "N_bootstrap", "speedup")
   }
@@ -345,14 +387,16 @@ processors. Calculating this value for the durations from 1 to 8 cores, we obtai
 this plot, where the proportion of the code that can be parallelised is high:
 
 ```{r}
-if ("Windows" != Sys.info()["sysname"] ) {
+if ("Windows" != Sys.info()["sysname"]) {
   library("gridExtra")
-
   # Remove single core speedup, where the proportion is not defined
   speedups <- speedups[1 != speedups$Num_cores, ]
-  speedups$proportion <- (1 / speedups$speedup - 1) / (1 / speedups$Num_cores - 1)
-
-  ggplot2::qplot(proportion, data = speedups, fill = N_bootstrap, binwidth = 0.005) +
-    ggplot2::facet_wrap(facets = ~N_bootstrap)
+  speedups$proportion <-
+    (1 / speedups$speedup - 1) / (1 / speedups$Num_cores - 1)
+  ggplot2::qplot(proportion,
+                 data = speedups,
+                 fill = N_bootstrap,
+                 binwidth = 0.005) +
+    ggplot2::facet_wrap(facets = ~ N_bootstrap)
 }
 ```
