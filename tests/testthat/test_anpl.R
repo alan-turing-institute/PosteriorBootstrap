@@ -42,7 +42,7 @@ test_that("Adaptive non-parametric learning avoids bad inputs", {
                                   gamma_mean = rep(0, n_cov - 1),
                                   gamma_vcov = gamma_vcov),
                regexp = paste0("You need to give a vector for the mean ",
-                  "of the centering model with size "))
+                               "of the centering model with size "))
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
                                   gamma_mean = gamma_mean,
                                   gamma_vcov = diag(1, n_cov - 1)),
@@ -61,9 +61,9 @@ test_that("Adaptive non-parametric learning avoids bad inputs", {
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
                                   n_bootstrap = n_bootstrap,
                                   posterior_sample = posterior_sample2),
-               regexp = paste0("The posterior sample must have a number of ",
-                               "rows no smaller than n_bootstrap")
-               )
+    regexp = paste0("The posterior sample must have a number of ",
+                    "rows no smaller than n_bootstrap")
+  )
 
   # Concentration
   expect_error(draw_logit_samples(x = x, y = y, concentration = "string",
@@ -78,8 +78,8 @@ test_that("Adaptive non-parametric learning avoids bad inputs", {
   # Outcome values in (0, 1)
   y[1] <- -1
   expect_error(draw_logit_samples(x = x, y = y, concentration = 1,
-                                   gamma_mean = gamma_mean,
-                                   gamma_vcov = gamma_vcov),
+                                  gamma_mean = gamma_mean,
+                                  gamma_vcov = gamma_vcov),
                regexp = "The values of y must all be in \\(0, 1\\)")
 })
 

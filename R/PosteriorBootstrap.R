@@ -135,11 +135,11 @@ check_inputs <- function(x, y, concentration, n_bootstrap, posterior_sample,
     }
     if (is.null(gamma_vcov)) {
       stop(paste0("If you don't provide a posterior sample, you ",
-                               "must provide a variance-covariance for the ",
-                               "centering model"))
-      }
+                  "must provide a variance-covariance for the ",
+                  "centering model"))
+    }
 
-    if (!(all(is.numeric(gamma_mean)) & all(is.numeric(gamma_vcov)))) {
+    if (!(all(is.numeric(gamma_mean)) && all(is.numeric(gamma_vcov)))) {
       stop(paste0("Invalid input: the mean and variance-",
                   "covariance of the centering model need ",
                   "to be numeric"))
