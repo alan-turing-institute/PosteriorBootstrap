@@ -98,11 +98,7 @@ large the bootstrap samples, and always below 1. For large samples with
 
 ## Reproducing the results on Azure
 
-To run the results in this section automatically, you'll need a [Microsoft Azure
-subscription](https://azure.microsoft.com/en-gb/) (one of the [free
-subscriptions](https://azure.microsoft.com/en-gb/free/) for example) and the
-[Azure Command-Line
-Interface (CLI)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-macos).
+To run the results in this section automatically, you'll need a [Microsoft Azure subscription](https://azure.microsoft.com/en-gb) (one of the [free subscriptions](https://azure.microsoft.com/en-gb/pricing/purchase-options/azure-account?icid=azurefreeaccount) for example) and the [Azure Command-Line Interface (CLI)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-macos).
 You will need to login to your Azure account with the Azure CLI:
 
 ```bash
