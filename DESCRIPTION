@@ -44,4 +44,4 @@ Suggests:
 VignetteBuilder: knitr, rmarkdown
 URL: https://github.com/alan-turing-institute/PosteriorBootstrap/
 BugReports: https://github.com/alan-turing-institute/PosteriorBootstrap/issues
-Config/roxygen2/version: 8.1.0
+RoxygenNote: 8.1.0
