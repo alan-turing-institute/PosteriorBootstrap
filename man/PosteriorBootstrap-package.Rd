@@ -25,11 +25,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: James Robinson \email{jrobinson@turing.ac.uk}
+\strong{Maintainer}: James Robinson \email{james.em.robinson@gmail.com}
 
 Authors:
 \itemize{
-  \item James Robinson \email{jrobinson@turing.ac.uk}
+  \item James Robinson \email{james.em.robinson@gmail.com}
   \item Simon Lyddon \email{simon.lyddon@stats.ox.ac.uk}
   \item Miguel Morin \email{info@turing.ac.uk}
 }
