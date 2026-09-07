@@ -25,16 +25,18 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: James Robinson \email{james.em.robinson@gmail.com}
+\strong{Maintainer}: James Robinson \email{jrobinson@turing.ac.uk}
 
 Authors:
 \itemize{
+  \item James Robinson \email{jrobinson@turing.ac.uk}
   \item Simon Lyddon \email{simon.lyddon@stats.ox.ac.uk}
   \item Miguel Morin \email{info@turing.ac.uk}
 }
 
 Other contributors:
 \itemize{
+  \item Matt Craddock \email{mcraddock@turing.ac.uk} [contributor]
   \item The Alan Turing Institute \email{info@turing.ac.uk} [copyright holder]
 }
 
