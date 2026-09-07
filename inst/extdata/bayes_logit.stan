@@ -3,7 +3,7 @@ data {
   int<lower=0> n; // number of observations
   int<lower=0> p; // number of covariates
   matrix[n,p] x; // Matrix of covariates
-  int<lower=0,upper=1> y[n]; // Responses
+  array[n] int<lower=0,upper=1> y; // Responses
   real<lower=0> beta_sd; // Stdev of beta
 }
 parameters {
