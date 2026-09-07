@@ -1,5 +1,6 @@
 # PosteriorBootstrap 0.1.3
-- Updated package documentation to use correct Roxygen "_PACKAGE" sentinel
+- updated package documentation to use correct Roxygen "_PACKAGE" sentinel
+- updated Stan array syntax
 
 # PosteriorBootstrap 0.1.2
 - moved RStan from Imports to Suggests.
