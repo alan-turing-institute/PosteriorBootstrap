@@ -37,6 +37,10 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
 
+      - name: Get OS and R version
+        shell: bash
+        run: Rscript -e 'cat(sessionInfo()$running, "\n"); cat(R.version.string, "\n")'
+
       - name: Setup Pandoc
         uses: r-lib/actions/setup-pandoc@v2
 
